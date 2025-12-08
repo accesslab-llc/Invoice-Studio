@@ -93,5 +93,5 @@ This Privacy Policy may be changed without notice. If there are significant chan
 
 ---
 
-**Note**: This Privacy Policy is the English version. A Japanese version is also available.
+**Note**: This Privacy Policy is the English version. Japanese (PRIVACY_POLICY.md) and Spanish (PRIVACY_POLICY_ES.md) versions are also available.
 

@@ -137,5 +137,5 @@ If any provision of these Terms is found to be invalid or unenforceable, the val
 
 ---
 
-**Note**: These Terms of Service are the English version. A Japanese version is also available.
+**Note**: These Terms of Service are the English version. Japanese (TERMS_OF_SERVICE.md) and Spanish (TERMS_OF_SERVICE_ES.md) versions are also available.
 
