@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InvoiceStudio - メンテナンス中</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: linear-gradient(135deg, #14406B 0%, #1a5a8a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #ffffff;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .logo {
+      margin-bottom: 40px;
+    }
+
+    .logo img {
+      max-width: 200px;
+      height: auto;
+      filter: brightness(0) invert(1);
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .message {
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      opacity: 0.95;
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.3);
+      margin: 32px auto;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #ffffff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 32px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .message {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+
+      .logo img {
+        max-width: 150px;
+      }
+
+      .spinner {
+        width: 32px;
+        height: 32px;
+        margin: 24px auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 20px;
+      }
+
+      .message {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='32' font-weight='bold' fill='%23ffffff'%3EInvoiceStudio%3C/text%3E%3C/svg%3E" alt="InvoiceStudio Logo">
+    </div>
+    
+    <h1>メンテナンス中</h1>
+    
+    <div class="message">
+      InvoiceStudio は現在メンテナンス中です。<br>
+      数分後に再度アクセスしてください。
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="message">
+      InvoiceStudio is currently undergoing maintenance.<br>
+      Please try again in a few minutes.
+    </div>
+    
+    <div class="spinner"></div>
+  </div>
+</body>
+</html>
+
