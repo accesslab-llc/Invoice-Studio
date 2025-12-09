@@ -1,0 +1,25 @@
+{
+  "name": "InvoiceStudio",
+  "version": "1.0.0",
+  "description": "InvoiceStudio - Monday.com invoice generation app",
+  "build": {
+    "command": "npm run build",
+    "output": "dist"
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "status": 200
+    }
+  ],
+  "headers": {
+    "/(.*)": {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-XSS-Protection": "1; mode=block"
+    }
+  },
+  "note": "This is a configuration file for PipeDream. Actual settings may vary depending on PipeDream's platform. Please refer to PipeDream documentation for the exact format."
+}
+
