@@ -1,5 +1,5 @@
 /*
   X-Content-Type-Options: nosniff
-  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors https://*.monday.com https://monday.com;
   X-XSS-Protection: 1; mode=block
 
