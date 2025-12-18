@@ -215,26 +215,8 @@ class BoardSDK {
         console.warn('[BoardSDK] Could not get Monday context:', contextError);
       }
       
-      // Try to get token to verify authentication
-      try {
-        console.log('[BoardSDK] Attempting to get token...');
-        const tokenPromise = this.monday.get('token');
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Token request timeout after 5 seconds')), 5000)
-        );
-        const token = await Promise.race([tokenPromise, timeoutPromise]);
-        console.log('[BoardSDK] Token retrieved:', token ? 'Token exists' : 'Token is null/undefined');
-        if (token) {
-          console.log('[BoardSDK] Token type:', typeof token);
-          console.log('[BoardSDK] Token length:', token.length || 'N/A');
-        } else {
-          console.error('[BoardSDK] Token is null or undefined. This may indicate authentication issues.');
-        }
-      } catch (tokenError) {
-        console.warn('[BoardSDK] Could not get token:', tokenError);
-        console.warn('[BoardSDK] Token error details:', tokenError.message, tokenError.stack);
-        console.warn('[BoardSDK] Continuing without token verification...');
-      }
+      // Note: monday.api() automatically handles token retrieval internally
+      // We skip manual token retrieval to avoid blocking the API call
       
       // Use Monday SDK's api() method which handles CORS and authentication automatically
       // The api() method signature: api(query, { variables })
