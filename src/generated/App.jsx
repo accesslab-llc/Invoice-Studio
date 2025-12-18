@@ -473,7 +473,6 @@ const App = () => {
 
         {authError && (
           <Alert.Root status="error" variant="solid">
-            <Alert.Icon />
             <Alert.Title>認証エラー</Alert.Title>
             <Alert.Description>{authError}</Alert.Description>
           </Alert.Root>
