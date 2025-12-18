@@ -217,13 +217,18 @@ class BoardSDK {
       
       // Try to get token to verify authentication
       try {
+        console.log('[BoardSDK] Attempting to get token...');
         const token = await this.monday.get('token');
         console.log('[BoardSDK] Token retrieved:', token ? 'Token exists' : 'Token is null/undefined');
-        if (!token) {
+        if (token) {
+          console.log('[BoardSDK] Token type:', typeof token);
+          console.log('[BoardSDK] Token length:', token.length || 'N/A');
+        } else {
           console.error('[BoardSDK] Token is null or undefined. This may indicate authentication issues.');
         }
       } catch (tokenError) {
         console.warn('[BoardSDK] Could not get token:', tokenError);
+        console.warn('[BoardSDK] Token error details:', tokenError.message, tokenError.stack);
       }
       
       // Use Monday SDK's api() method which handles CORS and authentication automatically
@@ -231,33 +236,43 @@ class BoardSDK {
       console.log('[BoardSDK] Calling monday.api() with query and variables...');
       console.log('[BoardSDK] Query length:', query.length);
       console.log('[BoardSDK] Variables:', JSON.stringify(variables));
+      console.log('[BoardSDK] monday.api type:', typeof this.monday.api);
       
-      const result = await this.monday.api(query, { variables });
+      try {
+        console.log('[BoardSDK] About to call monday.api()...');
+        const result = await this.monday.api(query, { variables });
+        console.log('[BoardSDK] monday.api() call completed');
+        console.log('[BoardSDK] API response received:', result);
+        console.log('[BoardSDK] API response type:', typeof result);
       
-      console.log('[BoardSDK] API response received:', result);
-      console.log('[BoardSDK] API response type:', typeof result);
-      
-      // Check if result is undefined or null
-      if (result === undefined || result === null) {
-        console.error('[BoardSDK] API returned undefined or null');
-        console.error('[BoardSDK] This usually means:');
-        console.error('[BoardSDK] 1. API permissions are not set correctly in Monday.com Developer Center');
-        console.error('[BoardSDK] 2. Required scopes: boards:read, items:read, subitems:read');
-        console.error('[BoardSDK] 3. The app may not be properly authenticated');
-        throw new Error('Monday.com API returned undefined. Please check API permissions in Monday.com Developer Center (boards:read, items:read, subitems:read).');
-      }
-      
-      if (result.errors) {
-        console.error('[BoardSDK] GraphQL errors:', result.errors);
-        throw new Error(result.errors[0]?.message || 'GraphQL error');
-      }
+          // Check if result is undefined or null
+        if (result === undefined || result === null) {
+          console.error('[BoardSDK] API returned undefined or null');
+          console.error('[BoardSDK] This usually means:');
+          console.error('[BoardSDK] 1. API permissions are not set correctly in Monday.com Developer Center');
+          console.error('[BoardSDK] 2. Required scopes: boards:read, items:read, subitems:read');
+          console.error('[BoardSDK] 3. The app may not be properly authenticated');
+          throw new Error('Monday.com API returned undefined. Please check API permissions in Monday.com Developer Center (boards:read, items:read, subitems:read).');
+        }
+        
+        if (result.errors) {
+          console.error('[BoardSDK] GraphQL errors:', result.errors);
+          throw new Error(result.errors[0]?.message || 'GraphQL error');
+        }
 
-      if (!result.data) {
-        console.error('[BoardSDK] No data in response:', result);
-        throw new Error('No data returned from API');
-      }
+        if (!result.data) {
+          console.error('[BoardSDK] No data in response:', result);
+          throw new Error('No data returned from API');
+        }
 
-      return result.data;
+        console.log('[BoardSDK] Returning data:', result.data);
+        return result.data;
+      } catch (apiError) {
+        console.error('[BoardSDK] Error in monday.api() call:', apiError);
+        console.error('[BoardSDK] API error message:', apiError.message);
+        console.error('[BoardSDK] API error stack:', apiError.stack);
+        throw apiError;
+      }
     } catch (error) {
       console.error('[BoardSDK] GraphQL query failed:', error);
       console.error('[BoardSDK] Error message:', error.message);
