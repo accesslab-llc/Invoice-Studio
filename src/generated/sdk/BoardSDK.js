@@ -215,9 +215,23 @@ class BoardSDK {
         console.warn('[BoardSDK] Could not get Monday context:', contextError);
       }
       
+      // Try to get token to verify authentication
+      try {
+        const token = await this.monday.get('token');
+        console.log('[BoardSDK] Token retrieved:', token ? 'Token exists' : 'Token is null/undefined');
+        if (!token) {
+          console.error('[BoardSDK] Token is null or undefined. This may indicate authentication issues.');
+        }
+      } catch (tokenError) {
+        console.warn('[BoardSDK] Could not get token:', tokenError);
+      }
+      
       // Use Monday SDK's api() method which handles CORS and authentication automatically
       // The api() method signature: api(query, { variables })
       console.log('[BoardSDK] Calling monday.api() with query and variables...');
+      console.log('[BoardSDK] Query length:', query.length);
+      console.log('[BoardSDK] Variables:', JSON.stringify(variables));
+      
       const result = await this.monday.api(query, { variables });
       
       console.log('[BoardSDK] API response received:', result);
