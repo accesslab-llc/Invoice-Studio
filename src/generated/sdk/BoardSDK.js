@@ -194,22 +194,43 @@ class BoardSDK {
     try {
       console.log('[BoardSDK] Executing GraphQL query using Monday SDK api() method...');
       
+      // Check if monday object exists
+      if (!this.monday) {
+        console.error('[BoardSDK] Monday SDK object is not initialized');
+        throw new Error('Monday SDK is not initialized. Please check Monday SDK setup.');
+      }
+      
       // Check if monday.api() method exists
-      if (!this.monday || !this.monday.api) {
+      if (typeof this.monday.api !== 'function') {
         console.error('[BoardSDK] monday.api() method is not available');
-        throw new Error('Monday SDK api() method is not available. Please check Monday SDK initialization.');
+        console.error('[BoardSDK] Available methods:', Object.keys(this.monday));
+        throw new Error('Monday SDK api() method is not available. Please check Monday SDK initialization and API permissions in Monday.com Developer Center.');
+      }
+      
+      // Check if we're running in Monday.com context
+      try {
+        const context = await this.monday.get('context');
+        console.log('[BoardSDK] Monday context:', context);
+      } catch (contextError) {
+        console.warn('[BoardSDK] Could not get Monday context:', contextError);
       }
       
       // Use Monday SDK's api() method which handles CORS and authentication automatically
       // The api() method signature: api(query, { variables })
+      console.log('[BoardSDK] Calling monday.api() with query and variables...');
       const result = await this.monday.api(query, { variables });
       
       console.log('[BoardSDK] API response received:', result);
+      console.log('[BoardSDK] API response type:', typeof result);
       
       // Check if result is undefined or null
       if (result === undefined || result === null) {
         console.error('[BoardSDK] API returned undefined or null');
-        throw new Error('Monday.com API returned undefined. Please check authentication and API permissions.');
+        console.error('[BoardSDK] This usually means:');
+        console.error('[BoardSDK] 1. API permissions are not set correctly in Monday.com Developer Center');
+        console.error('[BoardSDK] 2. Required scopes: boards:read, items:read, subitems:read');
+        console.error('[BoardSDK] 3. The app may not be properly authenticated');
+        throw new Error('Monday.com API returned undefined. Please check API permissions in Monday.com Developer Center (boards:read, items:read, subitems:read).');
       }
       
       if (result.errors) {
@@ -226,6 +247,7 @@ class BoardSDK {
     } catch (error) {
       console.error('[BoardSDK] GraphQL query failed:', error);
       console.error('[BoardSDK] Error message:', error.message);
+      console.error('[BoardSDK] Error stack:', error.stack);
       console.error('[BoardSDK] Query:', query.substring(0, 200) + '...');
       console.error('[BoardSDK] Variables:', variables);
       
