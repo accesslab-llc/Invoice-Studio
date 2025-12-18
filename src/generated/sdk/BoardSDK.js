@@ -194,11 +194,23 @@ class BoardSDK {
     try {
       console.log('[BoardSDK] Executing GraphQL query using Monday SDK api() method...');
       
+      // Check if monday.api() method exists
+      if (!this.monday || !this.monday.api) {
+        console.error('[BoardSDK] monday.api() method is not available');
+        throw new Error('Monday SDK api() method is not available. Please check Monday SDK initialization.');
+      }
+      
       // Use Monday SDK's api() method which handles CORS and authentication automatically
       // The api() method signature: api(query, { variables })
       const result = await this.monday.api(query, { variables });
       
       console.log('[BoardSDK] API response received:', result);
+      
+      // Check if result is undefined or null
+      if (result === undefined || result === null) {
+        console.error('[BoardSDK] API returned undefined or null');
+        throw new Error('Monday.com API returned undefined. Please check authentication and API permissions.');
+      }
       
       if (result.errors) {
         console.error('[BoardSDK] GraphQL errors:', result.errors);
@@ -216,12 +228,6 @@ class BoardSDK {
       console.error('[BoardSDK] Error message:', error.message);
       console.error('[BoardSDK] Query:', query.substring(0, 200) + '...');
       console.error('[BoardSDK] Variables:', variables);
-      
-      // If api() method doesn't exist or fails, log it
-      if (!this.monday.api) {
-        console.error('[BoardSDK] monday.api() method is not available');
-        throw new Error('Monday SDK api() method is not available. Please check Monday SDK initialization.');
-      }
       
       throw error;
     }
