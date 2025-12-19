@@ -879,47 +879,6 @@ const App = () => {
 
             <Card.Root>
               <Card.Header>
-                <Heading size="md">{t.summary}</Heading>
-              </Card.Header>
-              <Card.Body>
-                <Stack gap="3">
-                  <HStack justify="space-between">
-                    <Text>{t.subtotal}:</Text>
-                    <Text fontWeight="bold">{getCurrencySymbol(formData.currency)}{formData.subtotal.toLocaleString()}</Text>
-                  </HStack>
-                  <HStack justify="space-between">
-                    <Text>{t.discount}:</Text>
-                    <NumberInput.Root value={formData.discount.toString()}
-                      onValueChange={({ valueAsNumber }) =>
-                        setFormData({ ...formData, discount: valueAsNumber || 0 })}
-                      min={0} size="sm" width="120px">
-                      <NumberInput.Input />
-                    </NumberInput.Root>
-                  </HStack>
-                  <HStack justify="space-between">
-                    <Text>{t.taxRate}:</Text>
-                    <NumberInput.Root value={formData.taxRate.toString()}
-                      onValueChange={({ valueAsNumber }) =>
-                        setFormData({ ...formData, taxRate: valueAsNumber || 0 })}
-                      min={0} max={100} size="sm" width="120px">
-                      <NumberInput.Input />
-                    </NumberInput.Root>
-                  </HStack>
-                  <HStack justify="space-between">
-                    <Text>{t.tax}:</Text>
-                    <Text fontWeight="bold">{getCurrencySymbol(formData.currency)}{formData.taxAmount.toLocaleString()}</Text>
-                  </HStack>
-                  <Separator />
-                  <HStack justify="space-between">
-                    <Heading size="md">{t.total}:</Heading>
-                    <Heading size="md" color="blue.600">{getCurrencySymbol(formData.currency)}{formData.total.toLocaleString()}</Heading>
-                  </HStack>
-                </Stack>
-              </Card.Body>
-            </Card.Root>
-
-            <Card.Root>
-              <Card.Header>
                 <HStack justify="space-between">
                   <Heading size="md">{t.images}</Heading>
                   <Button
@@ -992,6 +951,47 @@ const App = () => {
                       </Button>
                     </HStack>
                   ))}
+                </Stack>
+              </Card.Body>
+            </Card.Root>
+
+            <Card.Root>
+              <Card.Header>
+                <Heading size="md">{t.summary}</Heading>
+              </Card.Header>
+              <Card.Body>
+                <Stack gap="3">
+                  <HStack justify="space-between">
+                    <Text>{t.subtotal}:</Text>
+                    <Text fontWeight="bold">{getCurrencySymbol(formData.currency)}{formData.subtotal.toLocaleString()}</Text>
+                  </HStack>
+                  <HStack justify="space-between">
+                    <Text>{t.discount}:</Text>
+                    <NumberInput.Root value={formData.discount.toString()}
+                      onValueChange={({ valueAsNumber }) =>
+                        setFormData({ ...formData, discount: valueAsNumber || 0 })}
+                      min={0} size="sm" width="120px">
+                      <NumberInput.Input />
+                    </NumberInput.Root>
+                  </HStack>
+                  <HStack justify="space-between">
+                    <Text>{t.taxRate}:</Text>
+                    <NumberInput.Root value={formData.taxRate.toString()}
+                      onValueChange={({ valueAsNumber }) =>
+                        setFormData({ ...formData, taxRate: valueAsNumber || 0 })}
+                      min={0} max={100} size="sm" width="120px">
+                      <NumberInput.Input />
+                    </NumberInput.Root>
+                  </HStack>
+                  <HStack justify="space-between">
+                    <Text>{t.tax}:</Text>
+                    <Text fontWeight="bold">{getCurrencySymbol(formData.currency)}{formData.taxAmount.toLocaleString()}</Text>
+                  </HStack>
+                  <Separator />
+                  <HStack justify="space-between">
+                    <Heading size="md">{t.total}:</Heading>
+                    <Heading size="md" color="blue.600">{getCurrencySymbol(formData.currency)}{formData.total.toLocaleString()}</Heading>
+                  </HStack>
                 </Stack>
               </Card.Body>
             </Card.Root>
