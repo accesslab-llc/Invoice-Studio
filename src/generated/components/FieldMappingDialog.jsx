@@ -16,6 +16,7 @@ import {
   Separator
 } from '@chakra-ui/react';
 import { Settings, Save } from 'lucide-react';
+import { translations } from '../utils/translations';
 
 // Default mappings - defined outside component to avoid recreation
 const defaultMappings = {
@@ -54,6 +55,7 @@ const fieldKeys = Object.keys(defaultMappings);
 
 const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings }) => {
   const [mappings, setMappings] = useState(defaultMappings);
+  const t = translations[language] || translations.ja;
 
   useEffect(() => {
     // Only reset mappings when dialog opens and initialMappings changes
@@ -175,10 +177,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             <Dialog.Title>
               <HStack gap="2">
                 <Settings size={24} />
-                <Text>フィールドマッピング設定</Text>
+                <Text>{t.fieldMappingTitle}</Text>
               </HStack>
             </Dialog.Title>
-            <Dialog.Description>請求書の各項目とMondayボードのカラムをマッピングしてください</Dialog.Description>
+            <Dialog.Description>{t.fieldMappingDescription}</Dialog.Description>
           </Dialog.Header>
 
           <Dialog.Body overflowY="auto">
@@ -187,13 +189,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Card.Body p="4">
                   <Stack gap="2">
                     <HStack gap="2">
-                      <Badge colorPalette="blue">ヒント</Badge>
+                      <Badge colorPalette="blue">{t.fieldMappingHint}</Badge>
                       <Text fontSize="sm" fontWeight="medium">
-                        マッピングについて
+                        {t.fieldMappingAbout}
                       </Text>
                     </HStack>
                     <Text fontSize="sm" color="fg.muted">
-                      各請求書フィールドがボードのどのカラムから値を取得するかを設定できます。「手動入力」を選択すると、編集画面で手動で入力する必要があります。
+                      {t.fieldMappingHintText}
                     </Text>
                   </Stack>
                 </Card.Body>
@@ -202,7 +204,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
               <Separator />
 
               <Stack gap="4">
-                <Heading size="sm">基本情報</Heading>
+                <Heading size="sm">{t.fieldMappingBasicInfo}</Heading>
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
@@ -216,7 +218,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -230,7 +232,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('invoiceNumber', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('invoiceNumber')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('invoiceNumber')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -246,7 +248,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -260,7 +262,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('invoiceDate', '例: column3')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('invoiceDate')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('invoiceDate')}
                   </Field.HelperText>
                 </Field.Root>
               </Stack>
@@ -268,7 +270,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
               <Separator />
 
               <Stack gap="4">
-                <Heading size="sm">請求先情報</Heading>
+                <Heading size="sm">{t.fieldMappingBillingInfo}</Heading>
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
@@ -282,7 +284,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -296,7 +298,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientName', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientName')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientName')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -312,7 +314,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -326,7 +328,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientDepartment', '例: text_department')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientDepartment')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientDepartment')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -342,7 +344,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -356,7 +358,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientContact', '例: text_contact')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientContact')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientContact')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -372,7 +374,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -386,7 +388,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientZip', '例: text_zip')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientZip')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientZip')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -402,7 +404,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -416,7 +418,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientAddress', '例: text_address')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientAddress')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientAddress')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -432,7 +434,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -446,7 +448,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientPhone', '例: text_phone')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientPhone')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientPhone')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -462,7 +464,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -476,7 +478,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('clientEmail', '例: text_email')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('clientEmail')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('clientEmail')}
                   </Field.HelperText>
                 </Field.Root>
               </Stack>
@@ -484,7 +486,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
               <Separator />
 
               <Stack gap="4">
-                <Heading size="sm">金額・明細</Heading>
+                <Heading size="sm">{t.fieldMappingAmountItems}</Heading>
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
@@ -498,7 +500,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -512,7 +514,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('discount', '例: numeric_mkwjxbfn')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('discount')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('discount')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -528,7 +530,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -542,7 +544,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('taxAmount', '例: numeric_mkwqnby1')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('taxAmount')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('taxAmount')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -558,7 +560,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     }}
                   >
                     <Select.Trigger>
-                      <Select.ValueText placeholder="カラムを選択..." />
+                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="popover">
@@ -572,7 +574,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   </Select.Root>
                   {renderCustomInput('items', '例: subitems')}
                   <Field.HelperText fontSize="xs">
-                    現在: {getDisplayLabel('items')}
+                    {t.fieldMappingCurrent} {getDisplayLabel('items')}
                   </Field.HelperText>
                 </Field.Root>
 
@@ -589,7 +591,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       }}
                     >
                       <Select.Trigger>
-                        <Select.ValueText placeholder="カラムを選択..." />
+                        <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                       </Select.Trigger>
                       <Select.Positioner>
                         <Select.Content zIndex="popover">
@@ -603,7 +605,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Root>
                     {renderCustomInput('subitemPrice', '例: numeric_mkwjthws')}
                     <Field.HelperText fontSize="xs">
-                      現在: {getDisplayLabel('subitemPrice')}
+                      {t.fieldMappingCurrent} {getDisplayLabel('subitemPrice')}
                     </Field.HelperText>
                   </Field.Root>
                 )}
@@ -614,11 +616,11 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           <Dialog.Footer>
             <Dialog.ActionTrigger asChild>
               <Button variant="outline" onClick={onClose}>
-                キャンセル
+                {t.fieldMappingCancel}
               </Button>
             </Dialog.ActionTrigger>
             <Button colorPalette="blue" onClick={handleSave}>
-              <Save size={16} /> 保存
+              <Save size={16} /> {t.fieldMappingSave}
             </Button>
           </Dialog.Footer>
 
