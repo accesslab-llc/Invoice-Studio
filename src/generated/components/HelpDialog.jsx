@@ -50,9 +50,18 @@ const HelpDialog = ({ isOpen, onClose, language }) => {
 2. 必要に応じて情報を編集
 
 ステップ4: ダウンロード
+
+HTML形式でダウンロード:
 1. 「ダウンロード」タブに移動
 2. プレビューで請求書の見た目を確認
-3. 「HTMLダウンロード」ボタンをクリック`
+3. 「HTMLダウンロード」ボタンをクリック
+
+PDF形式で保存:
+1. 「HTMLダウンロード」ボタンでHTMLファイルをダウンロード
+2. ダウンロードしたHTMLファイルをブラウザで開く
+3. ブラウザのメニューから「印刷」を選択（Windows: Ctrl+P / Mac: Cmd+P）
+4. 印刷ダイアログで「送信先」を「PDFに保存」に変更
+5. 「保存」をクリック`
         },
         {
           title: 'フィールドマッピング',
@@ -147,9 +156,21 @@ Step 3: Edit Invoice
 2. Edit information as needed
 
 Step 4: Download
+
+Download as HTML:
 1. Go to the "Download" tab
 2. Preview the invoice appearance
-3. Click the "Download HTML" button`
+3. Click the "Download HTML" button
+
+Save as PDF:
+1. Download the HTML file using the "Download HTML" button
+2. Open the downloaded HTML file in your browser
+3. Select "Print" from the browser menu (Windows: Ctrl+P / Mac: Cmd+P)
+4. In the print dialog, change "Destination" or "Save as" to "Save as PDF"
+5. Click "Save" or "Save as PDF"
+6. The PDF file will be saved
+
+Note: The steps may vary depending on your browser. You can save as PDF in all major browsers including Chrome, Firefox, Safari, and Edge.`
         },
         {
           title: 'Field Mapping',
@@ -244,9 +265,21 @@ Paso 3: Editar Factura
 2. Edite la información según sea necesario
 
 Paso 4: Descargar
+
+Descargar como HTML:
 1. Vaya a la pestaña "Descargar"
 2. Previsualice la apariencia de la factura
-3. Haga clic en el botón "Descargar HTML"`
+3. Haga clic en el botón "Descargar HTML"
+
+Guardar como PDF:
+1. Descargue el archivo HTML usando el botón "Descargar HTML"
+2. Abra el archivo HTML descargado en su navegador
+3. Seleccione "Imprimir" del menú del navegador (Windows: Ctrl+P / Mac: Cmd+P)
+4. En el diálogo de impresión, cambie "Destino" o "Guardar como" a "Guardar como PDF"
+5. Haga clic en "Guardar" o "Guardar como PDF"
+6. El archivo PDF se guardará
+
+Nota: Los pasos pueden variar según su navegador. Puede guardar como PDF en todos los navegadores principales, incluyendo Chrome, Firefox, Safari y Edge.`
         },
         {
           title: 'Mapeo de Campos',
