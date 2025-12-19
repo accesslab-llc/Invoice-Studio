@@ -56,6 +56,10 @@ const App = () => {
     clientName: 'clientName',
     clientDepartment: 'manual',
     clientContact: 'manual',
+    clientZip: 'manual',
+    clientAddress: 'manual',
+    clientPhone: 'manual',
+    clientEmail: 'manual',
     discount: 'discount',
     taxAmount: 'taxAmount',
     items: 'subitems',
@@ -313,6 +317,10 @@ const App = () => {
       clientName: getMappedValue(selectedItem, fieldMappings.clientName) || '',
       clientDepartment: getMappedValue(selectedItem, fieldMappings.clientDepartment) || '',
       clientContact: getMappedValue(selectedItem, fieldMappings.clientContact) || '',
+      clientZip: getMappedValue(selectedItem, fieldMappings.clientZip) || '',
+      clientAddress: getMappedValue(selectedItem, fieldMappings.clientAddress) || '',
+      clientPhone: getMappedValue(selectedItem, fieldMappings.clientPhone) || '',
+      clientEmail: getMappedValue(selectedItem, fieldMappings.clientEmail) || '',
       invoiceDate: fieldMappings.invoiceDate !== 'manual' && selectedItem[fieldMappings.invoiceDate]
         ? new Date(selectedItem[fieldMappings.invoiceDate]).toISOString().split('T')[0]
         : prev.invoiceDate,

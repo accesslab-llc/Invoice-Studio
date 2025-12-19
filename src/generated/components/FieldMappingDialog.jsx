@@ -7,6 +7,7 @@ import {
   Text,
   Select,
   Field,
+  Input,
   CloseButton,
   createListCollection,
   Card,
@@ -23,6 +24,10 @@ const defaultMappings = {
   clientName: 'clientName',
   clientDepartment: 'manual',
   clientContact: 'manual',
+  clientZip: 'manual',
+  clientAddress: 'manual',
+  clientPhone: 'manual',
+  clientEmail: 'manual',
   discount: 'discount',
   taxAmount: 'taxAmount',
   items: 'subitems',
@@ -99,6 +104,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     clientName: { ja: '請求先名', en: 'Client Name', es: 'Nombre del Cliente' },
     clientDepartment: { ja: '部署', en: 'Department', es: 'Departamento' },
     clientContact: { ja: '担当者', en: 'Contact Person', es: 'Persona de Contacto' },
+    clientZip: { ja: '郵便番号', en: 'Postal Code', es: 'Código Postal' },
+    clientAddress: { ja: '住所', en: 'Address', es: 'Dirección' },
+    clientPhone: { ja: '電話番号', en: 'Phone Number', es: 'Número de Teléfono' },
+    clientEmail: { ja: 'メールアドレス', en: 'Email Address', es: 'Dirección de Correo' },
     discount: { ja: '割引', en: 'Discount', es: 'Descuento' },
     taxAmount: { ja: '税額', en: 'Tax Amount', es: 'Importe del Impuesto' },
     items: { ja: '明細', en: 'Line Items', es: 'Artículos' },
@@ -348,6 +357,126 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   {renderCustomInput('clientContact', '例: text_contact')}
                   <Field.HelperText fontSize="xs">
                     現在: {getDisplayLabel('clientContact')}
+                  </Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
+                  <Select.Root
+                    collection={boardColumns}
+                    value={[getSelectValue('clientZip')]}
+                    onValueChange={({ value }) => {
+                      if (value && value.length > 0) {
+                        handleSelectChange('clientZip', value[0]);
+                      }
+                    }}
+                  >
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="カラムを選択..." />
+                    </Select.Trigger>
+                    <Select.Positioner>
+                      <Select.Content zIndex="popover">
+                        {boardColumns.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>
+                            {item.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                  {renderCustomInput('clientZip', '例: text_zip')}
+                  <Field.HelperText fontSize="xs">
+                    現在: {getDisplayLabel('clientZip')}
+                  </Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
+                  <Select.Root
+                    collection={boardColumns}
+                    value={[getSelectValue('clientAddress')]}
+                    onValueChange={({ value }) => {
+                      if (value && value.length > 0) {
+                        handleSelectChange('clientAddress', value[0]);
+                      }
+                    }}
+                  >
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="カラムを選択..." />
+                    </Select.Trigger>
+                    <Select.Positioner>
+                      <Select.Content zIndex="popover">
+                        {boardColumns.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>
+                            {item.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                  {renderCustomInput('clientAddress', '例: text_address')}
+                  <Field.HelperText fontSize="xs">
+                    現在: {getDisplayLabel('clientAddress')}
+                  </Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
+                  <Select.Root
+                    collection={boardColumns}
+                    value={[getSelectValue('clientPhone')]}
+                    onValueChange={({ value }) => {
+                      if (value && value.length > 0) {
+                        handleSelectChange('clientPhone', value[0]);
+                      }
+                    }}
+                  >
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="カラムを選択..." />
+                    </Select.Trigger>
+                    <Select.Positioner>
+                      <Select.Content zIndex="popover">
+                        {boardColumns.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>
+                            {item.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                  {renderCustomInput('clientPhone', '例: text_phone')}
+                  <Field.HelperText fontSize="xs">
+                    現在: {getDisplayLabel('clientPhone')}
+                  </Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
+                  <Select.Root
+                    collection={boardColumns}
+                    value={[getSelectValue('clientEmail')]}
+                    onValueChange={({ value }) => {
+                      if (value && value.length > 0) {
+                        handleSelectChange('clientEmail', value[0]);
+                      }
+                    }}
+                  >
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="カラムを選択..." />
+                    </Select.Trigger>
+                    <Select.Positioner>
+                      <Select.Content zIndex="popover">
+                        {boardColumns.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>
+                            {item.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                  {renderCustomInput('clientEmail', '例: text_email')}
+                  <Field.HelperText fontSize="xs">
+                    現在: {getDisplayLabel('clientEmail')}
                   </Field.HelperText>
                 </Field.Root>
               </Stack>
