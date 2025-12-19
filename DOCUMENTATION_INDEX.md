@@ -10,6 +10,9 @@
 ### アーキテクチャ・仕様
 - **APP_ARCHITECTURE.md** - アプリケーションの詳細なアーキテクチャ仕様
 - **MARKETPLACE_READINESS.md** - Monday.comマーケットプレイス対応状況
+- **AUTHENTICATION_STATUS.md** - 認証関連のタスク状況
+- **MARKETPLACE_DESCRIPTION.md** - マーケットプレイス用アプリ説明（日本語・英語・スペイン語）
+- **USER_MANUAL.md** - ユーザーマニュアル
 
 ### デプロイ・運用
 - **DEPLOY_TO_VERCEL.md** - Vercelへのデプロイ手順（統合版）

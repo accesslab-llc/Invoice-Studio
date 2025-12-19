@@ -5,12 +5,13 @@ import {
   NumberInput, SimpleGrid, Card, Badge, Skeleton, Table, Image,
   Collapsible, Alert
 } from '@chakra-ui/react';
-import { FileText, Download, RefreshCw, Settings, Eye, EyeOff } from 'lucide-react';
+import { FileText, Download, RefreshCw, Settings, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import BoardSDK from './sdk/BoardSDK';
 import ItemSelector from './components/ItemSelector';
 import ImageUploader from './components/ImageUploader';
 import FieldMappingDialog from './components/FieldMappingDialog';
 import TemplateDialog from './components/TemplateDialog';
+import HelpDialog from './components/HelpDialog';
 import { generateInvoiceHTML } from './utils/invoiceTemplates';
 import { translations } from './utils/translations';
 import { TEMPLATE_FIELDS } from './constants/templateFields';
@@ -49,6 +50,7 @@ const App = () => {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('none');
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
@@ -496,6 +498,9 @@ const App = () => {
             </Button>
             <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline" colorPalette="blue">
               <FileText size={16} /> {t.manageTemplates}
+            </Button>
+            <Button onClick={() => setIsHelpDialogOpen(true)} variant="outline" colorPalette="green">
+              <HelpCircle size={16} /> {t.help}
             </Button>
             <Select.Root collection={languages} value={[language]} 
               onValueChange={({ value }) => {
@@ -1258,6 +1263,12 @@ const App = () => {
         onSave={handleSaveMappings}
         language={language}
         initialMappings={fieldMappings}
+      />
+
+      <HelpDialog
+        isOpen={isHelpDialogOpen}
+        onClose={() => setIsHelpDialogOpen(false)}
+        language={language}
       />
 
       <TemplateDialog
