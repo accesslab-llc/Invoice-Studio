@@ -102,3 +102,32 @@ const boardColumns = useMemo(() => {
 
 **重要**: `Select.Root`に`key`プロパティを付けない（`App.jsx`と同じ）
 
+## 再発: `a.options is not iterable`エラー（最新）
+
+### 原因（特定）
+- `collection={boardColumns}`を使用しているのに、一部の`Select.Content`で`boardColumnsItems?.map`を使用していた
+- `collection`プロパティを使用する場合、必ず`collection.items`を使用する必要がある
+- `boardColumnsItems`を直接使用すると、Chakra UIの内部処理で`collection.options`を参照しようとしてエラーが発生
+
+### 解決策
+- すべての`boardColumnsItems?.map`を`boardColumns?.items?.map`に統一
+- `collection`プロパティを使用する場合は、必ず`collection.items`を使用する
+
+### 実装（修正後）
+```jsx
+const boardColumns = useMemo(() => {
+  const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
+  return createListCollection({ items: validItems });
+}, [boardColumnsItems]);
+
+<Select.Root collection={boardColumns} value={[...]}>
+  <Select.Content>
+    {boardColumns?.items?.map((item) => (  // ← boardColumnsItemsではなくboardColumns.itemsを使用
+      <Select.Item key={item.value} item={item}>
+        {item.label}
+      </Select.Item>
+    ))}
+  </Select.Content>
+</Select.Root>
+```
+

@@ -753,7 +753,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => {
+                        {boardColumns?.items?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                             return null;
@@ -819,7 +819,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => {
+                        {boardColumns?.items?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                             return null;
@@ -952,7 +952,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       </Select.Trigger>
                       <Select.Positioner>
                         <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                          {boardColumnsItems?.map((item) => {
+                          {boardColumns?.items?.map((item) => {
                             if (!item || !item.value) {
                               console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                               return null;
