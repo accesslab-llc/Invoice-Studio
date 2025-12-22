@@ -575,7 +575,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                             return null;
                           }
                           return (
-                          <Select.Item item={item} key={item.value}>
+                          <Select.Item key={item.value} value={item.value}>
                             {item.label}
                           </Select.Item>
                           );
