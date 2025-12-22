@@ -270,17 +270,23 @@ const App = () => {
   };
 
   const getMappedValue = (item, mapping) => {
-    if (mapping === 'manual' || !mapping) return '';
+    if (mapping === 'manual' || !mapping) {
+      console.log('[App] getMappedValue: mapping is manual or empty:', mapping);
+      return '';
+    }
     if (mapping === 'subitems') return item.subitems;
     if (mapping === 'name') return item.name || '';
     if (mapping === 'clientName') {
       // clientName is a special mapping that might be a column ID or a key
       // First try the direct mapping, then fallback to common column IDs
-      return item.clientName || item['text_mkwjtrys'] || '';
+      const value = item.clientName || item['text_mkwjtrys'] || '';
+      console.log('[App] getMappedValue: clientName mapping:', { mapping, value, itemClientName: item.clientName, itemTextMkwjtrys: item['text_mkwjtrys'] });
+      return value;
     }
     // Check if mapping is a column ID (starts with text_, numeric_, date_, board_relation_, lookup_, etc.)
     // Try direct property access first
     const value = item[mapping];
+    console.log('[App] getMappedValue:', { mapping, value, hasValue: value !== undefined && value !== null && value !== '', itemKeys: Object.keys(item) });
     if (value !== undefined && value !== null && value !== '') {
       return value;
     }
@@ -293,6 +299,9 @@ const App = () => {
 
     const selectedItem = items.find(item => item.id === selectedItemId);
     if (!selectedItem) return;
+    
+    console.log('[App] loadSelectedItem: fieldMappings:', fieldMappings);
+    console.log('[App] loadSelectedItem: selectedItem keys:', Object.keys(selectedItem));
 
     let invoiceItems = [];
     if (fieldMappings.items === 'subitems' && selectedItem.subitems) {

@@ -346,10 +346,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         
         console.log('[FieldMappingDialog] Valid columns count:', validColumns.length);
         console.log('[FieldMappingDialog] First 3 items:', validColumns.slice(0, 3));
+        console.log('[FieldMappingDialog] Subitem columns in validColumns:', validColumns.filter(c => c.label && c.label.includes('[サブアイテム]')).length);
+        console.log('[FieldMappingDialog] Subitem columns:', validColumns.filter(c => c.label && c.label.includes('[サブアイテム]')).map(c => ({ value: c.value, label: c.label })));
         
         // Update items directly (no collection needed when using items prop)
         setBoardColumnsItems(validColumns);
-        console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added');
+        console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added,', subitemDynamicColumns.length, 'subitem columns added');
       } catch (error) {
         console.error('FieldMappingDialog: Failed to fetch columns:', error);
         // Fallback to base columns only
