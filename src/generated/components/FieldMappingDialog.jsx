@@ -298,7 +298,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             <Dialog.Description>{t.fieldMappingDescription}</Dialog.Description>
           </Dialog.Header>
 
-          <Dialog.Body overflowY="auto">
+          <Dialog.Body overflowY="auto" style={{ maxHeight: 'calc(90vh - 200px)', overflowY: 'auto' }}>
             <Stack gap="6">
               <Card.Root bg="blue.50" borderColor="blue.200">
                 <Card.Body p="4">
@@ -342,7 +342,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -373,7 +373,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -410,7 +410,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -441,7 +441,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -472,7 +472,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -503,7 +503,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -534,7 +534,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -565,7 +565,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -596,7 +596,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -633,7 +633,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -664,7 +664,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
@@ -695,7 +695,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                     </Select.Trigger>
                     <Select.Positioner>
-                      <Select.Content zIndex="popover">
+                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         {boardColumns.items.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
