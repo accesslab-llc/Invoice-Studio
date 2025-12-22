@@ -36,10 +36,18 @@ const defaultMappings = {
   subitemPrice: 'column11' // サブアイテムの価格カラム
 };
 
-// Base column items (always available)
+// Base column items (always available - includes commonly used columns)
 const baseColumnItems = [
   { label: '手動入力 (Manual Input)', value: 'manual' },
   { label: 'Name - アイテム名', value: 'name' },
+  { label: 'Client Name - 請求先名', value: 'clientName' },
+  { label: 'Column1 - ユーザー', value: 'column1' },
+  { label: 'Column2 - 状況', value: 'column2' },
+  { label: 'Column3 - 請求日', value: 'column3' },
+  { label: 'Discount - 割引額', value: 'discount' },
+  { label: 'Tax Amount - 税額', value: 'taxAmount' },
+  { label: 'Column11 - 数値1', value: 'column11' },
+  { label: 'Column21 - 数値2', value: 'column21' },
   { label: 'Subitems - サブアイテム（明細）', value: 'subitems' },
   { label: 'カスタム列 ID (直接入力)', value: 'custom' }
 ];
@@ -103,10 +111,16 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           value: col.id
         }));
         
-        // Combine base columns with dynamic columns
+        // Get existing base column values to avoid duplicates
+        const baseColumnValues = new Set(baseColumnItems.map(item => item.value));
+        
+        // Filter out dynamic columns that already exist in base columns
+        const uniqueDynamicColumns = dynamicColumns.filter(col => !baseColumnValues.has(col.value));
+        
+        // Combine base columns with unique dynamic columns
         const allColumns = [
           ...baseColumnItems,
-          ...dynamicColumns
+          ...uniqueDynamicColumns
         ];
         
         setBoardColumns(createListCollection({ items: allColumns }));
