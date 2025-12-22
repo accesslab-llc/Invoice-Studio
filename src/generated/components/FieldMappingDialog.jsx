@@ -11,7 +11,8 @@ import {
   Card,
   HStack,
   Badge,
-  Separator
+  Separator,
+  Box
 } from '@chakra-ui/react';
 import { Settings, Save } from 'lucide-react';
 import { translations } from '../utils/translations';
@@ -527,13 +528,21 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('invoiceNumber')}
                     onChange={(e) => {
                       console.log('[FieldMappingDialog] invoiceNumber onChange:', e.target.value);
                       handleSelectChange('invoiceNumber', e.target.value);
                     }}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => {
@@ -547,7 +556,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         </option>
                       );
                     })}
-                  </Input>
+                  </Box>
                   {renderCustomInput('invoiceNumber', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('invoiceNumber')}
@@ -556,10 +565,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('invoiceDate')}
                     onChange={(e) => handleSelectChange('invoiceDate', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -567,7 +584,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('invoiceDate', '例: column3')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('invoiceDate')}
@@ -582,10 +599,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientName')}
                     onChange={(e) => handleSelectChange('clientName', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -593,7 +618,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientName', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientName')}
@@ -602,10 +627,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientDepartment')}
                     onChange={(e) => handleSelectChange('clientDepartment', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -613,7 +646,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientDepartment', '例: text_department')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientDepartment')}
@@ -622,10 +655,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientContact')}
                     onChange={(e) => handleSelectChange('clientContact', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -633,7 +674,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientContact', '例: text_contact')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientContact')}
@@ -642,10 +683,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientZip')}
                     onChange={(e) => handleSelectChange('clientZip', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -653,7 +702,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientZip', '例: text_zip')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientZip')}
@@ -662,10 +711,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientAddress')}
                     onChange={(e) => handleSelectChange('clientAddress', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => {
@@ -679,7 +736,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         </option>
                       );
                     })}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientAddress', '例: text_address')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientAddress')}
@@ -688,10 +745,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientPhone')}
                     onChange={(e) => handleSelectChange('clientPhone', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -699,7 +764,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientPhone', '例: text_phone')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientPhone')}
@@ -708,10 +773,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('clientEmail')}
                     onChange={(e) => handleSelectChange('clientEmail', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => {
@@ -725,7 +798,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         </option>
                       );
                     })}
-                  </Input>
+                  </Box>
                   {renderCustomInput('clientEmail', '例: text_email')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientEmail')}
@@ -740,10 +813,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('discount')}
                     onChange={(e) => handleSelectChange('discount', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -751,7 +832,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('discount', '例: numeric_mkwjxbfn')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('discount')}
@@ -760,10 +841,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('taxAmount')}
                     onChange={(e) => handleSelectChange('taxAmount', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -771,7 +860,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('taxAmount', '例: numeric_mkwqnby1')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('taxAmount')}
@@ -780,10 +869,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
-                  <Input
+                  <Box
                     as="select"
                     value={getSelectValue('items')}
                     onChange={(e) => handleSelectChange('items', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
@@ -791,7 +888,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         {item.label}
                       </option>
                     ))}
-                  </Input>
+                  </Box>
                   {renderCustomInput('items', '例: subitems')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('items')}
@@ -801,10 +898,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 {getSelectValue('items') === 'subitems' && (
                   <Field.Root>
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
-                    <Input
+                    <Box
                       as="select"
                       value={getSelectValue('subitemPrice')}
                       onChange={(e) => handleSelectChange('subitemPrice', e.target.value)}
+                      width="100%"
+                      px="3"
+                      py="2"
+                      fontSize="sm"
+                      borderWidth="1px"
+                      borderRadius="md"
+                      bg="bg"
+                      _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                     >
                       <option value="">{t.fieldMappingSelectColumn}</option>
                       {validBoardColumnsItems?.map((item) => {
@@ -818,7 +923,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                           </option>
                         );
                       })}
-                    </Input>
+                    </Box>
                     {renderCustomInput('subitemPrice', '例: numeric_mkwjthws')}
                     <Field.HelperText fontSize="xs">
                       {t.fieldMappingCurrent} {getDisplayLabel('subitemPrice')}
