@@ -63,7 +63,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   // Use items prop directly instead of collection to avoid a.options is not iterable error
   // This is a different approach from App.jsx, but necessary for dynamic data
   const validBoardColumnsItems = useMemo(() => {
-    return boardColumnsItems.filter(item => item && item.value && item.label);
+    const filtered = boardColumnsItems.filter(item => item && item.value && item.label);
+    const subitemCount = filtered.filter(item => item.label && item.label.includes('[サブアイテム]')).length;
+    console.log('[FieldMappingDialog] validBoardColumnsItems:', {
+      total: filtered.length,
+      subitemCount: subitemCount,
+      subitemItems: filtered.filter(item => item.label && item.label.includes('[サブアイテム]')).map(item => ({ value: item.value, label: item.label }))
+    });
+    return filtered;
   }, [boardColumnsItems]);
 
   // Note: We don't use key prop to force remount like App.jsx
@@ -968,6 +975,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                           console.error('[FieldMappingDialog] Invalid item:', item);
                           return null;
                         }
+                        // Only show subitem columns for subitemPrice field
+                        const isSubitemColumn = item.label && item.label.includes('[サブアイテム]');
                         return (
                           <option key={item.value} value={item.value}>
                             {item.label}

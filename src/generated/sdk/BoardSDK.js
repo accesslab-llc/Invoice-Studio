@@ -287,17 +287,31 @@ class BoardSDK {
     }
 
     // Build column IDs to fetch
-    const columnIds = columns.length > 0 
-      ? columns.map(col => this.columnMappings[col] || col)
-      : Object.values(this.columnMappings);
+    // If columns is null, fetch all columns (don't specify columnIds in query)
+    // If columns is empty array, use default columnMappings
+    // If columns has values, use those
+    const columnIds = columns === null 
+      ? null // null means fetch all columns
+      : columns.length > 0 
+        ? columns.map(col => this.columnMappings[col] || col)
+        : Object.values(this.columnMappings);
     
-    const subItemColumnIds = subItems.length > 0
-      ? subItems.map(col => this.columnMappings[col] || col)
-      : [];
+    // If subItems is null, fetch all subitem columns (don't specify subItemColumnIds in query)
+    // If subItems is empty array, don't fetch any subitem columns
+    // If subItems has values, use those
+    const subItemColumnIds = subItems === null
+      ? null // null means fetch all subitem columns
+      : subItems.length > 0
+        ? subItems.map(col => this.columnMappings[col] || col)
+        : [];
 
     // Build GraphQL query - items_page uses cursor-based pagination, not page numbers
     // Use different queries based on whether cursor is provided and whether subItemColumnIds are specified
-    const hasSubItemColumns = subItemColumnIds.length > 0;
+    // If subItemColumnIds is null, fetch all subitem columns (no ids parameter)
+    // If subItemColumnIds is empty array, don't fetch any subitem columns (no ids parameter)
+    // If subItemColumnIds has values, fetch specific columns (ids parameter)
+    const hasSubItemColumns = subItemColumnIds !== null && subItemColumnIds.length > 0;
+    const fetchAllSubItemColumns = subItemColumnIds === null;
     const subItemColumnArgs = hasSubItemColumns ? '(ids: $subItemColumnIds)' : '';
     const subItemColumnVar = hasSubItemColumns ? ', $subItemColumnIds: [String!]' : '';
     
@@ -365,7 +379,7 @@ class BoardSDK {
       const variables = {
         boardId: [this.boardId],
         limit,
-        columnIds: columnIds.length > 0 ? columnIds : null
+        columnIds: columnIds === null ? null : (columnIds.length > 0 ? columnIds : null)
       };
       
       if (cursor) {

@@ -264,9 +264,10 @@ const App = () => {
       console.log('[App] Fetching subitem columns:', subitemColumnIds);
       
       // Fetch items with dynamically determined columns
+      // If no columns specified, fetch all columns (pass null to fetch all)
       const result = await board.items()
-        .withColumns(columnIds.length > 0 ? columnIds : []) // Use dynamic columns or empty array to fetch all
-        .withSubItems(subitemColumnIds.length > 0 ? subitemColumnIds : []) // Use dynamic subitem columns or empty array to fetch all
+        .withColumns(columnIds.length > 0 ? columnIds : null) // null means fetch all columns
+        .withSubItems(subitemColumnIds.length > 0 ? subitemColumnIds : null) // null means fetch all subitem columns
         .withPagination({ limit: 50 })
         .execute();
 
