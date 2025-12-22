@@ -151,12 +151,33 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           ...uniqueDynamicColumns
         ];
         
-        setBoardColumns(createListCollection({ items: allColumns }));
+        // Validate all items before creating collection
+        const validColumns = allColumns.filter(item => {
+          if (!item || !item.value || !item.label) {
+            console.error('[FieldMappingDialog] Invalid column item:', item);
+            return false;
+          }
+          return true;
+        });
+        
+        const collection = createListCollection({ items: validColumns });
+        console.log('[FieldMappingDialog] Created collection:', collection);
+        console.log('[FieldMappingDialog] Collection items:', collection?.items);
+        console.log('[FieldMappingDialog] Collection items type:', typeof collection?.items);
+        console.log('[FieldMappingDialog] Collection items is array:', Array.isArray(collection?.items));
+        if (collection?.items) {
+          console.log('[FieldMappingDialog] First 3 items:', collection.items.slice(0, 3));
+        }
+        
+        setBoardColumns(collection);
         console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added');
       } catch (error) {
         console.error('FieldMappingDialog: Failed to fetch columns:', error);
         // Fallback to base columns only
-        setBoardColumns(createListCollection({ items: baseColumnItems }));
+        const validBaseItems = baseColumnItems.filter(item => item && item.value && item.label);
+        const fallbackCollection = createListCollection({ items: validBaseItems });
+        console.log('[FieldMappingDialog] Fallback collection:', fallbackCollection);
+        setBoardColumns(fallbackCollection);
       } finally {
         setLoadingColumns(false);
       }
@@ -177,6 +198,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     
     // Only initialize once when dialog opens
     if (isInitialized) return;
+    
+    // For testing: always start with default mappings (comment out to restore saved mappings)
+    // Uncomment the following line to always start fresh:
+    // localStorage.removeItem('invoiceFieldMappings');
     
     // Use initialMappings if provided, otherwise load from localStorage
     if (initialMappings) {
@@ -204,6 +229,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     
     setIsInitialized(true);
   }, [isOpen]); // Only depend on isOpen, not initialMappings
+  
+  // Debug: Log boardColumns whenever it changes
+  useEffect(() => {
+    console.log('[FieldMappingDialog] boardColumns changed:', boardColumns);
+    console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
+    console.log('[FieldMappingDialog] boardColumns.items type:', typeof boardColumns?.items);
+    console.log('[FieldMappingDialog] boardColumns.items is array:', Array.isArray(boardColumns?.items));
+    if (boardColumns?.items && boardColumns.items.length > 0) {
+      console.log('[FieldMappingDialog] First item:', boardColumns.items[0]);
+      console.log('[FieldMappingDialog] First item structure:', Object.keys(boardColumns.items[0] || {}));
+    }
+  }, [boardColumns]);
 
   // Debug: Log current mappings and boardColumns
   useEffect(() => {
@@ -239,8 +276,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     return fieldLabels[fieldKey]?.[language] || fieldKey;
   };
 
-  const columnExists = (value) =>
-    !!value && boardColumns.items.some(item => item.value === value && value !== 'custom');
+  const columnExists = (value) => {
+    if (!boardColumns || !boardColumns.items || !Array.isArray(boardColumns.items)) {
+      return false;
+    }
+    return !!value && boardColumns.items.some(item => item && item.value === value && value !== 'custom');
+  };
 
   const isCustomValue = (value) => value && !columnExists(value);
 
@@ -251,8 +292,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     const actual = (mappingValue && mappingValue !== '') ? mappingValue : defaultValue;
     if (!actual || actual === '') return 'custom';
     // Check if the value exists in boardColumns
-    const exists = boardColumns.items.some(item => item.value === actual);
-    return exists ? actual : 'custom';
+    if (!boardColumns || !boardColumns.items || !Array.isArray(boardColumns.items)) {
+      console.error('[FieldMappingDialog] boardColumns is invalid:', boardColumns);
+      return 'custom';
+    }
+    const exists = boardColumns.items.some(item => item && item.value === actual);
+    const result = exists ? actual : 'custom';
+    console.log(`[FieldMappingDialog] getSelectValue(${fieldKey}):`, { mappingValue, defaultValue, actual, exists, result, boardColumnsItemsCount: boardColumns.items.length });
+    return result;
   };
 
   const getDisplayLabel = (fieldKey) => {
@@ -356,10 +403,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     collection={boardColumns}
                     value={[getSelectValue('invoiceNumber')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
+                      console.log('[FieldMappingDialog] invoiceNumber Select onValueChange:', details);
+                      console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
+                      console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('invoiceNumber', details.value[0]);
                       }
+                    }}
+                    onOpenChange={(details) => {
+                      console.log('[FieldMappingDialog] invoiceNumber Select onOpenChange:', details);
                     }}
                   >
                     <Select.Trigger>
@@ -367,11 +419,17 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
-                          <Select.Item item={item} key={item.value}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
+                        {boardColumns?.items?.map((item) => {
+                          if (!item || !item.value) {
+                            console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
+                            return null;
+                          }
+                          return (
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                            </Select.Item>
+                          );
+                        })}
                       </Select.Content>
                     </Select.Positioner>
                   </Select.Root>
@@ -548,10 +606,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     collection={boardColumns}
                     value={[getSelectValue('clientAddress')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
+                      console.log('[FieldMappingDialog] clientAddress Select onValueChange:', details);
+                      console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
+                      console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientAddress', details.value[0]);
                       }
+                    }}
+                    onOpenChange={(details) => {
+                      console.log('[FieldMappingDialog] clientAddress Select onOpenChange:', details);
                     }}
                   >
                     <Select.Trigger>
@@ -559,11 +622,17 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
-                          <Select.Item item={item} key={item.value}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
+                        {boardColumns?.items?.map((item) => {
+                          if (!item || !item.value) {
+                            console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
+                            return null;
+                          }
+                          return (
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                            </Select.Item>
+                          );
+                        })}
                       </Select.Content>
                     </Select.Positioner>
                   </Select.Root>
@@ -610,10 +679,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     collection={boardColumns}
                     value={[getSelectValue('clientEmail')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
+                      console.log('[FieldMappingDialog] clientEmail Select onValueChange:', details);
+                      console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
+                      console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientEmail', details.value[0]);
                       }
+                    }}
+                    onOpenChange={(details) => {
+                      console.log('[FieldMappingDialog] clientEmail Select onOpenChange:', details);
                     }}
                   >
                     <Select.Trigger>
@@ -621,11 +695,17 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
-                          <Select.Item item={item} key={item.value}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
+                        {boardColumns?.items?.map((item) => {
+                          if (!item || !item.value) {
+                            console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
+                            return null;
+                          }
+                          return (
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                            </Select.Item>
+                          );
+                        })}
                       </Select.Content>
                     </Select.Positioner>
                   </Select.Root>
@@ -741,22 +821,33 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       collection={boardColumns}
                       value={[getSelectValue('subitemPrice')]}
                       onValueChange={(details) => {
-                        console.log('[FieldMappingDialog] Select onValueChange:', details);
+                        console.log('[FieldMappingDialog] subitemPrice Select onValueChange:', details);
+                        console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
+                        console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
                         if (details.value && details.value.length > 0) {
                           handleSelectChange('subitemPrice', details.value[0]);
                         }
+                      }}
+                      onOpenChange={(details) => {
+                        console.log('[FieldMappingDialog] subitemPrice Select onOpenChange:', details);
                       }}
                     >
                       <Select.Trigger>
                         <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
                       </Select.Trigger>
                       <Select.Positioner>
-                        <Select.Content zIndex="popover">
-                          {boardColumns.items.map((item) => (
-                            <Select.Item item={item} key={item.value}>
-                              {item.label}
-                            </Select.Item>
-                          ))}
+                        <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                          {boardColumns?.items?.map((item) => {
+                            if (!item || !item.value) {
+                              console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
+                              return null;
+                            }
+                            return (
+                              <Select.Item item={item} key={item.value}>
+                                {item.label}
+                              </Select.Item>
+                            );
+                          })}
                         </Select.Content>
                       </Select.Positioner>
                     </Select.Root>
