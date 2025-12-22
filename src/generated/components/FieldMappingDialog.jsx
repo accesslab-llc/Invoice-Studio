@@ -5,7 +5,6 @@ import {
   Stack,
   Heading,
   Text,
-  Select,
   Field,
   Input,
   CloseButton,
@@ -528,35 +527,27 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('invoiceNumber')]}
-                    onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] invoiceNumber Select onValueChange:', details);
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('invoiceNumber', details.value[0]);
-                      }
+                  <Input
+                    as="select"
+                    value={getSelectValue('invoiceNumber')}
+                    onChange={(e) => {
+                      console.log('[FieldMappingDialog] invoiceNumber onChange:', e.target.value);
+                      handleSelectChange('invoiceNumber', e.target.value);
                     }}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => {
-                          if (!item || !item.value) {
-                            console.error('[FieldMappingDialog] Invalid item:', item);
-                            return null;
-                          }
-                          return (
-                          <Select.Item key={item.value} item={item} value={item.value}>
-                            {item.label}
-                          </Select.Item>
-                          );
-                        })}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => {
+                      if (!item || !item.value) {
+                        console.error('[FieldMappingDialog] Invalid item:', item);
+                        return null;
+                      }
+                      return (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      );
+                    })}
+                  </Input>
                   {renderCustomInput('invoiceNumber', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('invoiceNumber')}
@@ -565,28 +556,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('invoiceDate')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('invoiceDate', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('invoiceDate')}
+                    onChange={(e) => handleSelectChange('invoiceDate', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('invoiceDate', '例: column3')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('invoiceDate')}
@@ -601,28 +582,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientName')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientName', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientName')}
+                    onChange={(e) => handleSelectChange('clientName', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('clientName', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientName')}
@@ -631,28 +602,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientDepartment')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientDepartment', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientDepartment')}
+                    onChange={(e) => handleSelectChange('clientDepartment', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('clientDepartment', '例: text_department')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientDepartment')}
@@ -661,28 +622,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientContact')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientContact', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientContact')}
+                    onChange={(e) => handleSelectChange('clientContact', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('clientContact', '例: text_contact')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientContact')}
@@ -691,28 +642,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientZip')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientZip', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientZip')}
+                    onChange={(e) => handleSelectChange('clientZip', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('clientZip', '例: text_zip')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientZip')}
@@ -721,35 +662,24 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientAddress')]}
-                    onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] clientAddress Select onValueChange:', details);
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientAddress', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientAddress')}
+                    onChange={(e) => handleSelectChange('clientAddress', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => {
-                          if (!item || !item.value) {
-                            console.error('[FieldMappingDialog] Invalid item:', item);
-                            return null;
-                          }
-                          return (
-                            <Select.Item item={item} key={item.value}>
-                              {item.label}
-                            </Select.Item>
-                          );
-                        })}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => {
+                      if (!item || !item.value) {
+                        console.error('[FieldMappingDialog] Invalid item:', item);
+                        return null;
+                      }
+                      return (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      );
+                    })}
+                  </Input>
                   {renderCustomInput('clientAddress', '例: text_address')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientAddress')}
@@ -758,28 +688,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientPhone')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientPhone', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientPhone')}
+                    onChange={(e) => handleSelectChange('clientPhone', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('clientPhone', '例: text_phone')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientPhone')}
@@ -788,34 +708,24 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('clientEmail')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientEmail', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('clientEmail')}
+                    onChange={(e) => handleSelectChange('clientEmail', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => {
-                          if (!item || !item.value) {
-                            console.error('[FieldMappingDialog] Invalid item:', item);
-                            return null;
-                          }
-                          return (
-                            <Select.Item item={item} key={item.value}>
-                              {item.label}
-                            </Select.Item>
-                          );
-                        })}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => {
+                      if (!item || !item.value) {
+                        console.error('[FieldMappingDialog] Invalid item:', item);
+                        return null;
+                      }
+                      return (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      );
+                    })}
+                  </Input>
                   {renderCustomInput('clientEmail', '例: text_email')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('clientEmail')}
@@ -830,28 +740,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('discount')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('discount', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('discount')}
+                    onChange={(e) => handleSelectChange('discount', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('discount', '例: numeric_mkwjxbfn')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('discount')}
@@ -860,28 +760,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('taxAmount')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('taxAmount', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('taxAmount')}
+                    onChange={(e) => handleSelectChange('taxAmount', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('taxAmount', '例: numeric_mkwqnby1')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('taxAmount')}
@@ -890,28 +780,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
                 <Field.Root>
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
-                  <Select.Root
-                    items={validBoardColumnsItems}
-                    value={[getSelectValue('items')]}
-                    onValueChange={(details) => {
-                      if (details.value && details.value.length > 0) {
-                        handleSelectChange('items', details.value[0]);
-                      }
-                    }}
+                  <Input
+                    as="select"
+                    value={getSelectValue('items')}
+                    onChange={(e) => handleSelectChange('items', e.target.value)}
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {validBoardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Input>
                   {renderCustomInput('items', '例: subitems')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('items')}
@@ -921,34 +801,24 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 {getSelectValue('items') === 'subitems' && (
                   <Field.Root>
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
-                    <Select.Root
-                      items={validBoardColumnsItems}
-                      value={[getSelectValue('subitemPrice')]}
-                      onValueChange={(details) => {
-                        if (details.value && details.value.length > 0) {
-                          handleSelectChange('subitemPrice', details.value[0]);
-                        }
-                      }}
+                    <Input
+                      as="select"
+                      value={getSelectValue('subitemPrice')}
+                      onChange={(e) => handleSelectChange('subitemPrice', e.target.value)}
                     >
-                      <Select.Trigger>
-                        <Select.ValueText placeholder={t.fieldMappingSelectColumn} />
-                      </Select.Trigger>
-                      <Select.Positioner>
-                        <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                          {validBoardColumnsItems?.map((item) => {
-                            if (!item || !item.value) {
-                              console.error('[FieldMappingDialog] Invalid item:', item);
-                              return null;
-                            }
-                            return (
-                              <Select.Item item={item} key={item.value}>
-                                {item.label}
-                              </Select.Item>
-                            );
-                          })}
-                        </Select.Content>
-                      </Select.Positioner>
-                    </Select.Root>
+                      <option value="">{t.fieldMappingSelectColumn}</option>
+                      {validBoardColumnsItems?.map((item) => {
+                        if (!item || !item.value) {
+                          console.error('[FieldMappingDialog] Invalid item:', item);
+                          return null;
+                        }
+                        return (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        );
+                      })}
+                    </Input>
                     {renderCustomInput('subitemPrice', '例: numeric_mkwjthws')}
                     <Field.HelperText fontSize="xs">
                       {t.fieldMappingCurrent} {getDisplayLabel('subitemPrice')}
