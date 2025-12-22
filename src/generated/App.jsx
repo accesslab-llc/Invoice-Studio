@@ -275,14 +275,16 @@ const App = () => {
     if (mapping === 'name') return item.name || '';
     if (mapping === 'clientName') {
       // clientName is a special mapping that might be a column ID or a key
+      // First try the direct mapping, then fallback to common column IDs
       return item.clientName || item['text_mkwjtrys'] || '';
     }
-    // Check if mapping is a column ID (starts with text_, numeric_, etc.)
-    if (item[mapping] !== undefined) {
+    // Check if mapping is a column ID (starts with text_, numeric_, date_, board_relation_, lookup_, etc.)
+    // Try direct property access first
+    if (item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
       return item[mapping];
     }
-    // Try to get value from item directly
-    return item[mapping] || '';
+    // Return empty string if not found
+    return '';
   };
 
   const loadSelectedItem = async () => {
