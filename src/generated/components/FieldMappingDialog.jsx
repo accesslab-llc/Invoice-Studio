@@ -61,19 +61,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const t = translations[language] || translations.ja;
   const board = new BoardSDK();
   
-  // Memoize boardColumns to prevent recreation on every render
-  // Use a stable reference by creating collection only when items actually change
-  const boardColumns = useMemo(() => {
-    const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
-    const collection = createListCollection({ items: validItems });
-    // Ensure collection.options is properly set
-    if (collection && !collection.options) {
-      console.warn('[FieldMappingDialog] Collection missing options property');
-    }
-    return collection;
-  }, [boardColumnsItems]);
-  
-  // Create a stable key for Select components to force remount when boardColumns changes
+  // Create a stable key for Select components to force remount when boardColumnsItems changes
   // Use a hash of all item values to ensure stability
   const boardColumnsKey = useMemo(() => {
     if (boardColumnsItems.length === 0) return 'empty';
@@ -186,59 +174,72 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             console.log('[FieldMappingDialog] Fetched subitem board columns:', subitemColumns.length);
             console.log('[FieldMappingDialog] Subitem columns:', subitemColumns);
           } else {
-            console.warn('[FieldMappingDialog] No subitem board columns found');
-            subitemColumns = [];
-          }
-        } catch (error) {
-          console.error('[FieldMappingDialog] Failed to fetch subitem board columns:', error);
-          // Fallback: try to get column IDs from actual subitem data
-          try {
-            const testQuery = `
-              query GetSubitemColumns($boardId: [ID!]!) {
-                boards(ids: $boardId) {
-                  items_page(limit: 1) {
-                    items {
-                      subitems {
-                        column_values {
-                          id
-                          type
+            console.warn('[FieldMappingDialog] No subitem board columns found, trying fallback...');
+            // Fallback: try to get column IDs from actual subitem data
+            try {
+              const testQuery = `
+                query GetSubitemColumns($boardId: [ID!]!) {
+                  boards(ids: $boardId) {
+                    items_page(limit: 10) {
+                      items {
+                        subitems {
+                          column_values {
+                            id
+                            type
+                          }
                         }
                       }
                     }
                   }
                 }
+              `;
+              const testResponse = await board.query(testQuery, { boardId: [board.boardId] });
+              const testBoards = testResponse?.boards || testResponse?.data?.boards;
+              if (testBoards?.[0]?.items_page?.items) {
+                const allSubitemColumnValues = [];
+                testBoards[0].items_page.items.forEach(item => {
+                  if (item.subitems) {
+                    item.subitems.forEach(subitem => {
+                      if (subitem.column_values) {
+                        allSubitemColumnValues.push(...subitem.column_values);
+                      }
+                    });
+                  }
+                });
+                
+                // Extract unique column IDs and types
+                const subitemColumnMap = new Map();
+                allSubitemColumnValues.forEach(col => {
+                  if (col.id && !subitemColumnMap.has(col.id)) {
+                    // Check if it's a mirror column in the main board
+                    const mainBoardColumn = columns.find(c => c.id === col.id);
+                    if (mainBoardColumn) {
+                      subitemColumnMap.set(col.id, {
+                        id: col.id,
+                        title: mainBoardColumn.title,
+                        type: mainBoardColumn.type
+                      });
+                    } else {
+                      // Use column ID as title if not found in main board
+                      subitemColumnMap.set(col.id, {
+                        id: col.id,
+                        title: col.id,
+                        type: col.type || 'text'
+                      });
+                    }
+                  }
+                });
+                subitemColumns = Array.from(subitemColumnMap.values());
+                console.log('[FieldMappingDialog] Fallback: extracted subitem columns from data:', subitemColumns.length);
               }
-            `;
-            const testResponse = await board.query(testQuery, { boardId: [board.boardId] });
-            const testBoards = testResponse?.boards || testResponse?.data?.boards;
-            if (testBoards?.[0]?.items_page?.items?.[0]?.subitems?.[0]?.column_values) {
-              const subitemColumnValues = testBoards[0].items_page.items[0].subitems[0].column_values;
-              const subitemColumnIds = new Set();
-              subitemColumnValues.forEach(col => {
-                if (col.id) {
-                  subitemColumnIds.add(col.id);
-                }
-              });
-              
-              // Check if any are mirror columns in the main board
-              const subitemColumnMap = new Map();
-              subitemColumnIds.forEach(colId => {
-                const mainBoardColumn = columns.find(c => c.id === colId);
-                if (mainBoardColumn) {
-                  subitemColumnMap.set(colId, {
-                    id: colId,
-                    title: mainBoardColumn.title,
-                    type: mainBoardColumn.type
-                  });
-                }
-              });
-              subitemColumns = Array.from(subitemColumnMap.values());
-              console.log('[FieldMappingDialog] Fallback: extracted subitem columns from data:', subitemColumns.length);
+            } catch (fallbackError) {
+              console.error('[FieldMappingDialog] Fallback also failed:', fallbackError);
+              subitemColumns = [];
             }
-          } catch (fallbackError) {
-            console.error('[FieldMappingDialog] Fallback also failed:', fallbackError);
-            subitemColumns = [];
           }
+        } catch (error) {
+          console.error('[FieldMappingDialog] Failed to fetch subitem board columns:', error);
+          subitemColumns = [];
         }
         
         // Filter base columns to only include those that exist in the actual board
@@ -559,7 +560,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
                   <Select.Root
                     key={`invoiceNumber-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('invoiceNumber')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] invoiceNumber Select onValueChange:', details);
@@ -573,7 +574,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns?.items?.map((item) => {
+                        {boardColumnsItems?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                             return null;
@@ -597,7 +598,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
                   <Select.Root
                     key={`invoiceDate-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('invoiceDate')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -634,7 +635,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
                   <Select.Root
                     key={`clientName-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientName')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -665,7 +666,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
                   <Select.Root
                     key={`clientDepartment-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientDepartment')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -696,7 +697,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
                   <Select.Root
                     key={`clientContact-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientContact')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -727,7 +728,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
                   <Select.Root
                     key={`clientZip-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientZip')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -758,7 +759,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
                   <Select.Root
                     key={`clientAddress-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientAddress')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] clientAddress Select onValueChange:', details);
@@ -772,7 +773,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns?.items?.map((item) => {
+                        {boardColumnsItems?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                             return null;
@@ -796,7 +797,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
                   <Select.Root
                     key={`clientPhone-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientPhone')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -827,7 +828,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
                   <Select.Root
                     key={`clientEmail-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('clientEmail')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -840,7 +841,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns?.items?.map((item) => {
+                        {boardColumnsItems?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                             return null;
@@ -870,7 +871,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
                   <Select.Root
                     key={`discount-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('discount')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -901,7 +902,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
                   <Select.Root
                     key={`taxAmount-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('taxAmount')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -932,7 +933,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
                   <Select.Root
                     key={`items-${boardColumnsKey}`}
-                    collection={boardColumns}
+                    items={boardColumnsItems}
                     value={[getSelectValue('items')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -964,7 +965,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
                     <Select.Root
                       key={`subitemPrice-${boardColumnsKey}`}
-                      collection={boardColumns}
+                      items={boardColumnsItems}
                       value={[getSelectValue('subitemPrice')]}
                       onValueChange={(details) => {
                         if (details.value && details.value.length > 0) {
@@ -977,7 +978,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       </Select.Trigger>
                       <Select.Positioner>
                         <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                          {boardColumns?.items?.map((item) => {
+                          {boardColumnsItems?.map((item) => {
                             if (!item || !item.value) {
                               console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                               return null;
