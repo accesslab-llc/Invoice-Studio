@@ -58,6 +58,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const [mappings, setMappings] = useState(defaultMappings);
   const [boardColumns, setBoardColumns] = useState(createListCollection({ items: baseColumnItems }));
   const [loadingColumns, setLoadingColumns] = useState(false);
+  const [openSelects, setOpenSelects] = useState({});
   const t = translations[language] || translations.ja;
   const board = new BoardSDK();
 
@@ -254,8 +255,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     return column ? column.label : actual;
   };
 
-  const handleSelectChange = (fieldKey, selected) => {
+  const handleSelectChange = (fieldKey, selected, closeSelect) => {
     console.log('[FieldMappingDialog] handleSelectChange:', fieldKey, selected);
+    // Close the select after selection
+    if (closeSelect) {
+      setTimeout(() => {
+        setOpenSelects((prev) => ({ ...prev, [fieldKey]: false }));
+      }, 100);
+    }
     setMappings((prev) => {
       if (selected === 'custom') {
         const current = prev[fieldKey];
@@ -331,10 +338,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Select.Root
                     collection={boardColumns}
                     value={[getSelectValue('invoiceNumber')]}
+                    open={openSelects.invoiceNumber}
+                    onOpenChange={(details) => {
+                      setOpenSelects((prev) => ({ ...prev, invoiceNumber: details.open }));
+                    }}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('invoiceNumber', details.value[0]);
+                        handleSelectChange('invoiceNumber', details.value[0], true);
                       }
                     }}
                   >
@@ -365,7 +376,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('invoiceDate', details.value[0]);
+                        handleSelectChange('invoiceDate', details.value[0], true);
                       }
                     }}
                   >
@@ -402,7 +413,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientName', details.value[0]);
+                        handleSelectChange('clientName', details.value[0], true);
                       }
                     }}
                   >
@@ -433,7 +444,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientDepartment', details.value[0]);
+                        handleSelectChange('clientDepartment', details.value[0], true);
                       }
                     }}
                   >
@@ -464,7 +475,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientContact', details.value[0]);
+                        handleSelectChange('clientContact', details.value[0], true);
                       }
                     }}
                   >
@@ -495,7 +506,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientZip', details.value[0]);
+                        handleSelectChange('clientZip', details.value[0], true);
                       }
                     }}
                   >
@@ -526,7 +537,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientAddress', details.value[0]);
+                        handleSelectChange('clientAddress', details.value[0], true);
                       }
                     }}
                   >
@@ -557,7 +568,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientPhone', details.value[0]);
+                        handleSelectChange('clientPhone', details.value[0], true);
                       }
                     }}
                   >
@@ -588,7 +599,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('clientEmail', details.value[0]);
+                        handleSelectChange('clientEmail', details.value[0], true);
                       }
                     }}
                   >
@@ -625,7 +636,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('discount', details.value[0]);
+                        handleSelectChange('discount', details.value[0], true);
                       }
                     }}
                   >
@@ -656,7 +667,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('taxAmount', details.value[0]);
+                        handleSelectChange('taxAmount', details.value[0], true);
                       }
                     }}
                   >
@@ -687,7 +698,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
-                        handleSelectChange('items', details.value[0]);
+                        handleSelectChange('items', details.value[0], true);
                       }
                     }}
                   >
@@ -719,7 +730,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       onValueChange={(details) => {
                         console.log('[FieldMappingDialog] Select onValueChange:', details);
                         if (details.value && details.value.length > 0) {
-                          handleSelectChange('subitemPrice', details.value[0]);
+                          handleSelectChange('subitemPrice', details.value[0], true);
                         }
                       }}
                     >
