@@ -62,9 +62,20 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const board = new BoardSDK();
   
   // Memoize boardColumns to prevent recreation on every render
+  // Use a stable reference by creating collection only when items actually change
   const boardColumns = useMemo(() => {
     const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
-    return createListCollection({ items: validItems });
+    const collection = createListCollection({ items: validItems });
+    // Ensure collection.options is properly set
+    if (collection && !collection.options) {
+      console.warn('[FieldMappingDialog] Collection missing options property');
+    }
+    return collection;
+  }, [boardColumnsItems]);
+  
+  // Create a stable key for Select components to force remount when boardColumns changes
+  const boardColumnsKey = useMemo(() => {
+    return boardColumnsItems.length + (boardColumnsItems[0]?.value || '');
   }, [boardColumnsItems]);
 
   // Fetch board columns dynamically when dialog opens
@@ -127,29 +138,64 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         const actualColumnIds = new Set(columns.map(col => col.id));
         const actualColumnMap = new Map(columns.map(col => [col.id, col]));
         
-        // Fetch subitem columns from subitem board
+        // Fetch subitem columns from actual subitem data
+        // Since we can't access the subitem board directly, we'll extract column IDs from actual subitem data
         let subitemColumns = [];
         try {
-          const subitemBoardId = '18144719619'; // Subitem board ID
-          const subitemQuery = `
-            query GetSubitemBoardColumns($boardId: [ID!]!) {
+          // Try to fetch one item with subitems to get column IDs
+          const testQuery = `
+            query GetSubitemColumns($boardId: [ID!]!) {
               boards(ids: $boardId) {
-                columns {
-                  id
-                  title
-                  type
+                items_page(limit: 1) {
+                  items {
+                    subitems {
+                      column_values {
+                        id
+                        type
+                      }
+                    }
+                  }
                 }
               }
             }
           `;
-          const subitemResponse = await board.query(subitemQuery, { boardId: [subitemBoardId] });
-          const subitemBoards = subitemResponse?.boards || subitemResponse?.data?.boards;
-          if (subitemBoards?.[0]?.columns) {
-            subitemColumns = subitemBoards[0].columns;
-            console.log('[FieldMappingDialog] Fetched subitem columns:', subitemColumns.length);
+          // Ensure board is initialized
+          if (!board.boardId) {
+            await board.initialize();
+          }
+          const testResponse = await board.query(testQuery, { boardId: [board.boardId] });
+          const testBoards = testResponse?.boards || testResponse?.data?.boards;
+          if (testBoards?.[0]?.items_page?.items?.[0]?.subitems?.[0]?.column_values) {
+            const subitemColumnValues = testBoards[0].items_page.items[0].subitems[0].column_values;
+            // Extract unique column IDs and types
+            const columnMap = new Map();
+            subitemColumnValues.forEach(col => {
+              if (col.id && !columnMap.has(col.id)) {
+                columnMap.set(col.id, {
+                  id: col.id,
+                  title: col.id, // We don't have title, use ID
+                  type: col.type || 'text'
+                });
+              }
+            });
+            subitemColumns = Array.from(columnMap.values());
+            console.log('[FieldMappingDialog] Extracted subitem columns from data:', subitemColumns.length);
+          } else {
+            // Fallback: use known subitem column IDs from the data we've seen
+            // These are the numeric columns we've seen in the logs
+            subitemColumns = [
+              { id: 'numeric_mkywyf4v', title: '数量 [サブアイテム]', type: 'numbers' },
+              { id: 'numeric_mkyw61b', title: '価格 [サブアイテム]', type: 'numbers' }
+            ];
+            console.log('[FieldMappingDialog] Using fallback subitem columns:', subitemColumns.length);
           }
         } catch (error) {
           console.error('[FieldMappingDialog] Failed to fetch subitem columns:', error);
+          // Fallback: use known subitem column IDs
+          subitemColumns = [
+            { id: 'numeric_mkywyf4v', title: '数量 [サブアイテム]', type: 'numbers' },
+            { id: 'numeric_mkyw61b', title: '価格 [サブアイテム]', type: 'numbers' }
+          ];
         }
         
         // Filter base columns to only include those that exist in the actual board
@@ -469,20 +515,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
                   <Select.Root
-                    key={`invoiceNumber-${boardColumns?.items?.length || 0}`}
+                    key={`invoiceNumber-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('invoiceNumber')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] invoiceNumber Select onValueChange:', details);
-                      console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
-                      console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
-                      console.log('[FieldMappingDialog] boardColumns.options:', boardColumns?.options);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('invoiceNumber', details.value[0]);
                       }
-                    }}
-                    onOpenChange={(details) => {
-                      console.log('[FieldMappingDialog] invoiceNumber Select onOpenChange:', details);
                     }}
                   >
                     <Select.Trigger>
@@ -513,10 +553,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
                   <Select.Root
+                    key={`invoiceDate-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('invoiceDate')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('invoiceDate', details.value[0]);
                       }
@@ -550,10 +590,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
                   <Select.Root
+                    key={`clientName-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientName')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientName', details.value[0]);
                       }
@@ -581,10 +621,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
                   <Select.Root
+                    key={`clientDepartment-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientDepartment')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientDepartment', details.value[0]);
                       }
@@ -612,10 +652,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
                   <Select.Root
+                    key={`clientContact-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientContact')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientContact', details.value[0]);
                       }
@@ -643,10 +683,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
                   <Select.Root
+                    key={`clientZip-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientZip')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientZip', details.value[0]);
                       }
@@ -674,20 +714,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
                   <Select.Root
-                    key={`clientAddress-${boardColumns?.items?.length || 0}`}
+                    key={`clientAddress-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientAddress')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] clientAddress Select onValueChange:', details);
-                      console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
-                      console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
-                      console.log('[FieldMappingDialog] boardColumns.options:', boardColumns?.options);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientAddress', details.value[0]);
                       }
-                    }}
-                    onOpenChange={(details) => {
-                      console.log('[FieldMappingDialog] clientAddress Select onOpenChange:', details);
                     }}
                   >
                     <Select.Trigger>
@@ -718,10 +752,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
                   <Select.Root
+                    key={`clientPhone-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientPhone')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientPhone', details.value[0]);
                       }
@@ -749,18 +783,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
                   <Select.Root
+                    key={`clientEmail-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientEmail')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] clientEmail Select onValueChange:', details);
-                      console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
-                      console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientEmail', details.value[0]);
                       }
-                    }}
-                    onOpenChange={(details) => {
-                      console.log('[FieldMappingDialog] clientEmail Select onOpenChange:', details);
                     }}
                   >
                     <Select.Trigger>
@@ -797,10 +826,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
                   <Select.Root
+                    key={`discount-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('discount')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('discount', details.value[0]);
                       }
@@ -828,10 +857,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
                   <Select.Root
+                    key={`taxAmount-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('taxAmount')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('taxAmount', details.value[0]);
                       }
@@ -859,10 +888,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
                   <Select.Root
+                    key={`items-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('items')]}
                     onValueChange={(details) => {
-                      console.log('[FieldMappingDialog] Select onValueChange:', details);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('items', details.value[0]);
                       }
@@ -891,18 +920,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Root>
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
                     <Select.Root
+                      key={`subitemPrice-${boardColumnsKey}`}
                       collection={boardColumns}
                       value={[getSelectValue('subitemPrice')]}
                       onValueChange={(details) => {
-                        console.log('[FieldMappingDialog] subitemPrice Select onValueChange:', details);
-                        console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
-                        console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
                         if (details.value && details.value.length > 0) {
                           handleSelectChange('subitemPrice', details.value[0]);
                         }
-                      }}
-                      onOpenChange={(details) => {
-                        console.log('[FieldMappingDialog] subitemPrice Select onOpenChange:', details);
                       }}
                     >
                       <Select.Trigger>
