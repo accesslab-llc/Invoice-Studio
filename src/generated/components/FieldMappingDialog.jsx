@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   Button,
@@ -162,11 +162,21 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         
         const collection = createListCollection({ items: validColumns });
         console.log('[FieldMappingDialog] Created collection:', collection);
+        console.log('[FieldMappingDialog] Collection keys:', Object.keys(collection || {}));
         console.log('[FieldMappingDialog] Collection items:', collection?.items);
+        console.log('[FieldMappingDialog] Collection options:', collection?.options);
         console.log('[FieldMappingDialog] Collection items type:', typeof collection?.items);
         console.log('[FieldMappingDialog] Collection items is array:', Array.isArray(collection?.items));
         if (collection?.items) {
           console.log('[FieldMappingDialog] First 3 items:', collection.items.slice(0, 3));
+        }
+        // Ensure collection has the expected structure
+        if (!collection || !collection.items || !Array.isArray(collection.items)) {
+          console.error('[FieldMappingDialog] Invalid collection structure:', collection);
+          // Fallback to base columns
+          const fallbackCollection = createListCollection({ items: baseColumnItems });
+          setBoardColumns(fallbackCollection);
+          return;
         }
         
         setBoardColumns(collection);
@@ -233,7 +243,11 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   // Debug: Log boardColumns whenever it changes
   useEffect(() => {
     console.log('[FieldMappingDialog] boardColumns changed:', boardColumns);
+    console.log('[FieldMappingDialog] boardColumns keys:', Object.keys(boardColumns || {}));
     console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
+    console.log('[FieldMappingDialog] boardColumns.options:', boardColumns?.options);
+    console.log('[FieldMappingDialog] boardColumns.options type:', typeof boardColumns?.options);
+    console.log('[FieldMappingDialog] boardColumns.options is iterable:', boardColumns?.options && typeof boardColumns.options[Symbol.iterator] === 'function');
     console.log('[FieldMappingDialog] boardColumns.items type:', typeof boardColumns?.items);
     console.log('[FieldMappingDialog] boardColumns.items is array:', Array.isArray(boardColumns?.items));
     if (boardColumns?.items && boardColumns.items.length > 0) {
@@ -314,13 +328,16 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
   const handleSelectChange = (fieldKey, selected) => {
     console.log('[FieldMappingDialog] handleSelectChange:', fieldKey, selected);
+    console.log('[FieldMappingDialog] Current boardColumns before update:', boardColumns);
+    console.log('[FieldMappingDialog] boardColumns.options before update:', boardColumns?.options);
     
     setMappings((prev) => {
       let updatedMappings;
       if (selected === 'custom') {
         const current = prev[fieldKey];
         // If current value is a custom value (not in boardColumns), keep it, otherwise clear
-        const isCustom = current && !boardColumns.items.some(item => item.value === current);
+        // Use a safe check to avoid accessing boardColumns.items during state update
+        const isCustom = current && (!boardColumns?.items || !Array.isArray(boardColumns.items) || !boardColumns.items.some(item => item && item.value === current));
         updatedMappings = {
           ...prev,
           [fieldKey]: isCustom ? current : ''
@@ -400,12 +417,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
                   <Select.Root
+                    key={`invoiceNumber-${boardColumns?.items?.length || 0}`}
                     collection={boardColumns}
                     value={[getSelectValue('invoiceNumber')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] invoiceNumber Select onValueChange:', details);
                       console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
                       console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
+                      console.log('[FieldMappingDialog] boardColumns.options:', boardColumns?.options);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('invoiceNumber', details.value[0]);
                       }
@@ -603,12 +622,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
                   <Select.Root
+                    key={`clientAddress-${boardColumns?.items?.length || 0}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientAddress')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] clientAddress Select onValueChange:', details);
                       console.log('[FieldMappingDialog] boardColumns at onChange:', boardColumns);
                       console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
+                      console.log('[FieldMappingDialog] boardColumns.options:', boardColumns?.options);
                       if (details.value && details.value.length > 0) {
                         handleSelectChange('clientAddress', details.value[0]);
                       }
