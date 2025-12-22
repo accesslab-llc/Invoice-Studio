@@ -56,14 +56,29 @@ const fieldKeys = Object.keys(defaultMappings);
 
 const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings }) => {
   const [mappings, setMappings] = useState(defaultMappings);
-  const [boardColumns, setBoardColumns] = useState(createListCollection({ items: baseColumnItems }));
+  const [boardColumnsItems, setBoardColumnsItems] = useState(baseColumnItems);
   const [loadingColumns, setLoadingColumns] = useState(false);
   const t = translations[language] || translations.ja;
   const board = new BoardSDK();
+  
+  // Memoize boardColumns to prevent recreation on every render
+  const boardColumns = useMemo(() => {
+    const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
+    return createListCollection({ items: validItems });
+  }, [boardColumnsItems]);
 
   // Fetch board columns dynamically when dialog opens
   useEffect(() => {
     if (!isOpen) return;
+    
+    // TEST: Clear localStorage when dialog opens
+    // Remove this block after testing
+    try {
+      localStorage.removeItem('invoiceFieldMappings');
+      console.log('[FieldMappingDialog] Cleared localStorage for testing');
+    } catch (e) {
+      console.error('[FieldMappingDialog] Failed to clear localStorage:', e);
+    }
     
     const fetchColumns = async () => {
       setLoadingColumns(true);
@@ -174,20 +189,19 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         if (!collection || !collection.items || !Array.isArray(collection.items)) {
           console.error('[FieldMappingDialog] Invalid collection structure:', collection);
           // Fallback to base columns
-          const fallbackCollection = createListCollection({ items: baseColumnItems });
-          setBoardColumns(fallbackCollection);
+          setBoardColumnsItems(baseColumnItems);
           return;
         }
         
-        setBoardColumns(collection);
+        // Update items instead of collection to trigger useMemo recalculation
+        setBoardColumnsItems(validColumns);
         console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added');
       } catch (error) {
         console.error('FieldMappingDialog: Failed to fetch columns:', error);
         // Fallback to base columns only
         const validBaseItems = baseColumnItems.filter(item => item && item.value && item.label);
-        const fallbackCollection = createListCollection({ items: validBaseItems });
-        console.log('[FieldMappingDialog] Fallback collection:', fallbackCollection);
-        setBoardColumns(fallbackCollection);
+        console.log('[FieldMappingDialog] Fallback items:', validBaseItems);
+        setBoardColumnsItems(validBaseItems);
       } finally {
         setLoadingColumns(false);
       }
@@ -379,10 +393,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
       <Dialog.Positioner>
         <Dialog.Content maxH="90vh">
           <Dialog.Header>
-            <HStack gap="2">
-              <Settings size={24} />
+              <HStack gap="2">
+                <Settings size={24} />
               <Text>{t.fieldMappingTitle}</Text>
-            </HStack>
+              </HStack>
             <Dialog.Description>{t.fieldMappingDescription}</Dialog.Description>
           </Dialog.Header>
 
@@ -444,9 +458,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                             return null;
                           }
                           return (
-                            <Select.Item item={item} key={item.value}>
-                              {item.label}
-                            </Select.Item>
+                          <Select.Item item={item} key={item.value}>
+                            {item.label}
+                          </Select.Item>
                           );
                         })}
                       </Select.Content>
@@ -864,9 +878,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                               return null;
                             }
                             return (
-                              <Select.Item item={item} key={item.value}>
-                                {item.label}
-                              </Select.Item>
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                            </Select.Item>
                             );
                           })}
                         </Select.Content>
