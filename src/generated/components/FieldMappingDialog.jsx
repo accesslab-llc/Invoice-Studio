@@ -127,6 +127,31 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         const actualColumnIds = new Set(columns.map(col => col.id));
         const actualColumnMap = new Map(columns.map(col => [col.id, col]));
         
+        // Fetch subitem columns from subitem board
+        let subitemColumns = [];
+        try {
+          const subitemBoardId = '18144719619'; // Subitem board ID
+          const subitemQuery = `
+            query GetSubitemBoardColumns($boardId: [ID!]!) {
+              boards(ids: $boardId) {
+                columns {
+                  id
+                  title
+                  type
+                }
+              }
+            }
+          `;
+          const subitemResponse = await board.query(subitemQuery, { boardId: [subitemBoardId] });
+          const subitemBoards = subitemResponse?.boards || subitemResponse?.data?.boards;
+          if (subitemBoards?.[0]?.columns) {
+            subitemColumns = subitemBoards[0].columns;
+            console.log('[FieldMappingDialog] Fetched subitem columns:', subitemColumns.length);
+          }
+        } catch (error) {
+          console.error('[FieldMappingDialog] Failed to fetch subitem columns:', error);
+        }
+        
         // Filter base columns to only include those that exist in the actual board
         // Also include special values like 'manual', 'name', 'subitems', 'custom'
         const validBaseColumns = baseColumnItems.filter(item => {
@@ -136,9 +161,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           }
           // For mapped columns (like 'clientName', 'column1', etc.), check if they exist in actual columns
           // These are mapping keys, not actual column IDs, so we need to check differently
-          // For now, we'll include all base columns and let the user choose
-          // The actual validation happens when loading data
-          return true;
+          // Check if the value exists in actual column IDs
+          if (actualColumnIds.has(item.value)) {
+            return true;
+          }
+          // Exclude columns that don't exist in the board
+          return false;
         });
         
         // Create column items from fetched columns
@@ -147,7 +175,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           value: col.id
         }));
         
+        // Create column items from subitem columns (for subitem price mapping)
+        const subitemDynamicColumns = subitemColumns.map(col => ({
+          label: `${col.title} (${getColumnTypeLabel(col.type)}) [サブアイテム]`,
+          value: col.id
+        }));
+        
         console.log('[FieldMappingDialog] Dynamic columns created:', dynamicColumns.length);
+        console.log('[FieldMappingDialog] Subitem columns created:', subitemDynamicColumns.length);
         console.log('[FieldMappingDialog] Mirror columns in dynamic:', dynamicColumns.filter(c => c.label.includes('ミラー')));
         
         // Get existing base column values to avoid duplicates
@@ -156,14 +191,17 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         // Filter out dynamic columns that already exist in base columns
         const uniqueDynamicColumns = dynamicColumns.filter(col => !baseColumnValues.has(col.value));
         
+        // Add subitem columns (they won't conflict with main board columns)
+        const allDynamicColumns = [...uniqueDynamicColumns, ...subitemDynamicColumns];
+        
         console.log('[FieldMappingDialog] Valid base columns:', validBaseColumns.length);
         console.log('[FieldMappingDialog] Unique dynamic columns (after filtering):', uniqueDynamicColumns.length);
         console.log('[FieldMappingDialog] Final columns count:', validBaseColumns.length + uniqueDynamicColumns.length);
         
-        // Combine base columns with unique dynamic columns
+        // Combine base columns with unique dynamic columns (including subitem columns)
         const allColumns = [
           ...validBaseColumns,
-          ...uniqueDynamicColumns
+          ...allDynamicColumns
         ];
         
         // Validate all items before creating collection

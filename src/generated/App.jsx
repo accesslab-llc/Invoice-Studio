@@ -272,7 +272,17 @@ const App = () => {
   const getMappedValue = (item, mapping) => {
     if (mapping === 'manual' || !mapping) return '';
     if (mapping === 'subitems') return item.subitems;
-    return item[mapping];
+    if (mapping === 'name') return item.name || '';
+    if (mapping === 'clientName') {
+      // clientName is a special mapping that might be a column ID or a key
+      return item.clientName || item['text_mkwjtrys'] || '';
+    }
+    // Check if mapping is a column ID (starts with text_, numeric_, etc.)
+    if (item[mapping] !== undefined) {
+      return item[mapping];
+    }
+    // Try to get value from item directly
+    return item[mapping] || '';
   };
 
   const loadSelectedItem = async () => {
