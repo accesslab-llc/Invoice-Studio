@@ -572,9 +572,20 @@ class BoardSDK {
       const response = await this.query(query, variables);
       
       if (response?.data?.boards?.[0]?.columns) {
-        return response.data.boards[0].columns;
+        const columns = response.data.boards[0].columns;
+        console.log('[BoardSDK] Fetched columns:', columns.length);
+        console.log('[BoardSDK] Column types:', columns.map(c => ({ id: c.id, title: c.title, type: c.type })));
+        // Log mirror columns specifically
+        const mirrorColumns = columns.filter(c => c.type === 'mirror' || c.type === 'mirror__');
+        if (mirrorColumns.length > 0) {
+          console.log('[BoardSDK] Found mirror columns:', mirrorColumns);
+        } else {
+          console.log('[BoardSDK] No mirror columns found in board');
+        }
+        return columns;
       }
       
+      console.warn('[BoardSDK] No columns found in response');
       return [];
     } catch (error) {
       console.error('[BoardSDK] Failed to fetch columns:', error);

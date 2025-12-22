@@ -71,6 +71,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         await board.initialize();
         const columns = await board.fetchColumns();
         
+        console.log('[FieldMappingDialog] Fetched columns:', columns);
+        console.log('[FieldMappingDialog] Column count:', columns.length);
+        
         // Map column types to readable labels
         const getColumnTypeLabel = (type) => {
           const typeMap = {
@@ -107,15 +110,21 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         
         // Create column items from fetched columns
         const dynamicColumns = columns.map(col => ({
-          label: `${col.title} (${getColumnTypeLabel(col.type)}) - ${col.id}`,
+          label: `${col.title} (${getColumnTypeLabel(col.type)})`,
           value: col.id
         }));
+        
+        console.log('[FieldMappingDialog] Dynamic columns created:', dynamicColumns.length);
+        console.log('[FieldMappingDialog] Mirror columns in dynamic:', dynamicColumns.filter(c => c.label.includes('ミラー')));
         
         // Get existing base column values to avoid duplicates
         const baseColumnValues = new Set(baseColumnItems.map(item => item.value));
         
         // Filter out dynamic columns that already exist in base columns
         const uniqueDynamicColumns = dynamicColumns.filter(col => !baseColumnValues.has(col.value));
+        
+        console.log('[FieldMappingDialog] Unique dynamic columns (after filtering):', uniqueDynamicColumns.length);
+        console.log('[FieldMappingDialog] Final columns count:', baseColumnItems.length + uniqueDynamicColumns.length);
         
         // Combine base columns with unique dynamic columns
         const allColumns = [
@@ -124,7 +133,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         ];
         
         setBoardColumns(createListCollection({ items: allColumns }));
-        console.log('FieldMappingDialog: Loaded', columns.length, 'columns from board');
+        console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added');
       } catch (error) {
         console.error('FieldMappingDialog: Failed to fetch columns:', error);
         // Fallback to base columns only
