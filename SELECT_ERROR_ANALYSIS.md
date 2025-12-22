@@ -65,16 +65,22 @@
 
 ## 最終的な解決策
 
-### 原因
-- `items`プロパティを使用すると、Chakra UIが内部的に`collection`を作成しようとする
-- その際に`options`プロパティが`{items: Array}`という構造になり、反復できない
+### 原因（再発）
+- `key`プロパティで強制的に再マウントしている
+- `onChange`イベント時に`syncSelectElement`が呼ばれ、古い`collection`オブジェクトの`options`を参照しようとする
+- `collection.options`が`{items: Array}`という構造で、反復できない
 - `a.options is not iterable`エラーが発生
+
+### 根本原因
+- `App.jsx`では`key`プロパティを使用していない
+- `key`プロパティで再マウントすると、内部状態がリセットされ、`onChange`時に古い`collection`を参照する可能性がある
 
 ### 解決策
 - `createListCollection`で`collection`オブジェクトを明示的に作成
 - `collection`プロパティを使用（`items`プロパティは使用しない）
 - `Select.Item`に`item={item}`を渡す（`value`プロパティは不要）
 - `useMemo`で`collection`を安定化し、`boardColumnsItems`が変更されたときのみ再作成
+- **`key`プロパティを削除**（`App.jsx`と同じように）
 
 ### 実装
 ```jsx
@@ -93,4 +99,6 @@ const boardColumns = useMemo(() => {
   </Select.Content>
 </Select.Root>
 ```
+
+**重要**: `Select.Root`に`key`プロパティを付けない（`App.jsx`と同じ）
 

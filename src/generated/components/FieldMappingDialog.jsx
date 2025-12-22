@@ -68,21 +68,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     return createListCollection({ items: validItems });
   }, [boardColumnsItems]);
 
-  // Create a stable key for Select components to force remount when boardColumnsItems changes
-  // Use a hash of all item values to ensure stability
-  const boardColumnsKey = useMemo(() => {
-    if (boardColumnsItems.length === 0) return 'empty';
-    // Create a stable hash from all item values
-    const values = boardColumnsItems.map(item => item?.value || '').sort().join(',');
-    // Use a simple hash function
-    let hash = 0;
-    for (let i = 0; i < values.length; i++) {
-      const char = values.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return `cols-${Math.abs(hash)}-${boardColumnsItems.length}`;
-  }, [boardColumnsItems]);
+  // Note: We don't use key prop to force remount like App.jsx
+  // The collection object is stabilized with useMemo, so Select components should handle updates correctly
 
   // Fetch board columns dynamically when dialog opens
   useEffect(() => {
@@ -559,7 +546,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
                   <Select.Root
-                    key={`invoiceNumber-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('invoiceNumber')]}
                     onValueChange={(details) => {
