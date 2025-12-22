@@ -74,8 +74,19 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   }, [boardColumnsItems]);
   
   // Create a stable key for Select components to force remount when boardColumns changes
+  // Use a hash of all item values to ensure stability
   const boardColumnsKey = useMemo(() => {
-    return boardColumnsItems.length + (boardColumnsItems[0]?.value || '');
+    if (boardColumnsItems.length === 0) return 'empty';
+    // Create a stable hash from all item values
+    const values = boardColumnsItems.map(item => item?.value || '').sort().join(',');
+    // Use a simple hash function
+    let hash = 0;
+    for (let i = 0; i < values.length; i++) {
+      const char = values.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return `cols-${Math.abs(hash)}-${boardColumnsItems.length}`;
   }, [boardColumnsItems]);
 
   // Fetch board columns dynamically when dialog opens
@@ -138,64 +149,96 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         const actualColumnIds = new Set(columns.map(col => col.id));
         const actualColumnMap = new Map(columns.map(col => [col.id, col]));
         
-        // Fetch subitem columns from actual subitem data
-        // Since we can't access the subitem board directly, we'll extract column IDs from actual subitem data
+        // Fetch subitem columns from subitem board
+        // Use the subitem board ID to fetch column information with titles
         let subitemColumns = [];
         try {
-          // Try to fetch one item with subitems to get column IDs
-          const testQuery = `
-            query GetSubitemColumns($boardId: [ID!]!) {
-              boards(ids: $boardId) {
-                items_page(limit: 1) {
-                  items {
-                    subitems {
-                      column_values {
-                        id
-                        type
+          // Ensure board is initialized
+          if (!board.boardId) {
+            await board.initialize();
+          }
+          
+          // Get subitem board ID from BoardSDK
+          const subitemBoardId = board.subitemBoardId || '18144719619';
+          
+          // Fetch subitem board columns with titles
+          const subitemBoardQuery = `
+            query GetSubitemBoardColumns($subitemBoardId: [ID!]!) {
+              boards(ids: $subitemBoardId) {
+                columns {
+                  id
+                  title
+                  type
+                }
+              }
+            }
+          `;
+          
+          const subitemBoardResponse = await board.query(subitemBoardQuery, { subitemBoardId: [subitemBoardId] });
+          const subitemBoards = subitemBoardResponse?.boards || subitemBoardResponse?.data?.boards;
+          
+          if (subitemBoards?.[0]?.columns) {
+            subitemColumns = subitemBoards[0].columns.map(col => ({
+              id: col.id,
+              title: col.title,
+              type: col.type || 'text'
+            }));
+            console.log('[FieldMappingDialog] Fetched subitem board columns:', subitemColumns.length);
+            console.log('[FieldMappingDialog] Subitem columns:', subitemColumns);
+          } else {
+            console.warn('[FieldMappingDialog] No subitem board columns found');
+            subitemColumns = [];
+          }
+        } catch (error) {
+          console.error('[FieldMappingDialog] Failed to fetch subitem board columns:', error);
+          // Fallback: try to get column IDs from actual subitem data
+          try {
+            const testQuery = `
+              query GetSubitemColumns($boardId: [ID!]!) {
+                boards(ids: $boardId) {
+                  items_page(limit: 1) {
+                    items {
+                      subitems {
+                        column_values {
+                          id
+                          type
+                        }
                       }
                     }
                   }
                 }
               }
+            `;
+            const testResponse = await board.query(testQuery, { boardId: [board.boardId] });
+            const testBoards = testResponse?.boards || testResponse?.data?.boards;
+            if (testBoards?.[0]?.items_page?.items?.[0]?.subitems?.[0]?.column_values) {
+              const subitemColumnValues = testBoards[0].items_page.items[0].subitems[0].column_values;
+              const subitemColumnIds = new Set();
+              subitemColumnValues.forEach(col => {
+                if (col.id) {
+                  subitemColumnIds.add(col.id);
+                }
+              });
+              
+              // Check if any are mirror columns in the main board
+              const subitemColumnMap = new Map();
+              subitemColumnIds.forEach(colId => {
+                const mainBoardColumn = columns.find(c => c.id === colId);
+                if (mainBoardColumn) {
+                  subitemColumnMap.set(colId, {
+                    id: colId,
+                    title: mainBoardColumn.title,
+                    type: mainBoardColumn.type
+                  });
+                }
+              });
+              subitemColumns = Array.from(subitemColumnMap.values());
+              console.log('[FieldMappingDialog] Fallback: extracted subitem columns from data:', subitemColumns.length);
             }
-          `;
-          // Ensure board is initialized
-          if (!board.boardId) {
-            await board.initialize();
+          } catch (fallbackError) {
+            console.error('[FieldMappingDialog] Fallback also failed:', fallbackError);
+            subitemColumns = [];
           }
-          const testResponse = await board.query(testQuery, { boardId: [board.boardId] });
-          const testBoards = testResponse?.boards || testResponse?.data?.boards;
-          if (testBoards?.[0]?.items_page?.items?.[0]?.subitems?.[0]?.column_values) {
-            const subitemColumnValues = testBoards[0].items_page.items[0].subitems[0].column_values;
-            // Extract unique column IDs and types
-            const columnMap = new Map();
-            subitemColumnValues.forEach(col => {
-              if (col.id && !columnMap.has(col.id)) {
-                columnMap.set(col.id, {
-                  id: col.id,
-                  title: col.id, // We don't have title, use ID
-                  type: col.type || 'text'
-                });
-              }
-            });
-            subitemColumns = Array.from(columnMap.values());
-            console.log('[FieldMappingDialog] Extracted subitem columns from data:', subitemColumns.length);
-          } else {
-            // Fallback: use known subitem column IDs from the data we've seen
-            // These are the numeric columns we've seen in the logs
-            subitemColumns = [
-              { id: 'numeric_mkywyf4v', title: '数量 [サブアイテム]', type: 'numbers' },
-              { id: 'numeric_mkyw61b', title: '価格 [サブアイテム]', type: 'numbers' }
-            ];
-            console.log('[FieldMappingDialog] Using fallback subitem columns:', subitemColumns.length);
-          }
-        } catch (error) {
-          console.error('[FieldMappingDialog] Failed to fetch subitem columns:', error);
-          // Fallback: use known subitem column IDs
-          subitemColumns = [
-            { id: 'numeric_mkywyf4v', title: '数量 [サブアイテム]', type: 'numbers' },
-            { id: 'numeric_mkyw61b', title: '価格 [サブアイテム]', type: 'numbers' }
-          ];
         }
         
         // Filter base columns to only include those that exist in the actual board
