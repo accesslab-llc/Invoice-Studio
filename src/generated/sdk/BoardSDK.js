@@ -571,20 +571,18 @@ class BoardSDK {
 
       const response = await this.query(query, variables);
       
-      console.log('[BoardSDK] Full response structure:', JSON.stringify(response, null, 2));
-      console.log('[BoardSDK] response.data:', response?.data);
-      console.log('[BoardSDK] response.data.boards:', response?.data?.boards);
-      console.log('[BoardSDK] response.data.boards[0]:', response?.data?.boards?.[0]);
-      console.log('[BoardSDK] response.data.boards[0].columns:', response?.data?.boards?.[0]?.columns);
+      // query() method returns response.data, so response is already the data part
+      // Check both response.boards (if query returns data) and response.data.boards (if query returns full response)
+      const boards = response?.boards || response?.data?.boards;
       
-      if (response?.data?.boards?.[0]?.columns) {
-        const columns = response.data.boards[0].columns;
+      if (boards?.[0]?.columns) {
+        const columns = boards[0].columns;
         console.log('[BoardSDK] Fetched columns:', columns.length);
         console.log('[BoardSDK] Column types:', columns.map(c => ({ id: c.id, title: c.title, type: c.type })));
         // Log mirror columns specifically
         const mirrorColumns = columns.filter(c => c.type === 'mirror' || c.type === 'mirror__');
         if (mirrorColumns.length > 0) {
-          console.log('[BoardSDK] Found mirror columns:', mirrorColumns);
+          console.log('[BoardSDK] Found mirror columns:', mirrorColumns.length, mirrorColumns.map(c => ({ id: c.id, title: c.title })));
         } else {
           console.log('[BoardSDK] No mirror columns found in board');
         }
@@ -592,13 +590,7 @@ class BoardSDK {
       }
       
       console.warn('[BoardSDK] No columns found in response');
-      console.warn('[BoardSDK] Response keys:', Object.keys(response || {}));
-      if (response?.data) {
-        console.warn('[BoardSDK] Data keys:', Object.keys(response.data));
-      }
-      if (response?.data?.boards?.[0]) {
-        console.warn('[BoardSDK] Board keys:', Object.keys(response.data.boards[0]));
-      }
+      console.warn('[BoardSDK] Response structure:', response);
       return [];
     } catch (error) {
       console.error('[BoardSDK] Failed to fetch columns:', error);
