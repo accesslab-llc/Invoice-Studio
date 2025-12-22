@@ -13,8 +13,7 @@ import {
   Card,
   HStack,
   Badge,
-  Separator,
-  Spinner
+  Separator
 } from '@chakra-ui/react';
 import { Settings, Save } from 'lucide-react';
 import { translations } from '../utils/translations';
@@ -59,7 +58,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const [mappings, setMappings] = useState(defaultMappings);
   const [boardColumns, setBoardColumns] = useState(createListCollection({ items: baseColumnItems }));
   const [loadingColumns, setLoadingColumns] = useState(false);
-  const [saving, setSaving] = useState(false);
   const t = translations[language] || translations.ja;
   const board = new BoardSDK();
 
@@ -167,9 +165,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     fetchColumns();
   }, [isOpen]);
 
+  // Track if we've initialized to prevent re-initialization on initialMappings changes
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    // Only reset mappings when dialog opens and initialMappings changes
-    if (!isOpen) return;
+    // Only reset mappings when dialog opens (not when initialMappings changes)
+    if (!isOpen) {
+      setIsInitialized(false);
+      return;
+    }
+    
+    // Only initialize once when dialog opens
+    if (isInitialized) return;
     
     // Use initialMappings if provided, otherwise load from localStorage
     if (initialMappings) {
@@ -194,7 +201,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         console.log('FieldMappingDialog: Using default mappings:', defaultMappings);
       }
     }
-  }, [isOpen, initialMappings]); // Reset when dialog opens or initialMappings changes
+    
+    setIsInitialized(true);
+  }, [isOpen]); // Only depend on isOpen, not initialMappings
 
   // Debug: Log current mappings and boardColumns
   useEffect(() => {
@@ -258,7 +267,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
   const handleSelectChange = (fieldKey, selected) => {
     console.log('[FieldMappingDialog] handleSelectChange:', fieldKey, selected);
-    setSaving(true);
     
     setMappings((prev) => {
       let updatedMappings;
@@ -275,21 +283,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         updatedMappings = { ...prev, [fieldKey]: selected };
       }
       
-      // Auto-save after state update
+      // Auto-save after state update (without calling onSave to prevent infinite loop)
       setTimeout(() => {
         try {
           localStorage.setItem('invoiceFieldMappings', JSON.stringify(updatedMappings));
-          // Call onSave callback to notify parent component
-          if (onSave) {
-            onSave(updatedMappings);
-          }
-          console.log('[FieldMappingDialog] Auto-saved mappings');
+          console.log('[FieldMappingDialog] Auto-saved mappings to localStorage');
         } catch (error) {
           console.error('[FieldMappingDialog] Failed to auto-save:', error);
-        } finally {
-          setSaving(false);
         }
-      }, 100);
+      }, 50);
       
       return updatedMappings;
     });
@@ -313,17 +315,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
       <Dialog.Positioner>
         <Dialog.Content maxH="90vh">
           <Dialog.Header>
-            <HStack justify="space-between" align="center">
-              <HStack gap="2">
-                <Settings size={24} />
-                <Text>{t.fieldMappingTitle}</Text>
-              </HStack>
-              {saving && (
-                <HStack gap="2" color="blue.500">
-                  <Spinner size="sm" />
-                  <Text fontSize="sm">保存中...</Text>
-                </HStack>
-              )}
+            <HStack gap="2">
+              <Settings size={24} />
+              <Text>{t.fieldMappingTitle}</Text>
             </HStack>
             <Dialog.Description>{t.fieldMappingDescription}</Dialog.Description>
           </Dialog.Header>
