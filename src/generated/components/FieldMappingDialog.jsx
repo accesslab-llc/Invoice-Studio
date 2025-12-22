@@ -13,7 +13,8 @@ import {
   Card,
   HStack,
   Badge,
-  Separator
+  Separator,
+  Spinner
 } from '@chakra-ui/react';
 import { Settings, Save } from 'lucide-react';
 import { translations } from '../utils/translations';
@@ -58,6 +59,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const [mappings, setMappings] = useState(defaultMappings);
   const [boardColumns, setBoardColumns] = useState(createListCollection({ items: baseColumnItems }));
   const [loadingColumns, setLoadingColumns] = useState(false);
+  const [saving, setSaving] = useState(false);
   const t = translations[language] || translations.ja;
   const board = new BoardSDK();
 
@@ -256,18 +258,40 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
 
   const handleSelectChange = (fieldKey, selected) => {
     console.log('[FieldMappingDialog] handleSelectChange:', fieldKey, selected);
+    setSaving(true);
+    
     setMappings((prev) => {
+      let updatedMappings;
       if (selected === 'custom') {
         const current = prev[fieldKey];
         // If current value is a custom value (not in boardColumns), keep it, otherwise clear
         const isCustom = current && !boardColumns.items.some(item => item.value === current);
-        return {
+        updatedMappings = {
           ...prev,
           [fieldKey]: isCustom ? current : ''
         };
+      } else {
+        console.log('[FieldMappingDialog] Setting mapping:', fieldKey, 'to', selected);
+        updatedMappings = { ...prev, [fieldKey]: selected };
       }
-      console.log('[FieldMappingDialog] Setting mapping:', fieldKey, 'to', selected);
-      return { ...prev, [fieldKey]: selected };
+      
+      // Auto-save after state update
+      setTimeout(() => {
+        try {
+          localStorage.setItem('invoiceFieldMappings', JSON.stringify(updatedMappings));
+          // Call onSave callback to notify parent component
+          if (onSave) {
+            onSave(updatedMappings);
+          }
+          console.log('[FieldMappingDialog] Auto-saved mappings');
+        } catch (error) {
+          console.error('[FieldMappingDialog] Failed to auto-save:', error);
+        } finally {
+          setSaving(false);
+        }
+      }, 100);
+      
+      return updatedMappings;
     });
   };
 
@@ -289,12 +313,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
       <Dialog.Positioner>
         <Dialog.Content maxH="90vh">
           <Dialog.Header>
-            <Dialog.Title>
+            <HStack justify="space-between" align="center">
               <HStack gap="2">
                 <Settings size={24} />
                 <Text>{t.fieldMappingTitle}</Text>
               </HStack>
-            </Dialog.Title>
+              {saving && (
+                <HStack gap="2" color="blue.500">
+                  <Spinner size="sm" />
+                  <Text fontSize="sm">保存中...</Text>
+                </HStack>
+              )}
+            </HStack>
             <Dialog.Description>{t.fieldMappingDescription}</Dialog.Description>
           </Dialog.Header>
 
