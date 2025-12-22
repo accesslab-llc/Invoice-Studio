@@ -280,8 +280,9 @@ const App = () => {
     }
     // Check if mapping is a column ID (starts with text_, numeric_, date_, board_relation_, lookup_, etc.)
     // Try direct property access first
-    if (item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
-      return item[mapping];
+    const value = item[mapping];
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
     }
     // Return empty string if not found
     return '';
@@ -325,6 +326,15 @@ const App = () => {
       });
     }
 
+    // Helper function to get numeric value
+    const getNumericMappedValue = (item, mapping) => {
+      if (mapping === 'manual' || !mapping) return 0;
+      const value = getMappedValue(item, mapping);
+      if (value === '' || value === null || value === undefined) return 0;
+      const num = typeof value === 'number' ? value : parseFloat(value);
+      return Number.isFinite(num) ? num : 0;
+    };
+
     setFormData(prev => ({
       ...prev,
       invoiceNumber: getMappedValue(selectedItem, fieldMappings.invoiceNumber) || prev.invoiceNumber,
@@ -335,10 +345,13 @@ const App = () => {
       clientAddress: getMappedValue(selectedItem, fieldMappings.clientAddress) || '',
       clientPhone: getMappedValue(selectedItem, fieldMappings.clientPhone) || '',
       clientEmail: getMappedValue(selectedItem, fieldMappings.clientEmail) || '',
-      invoiceDate: fieldMappings.invoiceDate !== 'manual' && selectedItem[fieldMappings.invoiceDate]
-        ? new Date(selectedItem[fieldMappings.invoiceDate]).toISOString().split('T')[0]
+      invoiceDate: fieldMappings.invoiceDate !== 'manual' && fieldMappings.invoiceDate
+        ? (selectedItem[fieldMappings.invoiceDate] 
+            ? new Date(selectedItem[fieldMappings.invoiceDate]).toISOString().split('T')[0]
+            : prev.invoiceDate)
         : prev.invoiceDate,
-      discount: getMappedValue(selectedItem, fieldMappings.discount) || 0,
+      discount: getNumericMappedValue(selectedItem, fieldMappings.discount),
+      taxAmount: getNumericMappedValue(selectedItem, fieldMappings.taxAmount),
       items: invoiceItems.length > 0 ? invoiceItems : prev.items
     }));
 

@@ -98,6 +98,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             'mirror__': 'ミラー',
             'text': 'テキスト',
             'numeric': '数値',
+            'numbers': '数値',
             'date': '日付',
             'status': 'ステータス',
             'person': 'ユーザー',
@@ -167,7 +168,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             console.log('[FieldMappingDialog] Subitem columns:', subitemColumns);
           } else {
             console.warn('[FieldMappingDialog] No subitem board columns found, trying fallback...');
-            // Fallback: try to get column IDs from actual subitem data
+            // Fallback: try to get column IDs from actual subitem data, then fetch titles from subitem board
             try {
               const testQuery = `
                 query GetSubitemColumns($boardId: [ID!]!) {
@@ -200,29 +201,77 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 });
                 
                 // Extract unique column IDs and types
-                const subitemColumnMap = new Map();
+                const subitemColumnIds = new Set();
                 allSubitemColumnValues.forEach(col => {
-                  if (col.id && !subitemColumnMap.has(col.id)) {
-                    // Check if it's a mirror column in the main board
-                    const mainBoardColumn = columns.find(c => c.id === col.id);
-                    if (mainBoardColumn) {
-                      subitemColumnMap.set(col.id, {
-                        id: col.id,
-                        title: mainBoardColumn.title,
-                        type: mainBoardColumn.type
-                      });
-                    } else {
-                      // Use column ID as title if not found in main board
-                      subitemColumnMap.set(col.id, {
-                        id: col.id,
-                        title: col.id,
-                        type: col.type || 'text'
-                      });
-                    }
+                  if (col.id) {
+                    subitemColumnIds.add(col.id);
                   }
                 });
-                subitemColumns = Array.from(subitemColumnMap.values());
-                console.log('[FieldMappingDialog] Fallback: extracted subitem columns from data:', subitemColumns.length);
+                
+                // Try to fetch column titles from subitem board using column IDs
+                if (subitemColumnIds.size > 0) {
+                  const columnIdsArray = Array.from(subitemColumnIds);
+                  const columnTitlesQuery = `
+                    query GetSubitemColumnTitles($subitemBoardId: [ID!]!) {
+                      boards(ids: $subitemBoardId) {
+                        columns {
+                          id
+                          title
+                          type
+                        }
+                      }
+                    }
+                  `;
+                  try {
+                    const titlesResponse = await board.query(columnTitlesQuery, { subitemBoardId: [subitemBoardId] });
+                    const titlesBoards = titlesResponse?.boards || titlesResponse?.data?.boards;
+                    if (titlesBoards?.[0]?.columns) {
+                      const subitemBoardColumns = titlesBoards[0].columns;
+                      const subitemColumnMap = new Map();
+                      columnIdsArray.forEach(colId => {
+                        const subitemBoardColumn = subitemBoardColumns.find(c => c.id === colId);
+                        if (subitemBoardColumn) {
+                          subitemColumnMap.set(colId, {
+                            id: colId,
+                            title: subitemBoardColumn.title,
+                            type: subitemBoardColumn.type || 'text'
+                          });
+                        } else {
+                          // Check if it's a mirror column in the main board
+                          const mainBoardColumn = columns.find(c => c.id === colId);
+                          if (mainBoardColumn) {
+                            subitemColumnMap.set(colId, {
+                              id: colId,
+                              title: mainBoardColumn.title,
+                              type: mainBoardColumn.type
+                            });
+                          } else {
+                            // Last resort: use column ID as title
+                            const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                            subitemColumnMap.set(colId, {
+                              id: colId,
+                              title: colId,
+                              type: colType
+                            });
+                          }
+                        }
+                      });
+                      subitemColumns = Array.from(subitemColumnMap.values());
+                      console.log('[FieldMappingDialog] Fallback: extracted subitem columns with titles:', subitemColumns.length);
+                    }
+                  } catch (titlesError) {
+                    console.error('[FieldMappingDialog] Failed to fetch subitem column titles:', titlesError);
+                    // Use column IDs as fallback
+                    subitemColumns = columnIdsArray.map(colId => {
+                      const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                      return {
+                        id: colId,
+                        title: colId,
+                        type: colType
+                      };
+                    });
+                  }
+                }
               }
             } catch (fallbackError) {
               console.error('[FieldMappingDialog] Fallback also failed:', fallbackError);
