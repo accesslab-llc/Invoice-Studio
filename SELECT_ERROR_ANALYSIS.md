@@ -60,6 +60,37 @@
 - `createListCollection`の代わりに、手動で`collection`オブジェクトを作成
 - `options`プロパティを正しい形式で設定
 
-### 推奨: オプション2を試す
-`App.jsx`では`collection`を使用しているが、`FieldMappingDialog.jsx`では動的なデータのため、`items`プロパティを使用し、`Select.Item`に`item`プロパティを渡す方法を試す。
+### 推奨: オプション1を採用（App.jsxと同じ方法）
+`App.jsx`では`createListCollection`で作成した`collection`を直接使用して正常に動作している。`FieldMappingDialog.jsx`でも同じ方法を使用し、`useMemo`で安定化する。
+
+## 最終的な解決策
+
+### 原因
+- `items`プロパティを使用すると、Chakra UIが内部的に`collection`を作成しようとする
+- その際に`options`プロパティが`{items: Array}`という構造になり、反復できない
+- `a.options is not iterable`エラーが発生
+
+### 解決策
+- `createListCollection`で`collection`オブジェクトを明示的に作成
+- `collection`プロパティを使用（`items`プロパティは使用しない）
+- `Select.Item`に`item={item}`を渡す（`value`プロパティは不要）
+- `useMemo`で`collection`を安定化し、`boardColumnsItems`が変更されたときのみ再作成
+
+### 実装
+```jsx
+const boardColumns = useMemo(() => {
+  const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
+  return createListCollection({ items: validItems });
+}, [boardColumnsItems]);
+
+<Select.Root collection={boardColumns} value={[...]}>
+  <Select.Content>
+    {boardColumns?.items?.map((item) => (
+      <Select.Item key={item.value} item={item}>
+        {item.label}
+      </Select.Item>
+    ))}
+  </Select.Content>
+</Select.Root>
+```
 

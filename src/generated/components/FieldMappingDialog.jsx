@@ -61,8 +61,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const t = translations[language] || translations.ja;
   const board = new BoardSDK();
   
-  // Note: We don't use createListCollection here because it causes a.options is not iterable error
-  // Instead, we use boardColumnsItems directly
+  // Create a collection from boardColumnsItems using useMemo to stabilize it
+  // This matches the pattern used in App.jsx which works correctly
+  const boardColumns = useMemo(() => {
+    const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
+    return createListCollection({ items: validItems });
+  }, [boardColumnsItems]);
 
   // Create a stable key for Select components to force remount when boardColumnsItems changes
   // Use a hash of all item values to ensure stability
@@ -556,7 +560,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
                   <Select.Root
                     key={`invoiceNumber-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('invoiceNumber')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] invoiceNumber Select onValueChange:', details);
@@ -570,13 +574,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => {
+                        {boardColumns?.items?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item in boardColumns:', item);
                             return null;
                           }
                           return (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                           );
@@ -594,7 +598,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
                   <Select.Root
                     key={`invoiceDate-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('invoiceDate')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -607,8 +611,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -631,7 +635,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
                   <Select.Root
                     key={`clientName-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientName')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -644,8 +648,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -662,7 +666,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
                   <Select.Root
                     key={`clientDepartment-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientDepartment')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -675,8 +679,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -693,7 +697,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
                   <Select.Root
                     key={`clientContact-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientContact')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -706,8 +710,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -724,7 +728,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
                   <Select.Root
                     key={`clientZip-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientZip')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -737,8 +741,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -755,7 +759,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
                   <Select.Root
                     key={`clientAddress-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientAddress')]}
                     onValueChange={(details) => {
                       console.log('[FieldMappingDialog] clientAddress Select onValueChange:', details);
@@ -793,7 +797,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
                   <Select.Root
                     key={`clientPhone-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientPhone')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -806,8 +810,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -824,7 +828,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
                   <Select.Root
                     key={`clientEmail-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('clientEmail')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -867,7 +871,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
                   <Select.Root
                     key={`discount-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('discount')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -880,8 +884,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -898,7 +902,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
                   <Select.Root
                     key={`taxAmount-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('taxAmount')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -911,8 +915,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -929,7 +933,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
                   <Select.Root
                     key={`items-${boardColumnsKey}`}
-                    items={boardColumnsItems}
+                    collection={boardColumns}
                     value={[getSelectValue('items')]}
                     onValueChange={(details) => {
                       if (details.value && details.value.length > 0) {
@@ -942,8 +946,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumnsItems?.map((item) => (
-                          <Select.Item key={item.value} item={item} value={item.value}>
+                        {boardColumns?.items?.map((item) => (
+                          <Select.Item key={item.value} item={item}>
                             {item.label}
                           </Select.Item>
                         ))}
@@ -961,7 +965,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
                     <Select.Root
                       key={`subitemPrice-${boardColumnsKey}`}
-                      items={boardColumnsItems}
+                      collection={boardColumns}
                       value={[getSelectValue('subitemPrice')]}
                       onValueChange={(details) => {
                         if (details.value && details.value.length > 0) {
