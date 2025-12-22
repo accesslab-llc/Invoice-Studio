@@ -441,6 +441,12 @@ class BoardSDK {
         }
       } else if (col.type === 'text') {
         value = col.text || '';
+      } else if (col.type === 'mirror' || col.type === 'mirror__') {
+        // Mirror column: use text value which contains the displayed value
+        value = col.text || '';
+      } else {
+        // For other types (status, person, etc.), use text value
+        value = col.text || '';
       }
 
       transformed[key] = value;
@@ -536,6 +542,44 @@ class BoardSDK {
     });
 
     return transformed;
+  }
+
+  /**
+   * Fetch board columns dynamically
+   */
+  async fetchColumns() {
+    if (!this.boardId) {
+      await this.initialize();
+    }
+
+    try {
+      const query = `
+        query GetBoardColumns($boardId: [ID!]!) {
+          boards(ids: $boardId) {
+            columns {
+              id
+              title
+              type
+            }
+          }
+        }
+      `;
+
+      const variables = {
+        boardId: [this.boardId]
+      };
+
+      const response = await this.query(query, variables);
+      
+      if (response?.data?.boards?.[0]?.columns) {
+        return response.data.boards[0].columns;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('[BoardSDK] Failed to fetch columns:', error);
+      return [];
+    }
   }
 
   /**

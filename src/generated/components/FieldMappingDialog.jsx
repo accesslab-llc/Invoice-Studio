@@ -17,6 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { Settings, Save } from 'lucide-react';
 import { translations } from '../utils/translations';
+import BoardSDK from '../sdk/BoardSDK';
 
 // Default mappings - defined outside component to avoid recreation
 const defaultMappings = {
@@ -35,27 +36,92 @@ const defaultMappings = {
   subitemPrice: 'column11' // サブアイテムの価格カラム
 };
 
-const boardColumnItems = [
+// Base column items (always available)
+const baseColumnItems = [
   { label: '手動入力 (Manual Input)', value: 'manual' },
   { label: 'Name - アイテム名', value: 'name' },
-  { label: 'Client Name - 請求先名', value: 'clientName' },
-  { label: 'Column1 - ユーザー', value: 'column1' },
-  { label: 'Column2 - 状況', value: 'column2' },
-  { label: 'Column3 - 請求日', value: 'column3' },
-  { label: 'Discount - 割引額', value: 'discount' },
-  { label: 'Tax Amount - 税額', value: 'taxAmount' },
-  { label: 'Column11 - 数値1', value: 'column11' },
-  { label: 'Column21 - 数値2', value: 'column21' },
   { label: 'Subitems - サブアイテム（明細）', value: 'subitems' },
   { label: 'カスタム列 ID (直接入力)', value: 'custom' }
 ];
 
-const boardColumns = createListCollection({ items: boardColumnItems });
 const fieldKeys = Object.keys(defaultMappings);
 
 const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings }) => {
   const [mappings, setMappings] = useState(defaultMappings);
+  const [boardColumns, setBoardColumns] = useState(createListCollection({ items: baseColumnItems }));
+  const [loadingColumns, setLoadingColumns] = useState(false);
   const t = translations[language] || translations.ja;
+  const board = new BoardSDK();
+
+  // Fetch board columns dynamically when dialog opens
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const fetchColumns = async () => {
+      setLoadingColumns(true);
+      try {
+        await board.initialize();
+        const columns = await board.fetchColumns();
+        
+        // Map column types to readable labels
+        const getColumnTypeLabel = (type) => {
+          const typeMap = {
+            'mirror': 'ミラー',
+            'mirror__': 'ミラー',
+            'text': 'テキスト',
+            'numeric': '数値',
+            'date': '日付',
+            'status': 'ステータス',
+            'person': 'ユーザー',
+            'email': 'メール',
+            'phone': '電話',
+            'link': 'リンク',
+            'file': 'ファイル',
+            'checkbox': 'チェックボックス',
+            'rating': '評価',
+            'timeline': 'タイムライン',
+            'formula': '数式',
+            'dependency': '依存関係',
+            'location': '場所',
+            'tags': 'タグ',
+            'vote': '投票',
+            'hour': '時間',
+            'week': '週',
+            'item_id': 'アイテムID',
+            'board_relation': 'ボード関連',
+            'auto_number': '自動番号',
+            'creation_log': '作成ログ',
+            'last_updated': '最終更新',
+            'name': '名前'
+          };
+          return typeMap[type] || type;
+        };
+        
+        // Create column items from fetched columns
+        const dynamicColumns = columns.map(col => ({
+          label: `${col.title} (${getColumnTypeLabel(col.type)}) - ${col.id}`,
+          value: col.id
+        }));
+        
+        // Combine base columns with dynamic columns
+        const allColumns = [
+          ...baseColumnItems,
+          ...dynamicColumns
+        ];
+        
+        setBoardColumns(createListCollection({ items: allColumns }));
+        console.log('FieldMappingDialog: Loaded', columns.length, 'columns from board');
+      } catch (error) {
+        console.error('FieldMappingDialog: Failed to fetch columns:', error);
+        // Fallback to base columns only
+        setBoardColumns(createListCollection({ items: baseColumnItems }));
+      } finally {
+        setLoadingColumns(false);
+      }
+    };
+    
+    fetchColumns();
+  }, [isOpen]);
 
   useEffect(() => {
     // Only reset mappings when dialog opens and initialMappings changes
@@ -92,7 +158,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
       console.log('FieldMappingDialog: Current mappings:', mappings);
       console.log('FieldMappingDialog: Available boardColumns:', boardColumns.items.map(i => ({ value: i.value, label: i.label })));
     }
-  }, [isOpen, mappings]);
+  }, [isOpen, mappings, boardColumns]);
 
   const handleSave = () => {
     localStorage.setItem('invoiceFieldMappings', JSON.stringify(mappings));
@@ -197,6 +263,11 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <Text fontSize="sm" color="fg.muted">
                       {t.fieldMappingHintText}
                     </Text>
+                    {loadingColumns && (
+                      <Text fontSize="xs" color="fg.muted" fontStyle="italic">
+                        ボードのカラムを読み込み中...
+                      </Text>
+                    )}
                   </Stack>
                 </Card.Body>
               </Card.Root>
