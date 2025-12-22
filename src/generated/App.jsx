@@ -176,14 +176,19 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchBoardData();
     const saved = localStorage.getItem('invoiceFieldMappings');
     if (saved) {
       try {
-        setFieldMappings(JSON.parse(saved));
+        const parsedMappings = JSON.parse(saved);
+        setFieldMappings(parsedMappings);
+        // Fetch board data after mappings are loaded
+        fetchBoardData(parsedMappings);
       } catch (e) {
         console.error('Failed to load mappings:', e);
+        fetchBoardData();
       }
+    } else {
+      fetchBoardData();
     }
 
     const savedTemplates = localStorage.getItem('invoiceTemplates');
@@ -207,7 +212,7 @@ const App = () => {
     calculateTotals();
   }, [formData.items, formData.taxRate, formData.discount]);
 
-  const fetchBoardData = async () => {
+  const fetchBoardData = async (mappings = fieldMappings) => {
     setLoading(true);
     setAuthError(null); // Clear previous auth errors
     try {
@@ -217,10 +222,51 @@ const App = () => {
       await board.initialize();
       console.log('[App] Board SDK initialized, boardId:', board.boardId);
       
-      // Fetch all subitem columns to get numeric values (price, etc.)
+      // Get column IDs from fieldMappings dynamically
+      const columnIds = [];
+      Object.values(mappings).forEach(mapping => {
+        if (mapping && mapping !== 'manual' && mapping !== 'subitems' && mapping !== 'name' && mapping !== 'custom') {
+          // Check if it's a column ID (starts with text_, numeric_, date_, etc.)
+          if (mapping.startsWith('text_') || mapping.startsWith('numeric_') || mapping.startsWith('date_') || 
+              mapping.startsWith('board_relation_') || mapping.startsWith('lookup_') || mapping.startsWith('formula_') ||
+              mapping.startsWith('mirror_') || mapping.startsWith('status_') || mapping.startsWith('person_') ||
+              mapping.startsWith('email_') || mapping.startsWith('phone_') || mapping.startsWith('link_') ||
+              mapping.startsWith('file_') || mapping.startsWith('checkbox_') || mapping.startsWith('rating_') ||
+              mapping.startsWith('timeline_') || mapping.startsWith('dependency_') || mapping.startsWith('location_') ||
+              mapping.startsWith('tags_') || mapping.startsWith('vote_') || mapping.startsWith('hour_') ||
+              mapping.startsWith('week_') || mapping.startsWith('item_id_') || mapping.startsWith('auto_number_') ||
+              mapping.startsWith('creation_log_') || mapping.startsWith('last_updated_') || mapping.startsWith('connect_boards_') ||
+              mapping.startsWith('country_') || mapping.startsWith('time_tracking_') || mapping.startsWith('integration_')) {
+            if (!columnIds.includes(mapping)) {
+              columnIds.push(mapping);
+            }
+          } else if (mapping === 'clientName') {
+            // clientName is a special mapping, try common column IDs
+            const clientNameColumns = ['text_mkwjtrys', 'clientName'];
+            clientNameColumns.forEach(col => {
+              if (!columnIds.includes(col)) {
+                columnIds.push(col);
+              }
+            });
+          }
+        }
+      });
+      
+      // Add subitem price column if mapped
+      const subitemColumnIds = [];
+      if (mappings.subitemPrice && mappings.subitemPrice !== 'manual' && mappings.subitemPrice !== 'custom') {
+        if (mappings.subitemPrice.startsWith('numeric_') || mappings.subitemPrice.startsWith('text_')) {
+          subitemColumnIds.push(mappings.subitemPrice);
+        }
+      }
+      
+      console.log('[App] Fetching columns from fieldMappings:', columnIds);
+      console.log('[App] Fetching subitem columns:', subitemColumnIds);
+      
+      // Fetch items with dynamically determined columns
       const result = await board.items()
-        .withColumns(['clientName', 'column3', 'discount', 'taxAmount'])
-        .withSubItems([]) // Empty array means fetch all columns
+        .withColumns(columnIds.length > 0 ? columnIds : []) // Use dynamic columns or empty array to fetch all
+        .withSubItems(subitemColumnIds.length > 0 ? subitemColumnIds : []) // Use dynamic subitem columns or empty array to fetch all
         .withPagination({ limit: 50 })
         .execute();
 
@@ -284,9 +330,20 @@ const App = () => {
       return value;
     }
     // Check if mapping is a column ID (starts with text_, numeric_, date_, board_relation_, lookup_, etc.)
-    // Try direct property access first
-    const value = item[mapping];
-    console.log('[App] getMappedValue:', { mapping, value, hasValue: value !== undefined && value !== null && value !== '', itemKeys: Object.keys(item) });
+    // Try direct property access first (transformItem uses col.id as key)
+    let value = item[mapping];
+    
+    // If not found, try to find in columnMappings (for backward compatibility)
+    if ((value === undefined || value === null || value === '') && board.columnMappings) {
+      const mappedKey = Object.keys(board.columnMappings).find(
+        k => board.columnMappings[k] === mapping
+      );
+      if (mappedKey) {
+        value = item[mappedKey];
+      }
+    }
+    
+    console.log('[App] getMappedValue:', { mapping, value, hasValue: value !== undefined && value !== null && value !== '', itemKeys: Object.keys(item).slice(0, 10) });
     if (value !== undefined && value !== null && value !== '') {
       return value;
     }
@@ -370,6 +427,8 @@ const App = () => {
   const handleSaveMappings = (newMappings) => {
     setFieldMappings(newMappings);
     localStorage.setItem('invoiceFieldMappings', JSON.stringify(newMappings));
+    // Refetch board data with new mappings
+    fetchBoardData(newMappings);
   };
   const handleTemplatesSave = (newTemplates) => {
     setTemplates(newTemplates);
