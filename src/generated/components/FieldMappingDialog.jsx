@@ -382,29 +382,23 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     setIsInitialized(true);
   }, [isOpen]); // Only depend on isOpen, not initialMappings
   
-  // Debug: Log boardColumns whenever it changes
+  // Debug: Log boardColumnsItems whenever it changes
   useEffect(() => {
-    console.log('[FieldMappingDialog] boardColumns changed:', boardColumns);
-    console.log('[FieldMappingDialog] boardColumns keys:', Object.keys(boardColumns || {}));
-    console.log('[FieldMappingDialog] boardColumns.items:', boardColumns?.items);
-    console.log('[FieldMappingDialog] boardColumns.options:', boardColumns?.options);
-    console.log('[FieldMappingDialog] boardColumns.options type:', typeof boardColumns?.options);
-    console.log('[FieldMappingDialog] boardColumns.options is iterable:', boardColumns?.options && typeof boardColumns.options[Symbol.iterator] === 'function');
-    console.log('[FieldMappingDialog] boardColumns.items type:', typeof boardColumns?.items);
-    console.log('[FieldMappingDialog] boardColumns.items is array:', Array.isArray(boardColumns?.items));
-    if (boardColumns?.items && boardColumns.items.length > 0) {
-      console.log('[FieldMappingDialog] First item:', boardColumns.items[0]);
-      console.log('[FieldMappingDialog] First item structure:', Object.keys(boardColumns.items[0] || {}));
+    console.log('[FieldMappingDialog] boardColumnsItems changed:', boardColumnsItems);
+    console.log('[FieldMappingDialog] boardColumnsItems length:', boardColumnsItems?.length);
+    if (boardColumnsItems && boardColumnsItems.length > 0) {
+      console.log('[FieldMappingDialog] First item:', boardColumnsItems[0]);
+      console.log('[FieldMappingDialog] First item structure:', Object.keys(boardColumnsItems[0] || {}));
     }
-  }, [boardColumns]);
+  }, [boardColumnsItems]);
 
   // Debug: Log current mappings and boardColumns
   useEffect(() => {
     if (isOpen) {
       console.log('FieldMappingDialog: Current mappings:', mappings);
-      console.log('FieldMappingDialog: Available boardColumns:', boardColumns.items.map(i => ({ value: i.value, label: i.label })));
+      console.log('FieldMappingDialog: Available boardColumnsItems:', boardColumnsItems.map(i => ({ value: i.value, label: i.label })));
     }
-  }, [isOpen, mappings, boardColumns]);
+  }, [isOpen, mappings, boardColumnsItems]);
 
   const handleSave = () => {
     localStorage.setItem('invoiceFieldMappings', JSON.stringify(mappings));
@@ -433,10 +427,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   };
 
   const columnExists = (value) => {
-    if (!boardColumns || !boardColumns.items || !Array.isArray(boardColumns.items)) {
+    if (!boardColumnsItems || !Array.isArray(boardColumnsItems)) {
       return false;
     }
-    return !!value && boardColumns.items.some(item => item && item.value === value && value !== 'custom');
+    return !!value && boardColumnsItems.some(item => item && item.value === value && value !== 'custom');
   };
 
   const isCustomValue = (value) => value && !columnExists(value);
@@ -447,14 +441,14 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     // Use mappingValue if it exists and is not empty, otherwise use defaultValue
     const actual = (mappingValue && mappingValue !== '') ? mappingValue : defaultValue;
     if (!actual || actual === '') return 'custom';
-    // Check if the value exists in boardColumns
-    if (!boardColumns || !boardColumns.items || !Array.isArray(boardColumns.items)) {
-      console.error('[FieldMappingDialog] boardColumns is invalid:', boardColumns);
+    // Check if the value exists in boardColumnsItems
+    if (!boardColumnsItems || !Array.isArray(boardColumnsItems)) {
+      console.error('[FieldMappingDialog] boardColumnsItems is invalid:', boardColumnsItems);
       return 'custom';
     }
-    const exists = boardColumns.items.some(item => item && item.value === actual);
+    const exists = boardColumnsItems.some(item => item && item.value === actual);
     const result = exists ? actual : 'custom';
-    console.log(`[FieldMappingDialog] getSelectValue(${fieldKey}):`, { mappingValue, defaultValue, actual, exists, result, boardColumnsItemsCount: boardColumns.items.length });
+    console.log(`[FieldMappingDialog] getSelectValue(${fieldKey}):`, { mappingValue, defaultValue, actual, exists, result, boardColumnsItemsCount: boardColumnsItems.length });
     return result;
   };
 
@@ -464,22 +458,21 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     const actual = mappingValue && mappingValue.length > 0 ? mappingValue : defaultValue;
     if (!actual) return '未設定';
     if (isCustomValue(actual)) return actual;
-    const column = boardColumns.items.find((i) => i.value === actual);
+    const column = boardColumnsItems.find((i) => i.value === actual);
     return column ? column.label : actual;
   };
 
   const handleSelectChange = (fieldKey, selected) => {
     console.log('[FieldMappingDialog] handleSelectChange:', fieldKey, selected);
-    console.log('[FieldMappingDialog] Current boardColumns before update:', boardColumns);
-    console.log('[FieldMappingDialog] boardColumns.options before update:', boardColumns?.options);
+    console.log('[FieldMappingDialog] Current boardColumnsItems before update:', boardColumnsItems);
     
     setMappings((prev) => {
       let updatedMappings;
       if (selected === 'custom') {
         const current = prev[fieldKey];
-        // If current value is a custom value (not in boardColumns), keep it, otherwise clear
-        // Use a safe check to avoid accessing boardColumns.items during state update
-        const isCustom = current && (!boardColumns?.items || !Array.isArray(boardColumns.items) || !boardColumns.items.some(item => item && item.value === current));
+        // If current value is a custom value (not in boardColumnsItems), keep it, otherwise clear
+        // Use a safe check to avoid accessing boardColumnsItems during state update
+        const isCustom = current && (!boardColumnsItems || !Array.isArray(boardColumnsItems) || !boardColumnsItems.some(item => item && item.value === current));
         updatedMappings = {
           ...prev,
           [fieldKey]: isCustom ? current : ''
@@ -611,7 +604,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -648,7 +641,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -679,7 +672,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -710,7 +703,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -741,7 +734,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -810,7 +803,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -884,7 +877,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -915,7 +908,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
@@ -946,7 +939,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     </Select.Trigger>
                     <Select.Positioner>
                       <Select.Content zIndex="modal" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {boardColumns.items.map((item) => (
+                        {boardColumnsItems?.map((item) => (
                           <Select.Item item={item} key={item.value}>
                             {item.label}
                           </Select.Item>
