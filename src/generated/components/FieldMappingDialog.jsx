@@ -583,7 +583,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
                   <Select.Root
-                    key={`invoiceDate-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('invoiceDate')]}
                     onValueChange={(details) => {
@@ -620,7 +619,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
                   <Select.Root
-                    key={`clientName-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientName')]}
                     onValueChange={(details) => {
@@ -651,7 +649,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
                   <Select.Root
-                    key={`clientDepartment-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientDepartment')]}
                     onValueChange={(details) => {
@@ -682,7 +679,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
                   <Select.Root
-                    key={`clientContact-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientContact')]}
                     onValueChange={(details) => {
@@ -713,7 +709,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
                   <Select.Root
-                    key={`clientZip-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientZip')]}
                     onValueChange={(details) => {
@@ -744,7 +739,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
                   <Select.Root
-                    key={`clientAddress-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientAddress')]}
                     onValueChange={(details) => {
@@ -782,7 +776,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
                   <Select.Root
-                    key={`clientPhone-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientPhone')]}
                     onValueChange={(details) => {
@@ -813,7 +806,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
                   <Select.Root
-                    key={`clientEmail-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('clientEmail')]}
                     onValueChange={(details) => {
@@ -856,7 +848,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
                   <Select.Root
-                    key={`discount-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('discount')]}
                     onValueChange={(details) => {
@@ -887,7 +878,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
                   <Select.Root
-                    key={`taxAmount-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('taxAmount')]}
                     onValueChange={(details) => {
@@ -918,7 +908,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
                   <Select.Root
-                    key={`items-${boardColumnsKey}`}
                     collection={boardColumns}
                     value={[getSelectValue('items')]}
                     onValueChange={(details) => {
@@ -950,7 +939,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Root>
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
                     <Select.Root
-                      key={`subitemPrice-${boardColumnsKey}`}
                       collection={boardColumns}
                       value={[getSelectValue('subitemPrice')]}
                       onValueChange={(details) => {
