@@ -571,6 +571,12 @@ class BoardSDK {
 
       const response = await this.query(query, variables);
       
+      console.log('[BoardSDK] Full response structure:', JSON.stringify(response, null, 2));
+      console.log('[BoardSDK] response.data:', response?.data);
+      console.log('[BoardSDK] response.data.boards:', response?.data?.boards);
+      console.log('[BoardSDK] response.data.boards[0]:', response?.data?.boards?.[0]);
+      console.log('[BoardSDK] response.data.boards[0].columns:', response?.data?.boards?.[0]?.columns);
+      
       if (response?.data?.boards?.[0]?.columns) {
         const columns = response.data.boards[0].columns;
         console.log('[BoardSDK] Fetched columns:', columns.length);
@@ -586,6 +592,13 @@ class BoardSDK {
       }
       
       console.warn('[BoardSDK] No columns found in response');
+      console.warn('[BoardSDK] Response keys:', Object.keys(response || {}));
+      if (response?.data) {
+        console.warn('[BoardSDK] Data keys:', Object.keys(response.data));
+      }
+      if (response?.data?.boards?.[0]) {
+        console.warn('[BoardSDK] Board keys:', Object.keys(response.data.boards[0]));
+      }
       return [];
     } catch (error) {
       console.error('[BoardSDK] Failed to fetch columns:', error);

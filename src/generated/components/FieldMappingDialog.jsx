@@ -108,6 +108,24 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           return typeMap[type] || type;
         };
         
+        // Create a map of actual column IDs from the board
+        const actualColumnIds = new Set(columns.map(col => col.id));
+        const actualColumnMap = new Map(columns.map(col => [col.id, col]));
+        
+        // Filter base columns to only include those that exist in the actual board
+        // Also include special values like 'manual', 'name', 'subitems', 'custom'
+        const validBaseColumns = baseColumnItems.filter(item => {
+          // Always include special values
+          if (['manual', 'name', 'subitems', 'custom'].includes(item.value)) {
+            return true;
+          }
+          // For mapped columns (like 'clientName', 'column1', etc.), check if they exist in actual columns
+          // These are mapping keys, not actual column IDs, so we need to check differently
+          // For now, we'll include all base columns and let the user choose
+          // The actual validation happens when loading data
+          return true;
+        });
+        
         // Create column items from fetched columns
         const dynamicColumns = columns.map(col => ({
           label: `${col.title} (${getColumnTypeLabel(col.type)})`,
@@ -118,17 +136,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         console.log('[FieldMappingDialog] Mirror columns in dynamic:', dynamicColumns.filter(c => c.label.includes('ミラー')));
         
         // Get existing base column values to avoid duplicates
-        const baseColumnValues = new Set(baseColumnItems.map(item => item.value));
+        const baseColumnValues = new Set(validBaseColumns.map(item => item.value));
         
         // Filter out dynamic columns that already exist in base columns
         const uniqueDynamicColumns = dynamicColumns.filter(col => !baseColumnValues.has(col.value));
         
+        console.log('[FieldMappingDialog] Valid base columns:', validBaseColumns.length);
         console.log('[FieldMappingDialog] Unique dynamic columns (after filtering):', uniqueDynamicColumns.length);
-        console.log('[FieldMappingDialog] Final columns count:', baseColumnItems.length + uniqueDynamicColumns.length);
+        console.log('[FieldMappingDialog] Final columns count:', validBaseColumns.length + uniqueDynamicColumns.length);
         
         // Combine base columns with unique dynamic columns
         const allColumns = [
-          ...baseColumnItems,
+          ...validBaseColumns,
           ...uniqueDynamicColumns
         ];
         
