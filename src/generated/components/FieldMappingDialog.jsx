@@ -286,7 +286,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           ...allDynamicColumns
         ];
         
-        // Validate all items before creating collection
+        // Validate all items before setting state
         const validColumns = allColumns.filter(item => {
           if (!item || !item.value || !item.label) {
             console.error('[FieldMappingDialog] Invalid column item:', item);
@@ -295,25 +295,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           return true;
         });
         
-        const collection = createListCollection({ items: validColumns });
-        console.log('[FieldMappingDialog] Created collection:', collection);
-        console.log('[FieldMappingDialog] Collection keys:', Object.keys(collection || {}));
-        console.log('[FieldMappingDialog] Collection items:', collection?.items);
-        console.log('[FieldMappingDialog] Collection options:', collection?.options);
-        console.log('[FieldMappingDialog] Collection items type:', typeof collection?.items);
-        console.log('[FieldMappingDialog] Collection items is array:', Array.isArray(collection?.items));
-        if (collection?.items) {
-          console.log('[FieldMappingDialog] First 3 items:', collection.items.slice(0, 3));
-        }
-        // Ensure collection has the expected structure
-        if (!collection || !collection.items || !Array.isArray(collection.items)) {
-          console.error('[FieldMappingDialog] Invalid collection structure:', collection);
-          // Fallback to base columns
-          setBoardColumnsItems(baseColumnItems);
-          return;
-        }
+        console.log('[FieldMappingDialog] Valid columns count:', validColumns.length);
+        console.log('[FieldMappingDialog] First 3 items:', validColumns.slice(0, 3));
         
-        // Update items instead of collection to trigger useMemo recalculation
+        // Update items directly (no collection needed when using items prop)
         setBoardColumnsItems(validColumns);
         console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added');
       } catch (error) {
