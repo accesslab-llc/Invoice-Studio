@@ -109,20 +109,31 @@ const boardColumns = useMemo(() => {
 - `collection`プロパティを使用する場合、必ず`collection.items`を使用する必要がある
 - `boardColumnsItems`を直接使用すると、Chakra UIの内部処理で`collection.options`を参照しようとしてエラーが発生
 
-### 解決策
+### 解決策（試行1）
 - すべての`boardColumnsItems?.map`を`boardColumns?.items?.map`に統一
 - `collection`プロパティを使用する場合は、必ず`collection.items`を使用する
+- **結果**: エラーが再発
+
+### 根本原因の再分析
+- `collection`プロパティを使用する方法は、動的に変更されるデータでは`a.options is not iterable`エラーが発生する
+- `App.jsx`では静的なデータ（`languages`など）で正常に動作しているが、`FieldMappingDialog.jsx`では動的なデータ（`boardColumnsItems`）でエラーが発生
+- `createListCollection`で作成した`collection`オブジェクトの`options`プロパティが`{items: Array}`という構造で、Chakra UIの`syncSelectElement`が反復できない
+
+### 解決策（試行2 - 新しいアプローチ）
+- `collection`プロパティを完全に削除し、`items`プロパティを直接使用
+- `Select.Item`に`item`プロパティを渡す（`value`プロパティは不要）
+- これにより、`collection.options`を参照する必要がなくなり、エラーが解決される
 
 ### 実装（修正後）
 ```jsx
-const boardColumns = useMemo(() => {
-  const validItems = boardColumnsItems.filter(item => item && item.value && item.label);
-  return createListCollection({ items: validItems });
+// collectionを使わず、itemsを直接使用
+const validBoardColumnsItems = useMemo(() => {
+  return boardColumnsItems.filter(item => item && item.value && item.label);
 }, [boardColumnsItems]);
 
-<Select.Root collection={boardColumns} value={[...]}>
+<Select.Root items={validBoardColumnsItems} value={[...]}>
   <Select.Content>
-    {boardColumns?.items?.map((item) => (  // ← boardColumnsItemsではなくboardColumns.itemsを使用
+    {validBoardColumnsItems?.map((item) => (
       <Select.Item key={item.value} item={item}>
         {item.label}
       </Select.Item>
@@ -130,4 +141,6 @@ const boardColumns = useMemo(() => {
   </Select.Content>
 </Select.Root>
 ```
+
+**重要**: `collection`プロパティを使わず、`items`プロパティを直接使用する。これが動的なデータで動作する唯一の方法。
 
