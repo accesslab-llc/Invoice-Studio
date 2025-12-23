@@ -184,6 +184,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             console.warn('[FieldMappingDialog] No subitem board columns found, trying fallback...');
             // Fallback: try to get column IDs from actual subitem data, then fetch titles from subitem board
             try {
+              // Fetch all subitem columns (don't specify column IDs to get all)
               const testQuery = `
                 query GetSubitemColumns($boardId: [ID!]!) {
                   boards(ids: $boardId) {
@@ -193,6 +194,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                           column_values {
                             id
                             type
+                            text
                           }
                         }
                       }
@@ -200,19 +202,29 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   }
                 }
               `;
+              console.log('[FieldMappingDialog] Fetching subitem data from main board...');
               const testResponse = await board.query(testQuery, { boardId: [board.boardId] });
+              console.log('[FieldMappingDialog] testResponse:', testResponse);
               const testBoards = testResponse?.boards || testResponse?.data?.boards;
+              console.log('[FieldMappingDialog] testBoards:', testBoards);
               if (testBoards?.[0]?.items_page?.items) {
+                console.log('[FieldMappingDialog] Found items with subitems:', testBoards[0].items_page.items.length);
                 const allSubitemColumnValues = [];
                 testBoards[0].items_page.items.forEach(item => {
                   if (item.subitems) {
+                    console.log('[FieldMappingDialog] Item has subitems:', item.subitems.length);
                     item.subitems.forEach(subitem => {
-                      if (subitem.column_values) {
+                      if (subitem.column_values && subitem.column_values.length > 0) {
+                        console.log('[FieldMappingDialog] Subitem has column_values:', subitem.column_values.length);
                         allSubitemColumnValues.push(...subitem.column_values);
+                      } else {
+                        console.warn('[FieldMappingDialog] Subitem has no column_values:', subitem);
                       }
                     });
                   }
                 });
+                
+                console.log('[FieldMappingDialog] Total subitem column_values collected:', allSubitemColumnValues.length);
                 
                 // Extract unique column IDs and types
                 const subitemColumnIds = new Set();
@@ -221,6 +233,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     subitemColumnIds.add(col.id);
                   }
                 });
+                console.log('[FieldMappingDialog] Unique subitem column IDs:', Array.from(subitemColumnIds));
                 
                 // Try to fetch column titles from subitem board using column IDs
                 if (subitemColumnIds.size > 0) {
