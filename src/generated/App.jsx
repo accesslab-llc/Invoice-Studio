@@ -401,29 +401,10 @@ const App = () => {
     
     // First, try to resolve mapping key to actual column ID using columnMappings
     let resolvedColumnId = mapping;
-    if (board.columnMappings && board.columnMappings[mapping]) {
-      resolvedColumnId = board.columnMappings[mapping];
-      console.log('[App] getMappedValue: Resolved mapping key to column ID:', mapping, '->', resolvedColumnId);
-    }
+    let mappingKey = null; // The original mapping key (e.g., 'clientName')
     
-    // Try multiple approaches to get the value:
-    // 1. Direct property access with mapping key (transformItem may have saved it with mapping key)
-    // 2. Direct property access with resolved column ID (transformItem may have saved it with column ID)
-    // 3. Check if mapping is already a column ID (starts with text_, numeric_, etc.)
-    let value = null;
-    
-    // First, try the mapping key directly (e.g., 'clientName')
-    if (item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
-      value = item[mapping];
-      console.log('[App] getMappedValue: Found value using mapping key:', mapping, '=', value);
-    }
-    // Second, try the resolved column ID (e.g., 'text_mkwjtrys')
-    else if (resolvedColumnId !== mapping && item[resolvedColumnId] !== undefined && item[resolvedColumnId] !== null && item[resolvedColumnId] !== '') {
-      value = item[resolvedColumnId];
-      console.log('[App] getMappedValue: Found value using resolved column ID:', resolvedColumnId, '=', value);
-    }
-    // Third, if mapping is already a column ID, try it directly
-    else if (mapping.startsWith('text_') || mapping.startsWith('numeric_') || mapping.startsWith('date_') ||
+    // Check if mapping is a column ID (starts with text_, numeric_, etc.)
+    const isColumnId = mapping.startsWith('text_') || mapping.startsWith('numeric_') || mapping.startsWith('date_') ||
              mapping.startsWith('lookup_') || mapping.startsWith('board_relation_') || mapping.startsWith('formula_') ||
              mapping.startsWith('mirror_') || mapping.startsWith('status_') || mapping.startsWith('person_') ||
              mapping.startsWith('email_') || mapping.startsWith('phone_') || mapping.startsWith('link_') ||
@@ -432,16 +413,56 @@ const App = () => {
              mapping.startsWith('tags_') || mapping.startsWith('vote_') || mapping.startsWith('hour_') ||
              mapping.startsWith('week_') || mapping.startsWith('item_id_') || mapping.startsWith('auto_number_') ||
              mapping.startsWith('creation_log_') || mapping.startsWith('last_updated_') || mapping.startsWith('connect_boards_') ||
-             mapping.startsWith('country_') || mapping.startsWith('time_tracking_') || mapping.startsWith('integration_')) {
-      if (item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
-        value = item[mapping];
-        console.log('[App] getMappedValue: Found value using direct column ID:', mapping, '=', value);
+             mapping.startsWith('country_') || mapping.startsWith('time_tracking_') || mapping.startsWith('integration_');
+    
+    if (isColumnId) {
+      // If mapping is a column ID, try to find the mapping key (e.g., 'clientName' for 'lookup_mkyw9s2q')
+      mappingKey = Object.keys(board.columnMappings || {}).find(
+        key => board.columnMappings[key] === mapping
+      );
+      resolvedColumnId = mapping;
+      if (mappingKey) {
+        console.log('[App] getMappedValue: Found mapping key for column ID:', mapping, '->', mappingKey);
+      }
+    } else {
+      // If mapping is a mapping key, resolve to column ID
+      if (board.columnMappings && board.columnMappings[mapping]) {
+        resolvedColumnId = board.columnMappings[mapping];
+        mappingKey = mapping;
+        console.log('[App] getMappedValue: Resolved mapping key to column ID:', mapping, '->', resolvedColumnId);
       }
     }
     
+    // Try multiple approaches to get the value (same as subitems):
+    // 1. Try mapping key first (e.g., 'clientName') - transformItem saves values with mapping keys
+    // 2. Try resolved column ID (e.g., 'lookup_mkyw9s2q') - transformItem also saves with column IDs
+    // 3. Try mapping directly if it's a column ID
+    let value = null;
+    
+    // First, try the mapping key (e.g., 'clientName')
+    if (mappingKey && item[mappingKey] !== undefined && item[mappingKey] !== null && item[mappingKey] !== '') {
+      value = item[mappingKey];
+      console.log('[App] getMappedValue: Found value using mapping key:', mappingKey, '=', value);
+    }
+    // Second, try the resolved column ID (e.g., 'lookup_mkyw9s2q')
+    else if (resolvedColumnId && item[resolvedColumnId] !== undefined && item[resolvedColumnId] !== null && item[resolvedColumnId] !== '') {
+      value = item[resolvedColumnId];
+      console.log('[App] getMappedValue: Found value using resolved column ID:', resolvedColumnId, '=', value);
+    }
+    // Third, if mapping is already a column ID, try it directly
+    else if (isColumnId && item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
+      value = item[mapping];
+      console.log('[App] getMappedValue: Found value using direct column ID:', mapping, '=', value);
+    }
+    // Fourth, try mapping directly if it's not a column ID (fallback)
+    else if (!isColumnId && item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
+      value = item[mapping];
+      console.log('[App] getMappedValue: Found value using mapping directly:', mapping, '=', value);
+    }
+    
     // Special handling for clientName (fallback)
-    if ((value === undefined || value === null || value === '') && mapping === 'clientName') {
-      value = item.clientName || item['text_mkwjtrys'] || '';
+    if ((value === undefined || value === null || value === '') && (mapping === 'clientName' || mappingKey === 'clientName')) {
+      value = item.clientName || item['text_mkwjtrys'] || item['lookup_mkyw9s2q'] || '';
       if (value) {
         console.log('[App] getMappedValue: Found value using clientName fallback:', value);
       }
@@ -449,6 +470,7 @@ const App = () => {
     
     console.log('[App] getMappedValue result:', { 
       mapping, 
+      mappingKey,
       resolvedColumnId, 
       value, 
       hasValue: value !== undefined && value !== null && value !== '', 
