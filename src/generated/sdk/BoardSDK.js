@@ -288,22 +288,22 @@ class BoardSDK {
 
     // Build column IDs to fetch
     // If columns is null, fetch all columns (don't specify columnIds in query)
-    // If columns is empty array, use default columnMappings
+    // If columns is empty array, fetch all columns (treat as null)
     // If columns has values, use those
     const columnIds = columns === null 
       ? null // null means fetch all columns
       : columns.length > 0 
       ? columns.map(col => this.columnMappings[col] || col)
-      : Object.values(this.columnMappings);
+      : null; // Empty array also means fetch all columns
     
     // If subItems is null, fetch all subitem columns (don't specify subItemColumnIds in query)
-    // If subItems is empty array, don't fetch any subitem columns
+    // If subItems is empty array, fetch all subitem columns (treat as null)
     // If subItems has values, use those
     const subItemColumnIds = subItems === null
       ? null // null means fetch all subitem columns
       : subItems.length > 0
       ? subItems.map(col => this.columnMappings[col] || col)
-      : [];
+      : null; // Empty array also means fetch all subitem columns
 
     // Build GraphQL query - items_page uses cursor-based pagination, not page numbers
     // Use different queries based on whether cursor is provided and whether columnIds/subItemColumnIds are specified
@@ -451,6 +451,12 @@ class BoardSDK {
       if (hasSubItemColumns) {
         variables.subItemColumnIds = subItemColumnIds;
       }
+
+      // Debug: Log the actual query and variables
+      console.log('[BoardSDK] Generated GraphQL query:', query);
+      console.log('[BoardSDK] Query variables:', variables);
+      console.log('[BoardSDK] hasColumnIds:', hasColumnIds, 'columnIds:', columnIds);
+      console.log('[BoardSDK] hasSubItemColumns:', hasSubItemColumns, 'subItemColumnIds:', subItemColumnIds);
 
       const data = await this.query(query, variables);
 
