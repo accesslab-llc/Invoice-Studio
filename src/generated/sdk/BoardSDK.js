@@ -349,20 +349,6 @@ class BoardSDK {
                     text
                     value
                     type
-                    ... on BoardRelationValue {
-                      linked_item_ids
-                      linked_items {
-                        id
-                        name
-                      }
-                    }
-                    ... on LookupValue {
-                      linked_item_ids
-                      linked_items {
-                        id
-                        name
-                      }
-                    }
                   }
                 }
               }
@@ -392,20 +378,6 @@ class BoardSDK {
                     text
                     value
                     type
-                    ... on BoardRelationValue {
-                      linked_item_ids
-                      linked_items {
-                        id
-                        name
-                      }
-                    }
-                    ... on LookupValue {
-                      linked_item_ids
-                      linked_items {
-                        id
-                        name
-                      }
-                    }
                   }
                 }
               }
