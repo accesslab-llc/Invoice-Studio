@@ -453,6 +453,16 @@ class BoardSDK {
       subitems: item.subitems?.map(sub => this.transformSubItem(sub)) || []
     };
 
+    // Debug: Log all column_values to see the structure
+    if (item.column_values && item.column_values.length > 0) {
+      console.log('[BoardSDK] transformItem: All column_values:', item.column_values.map(col => ({
+        id: col.id,
+        type: col.type,
+        text: col.text,
+        value: col.value
+      })));
+    }
+    
     // Map column values
     item.column_values?.forEach(col => {
       // Find mapping key (e.g., 'clientName', 'discount', 'taxAmount') for this column ID
