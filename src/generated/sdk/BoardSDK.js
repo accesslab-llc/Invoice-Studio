@@ -485,9 +485,28 @@ class BoardSDK {
       } else if (col.type === 'mirror' || col.type === 'mirror__') {
         // Mirror column: use text value which contains the displayed value
         value = col.text || '';
+      } else if (col.type === 'lookup' || col.type === 'lookup__' || col.type === 'board_relation' || col.type === 'board_relation__') {
+        // Lookup and board_relation types: try to get value from col.text first, then col.value
+        if (col.text && col.text !== '') {
+          value = col.text;
+        } else if (col.value) {
+          // If col.text is empty, try to parse col.value
+          try {
+            const parsed = JSON.parse(col.value);
+            // Try different possible fields in the parsed value
+            value = parsed?.text || parsed?.name || parsed?.value || parsed?.linkedItemIds?.join(', ') || '';
+          } catch {
+            value = '';
+          }
+        } else {
+          value = '';
+        }
+        // Debug: Log lookup and board_relation columns
+        if (!value || value === '') {
+          console.log('[BoardSDK] transformItem: Empty value for', col.type, 'column', col.id, 'text:', col.text, 'value:', col.value);
+        }
       } else {
-        // For all other types (lookup, board_relation, status, person, etc.), use text value
-        // This is the same approach as transformSubItem - simple and works
+        // For all other types (status, person, etc.), use text value
         value = col.text || '';
       }
 
