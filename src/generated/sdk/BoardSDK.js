@@ -470,6 +470,9 @@ class BoardSDK {
       
       // Parse value based on type
       // Use the same simple approach as transformSubItem - col.text for most types
+      // Check if column ID starts with lookup_ or board_relation_ (more reliable than col.type)
+      const isLookupColumn = col.id && (col.id.startsWith('lookup_') || col.id.startsWith('board_relation_'));
+      
       let value = col.text;
       if (col.type === 'numeric' || col.type === 'numbers') {
         try {
