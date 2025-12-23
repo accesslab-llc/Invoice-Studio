@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box, Button, Container, Stack, Heading, Text, VStack, HStack,
   Field, Input, Textarea, Select, createListCollection, Separator,
@@ -67,6 +67,12 @@ const App = () => {
     items: 'subitems',
     subitemPrice: 'column11' // サブアイテムの価格カラム
   });
+  
+  // Use ref to always have the latest fieldMappings in loadSelectedItem
+  const fieldMappingsRef = useRef(fieldMappings);
+  useEffect(() => {
+    fieldMappingsRef.current = fieldMappings;
+  }, [fieldMappings]);
 
   const [sectionVisibility, setSectionVisibility] = useState({
     billingFrom: true,
@@ -381,8 +387,12 @@ const App = () => {
     const selectedItem = items.find(item => item.id === selectedItemId);
     if (!selectedItem) return;
     
+    // Use ref to get the latest fieldMappings (in case it was just updated)
+    const currentMappings = fieldMappingsRef.current;
+    
     console.log('[App] ===== loadSelectedItem DEBUG =====');
-    console.log('[App] loadSelectedItem: fieldMappings:', fieldMappings);
+    console.log('[App] loadSelectedItem: fieldMappings (from ref):', currentMappings);
+    console.log('[App] loadSelectedItem: fieldMappings (from state):', fieldMappings);
     console.log('[App] loadSelectedItem: selectedItem keys:', Object.keys(selectedItem));
     console.log('[App] loadSelectedItem: selectedItem sample values:', {
       clientName: selectedItem.clientName,
@@ -397,31 +407,31 @@ const App = () => {
     });
 
     let invoiceItems = [];
-    if (fieldMappings.items === 'subitems' && selectedItem.subitems) {
+    if (currentMappings.items === 'subitems' && selectedItem.subitems) {
       // Resolve subitemPrice mapping key to actual column ID
       let preferredColumn = null;
-      if (fieldMappings.subitemPrice && fieldMappings.subitemPrice !== 'custom' && fieldMappings.subitemPrice !== 'manual') {
+      if (currentMappings.subitemPrice && currentMappings.subitemPrice !== 'custom' && currentMappings.subitemPrice !== 'manual') {
         // Check if it's a direct column ID
-        if (fieldMappings.subitemPrice.startsWith('numeric_') || fieldMappings.subitemPrice.startsWith('text_') ||
-            fieldMappings.subitemPrice.startsWith('date_') || fieldMappings.subitemPrice.startsWith('board_relation_') ||
-            fieldMappings.subitemPrice.startsWith('lookup_') || fieldMappings.subitemPrice.startsWith('formula_') ||
-            fieldMappings.subitemPrice.startsWith('mirror_') || fieldMappings.subitemPrice.startsWith('status_') ||
-            fieldMappings.subitemPrice.startsWith('person_') || fieldMappings.subitemPrice.startsWith('email_') ||
-            fieldMappings.subitemPrice.startsWith('phone_') || fieldMappings.subitemPrice.startsWith('link_') ||
-            fieldMappings.subitemPrice.startsWith('file_') || fieldMappings.subitemPrice.startsWith('checkbox_') ||
-            fieldMappings.subitemPrice.startsWith('rating_') || fieldMappings.subitemPrice.startsWith('timeline_') ||
-            fieldMappings.subitemPrice.startsWith('dependency_') || fieldMappings.subitemPrice.startsWith('location_') ||
-            fieldMappings.subitemPrice.startsWith('tags_') || fieldMappings.subitemPrice.startsWith('vote_') ||
-            fieldMappings.subitemPrice.startsWith('hour_') || fieldMappings.subitemPrice.startsWith('week_') ||
-            fieldMappings.subitemPrice.startsWith('item_id_') || fieldMappings.subitemPrice.startsWith('auto_number_') ||
-            fieldMappings.subitemPrice.startsWith('creation_log_') || fieldMappings.subitemPrice.startsWith('last_updated_') ||
-            fieldMappings.subitemPrice.startsWith('connect_boards_') || fieldMappings.subitemPrice.startsWith('country_') ||
-            fieldMappings.subitemPrice.startsWith('time_tracking_') || fieldMappings.subitemPrice.startsWith('integration_')) {
-          preferredColumn = fieldMappings.subitemPrice;
+        if (currentMappings.subitemPrice.startsWith('numeric_') || currentMappings.subitemPrice.startsWith('text_') ||
+            currentMappings.subitemPrice.startsWith('date_') || currentMappings.subitemPrice.startsWith('board_relation_') ||
+            currentMappings.subitemPrice.startsWith('lookup_') || currentMappings.subitemPrice.startsWith('formula_') ||
+            currentMappings.subitemPrice.startsWith('mirror_') || currentMappings.subitemPrice.startsWith('status_') ||
+            currentMappings.subitemPrice.startsWith('person_') || currentMappings.subitemPrice.startsWith('email_') ||
+            currentMappings.subitemPrice.startsWith('phone_') || currentMappings.subitemPrice.startsWith('link_') ||
+            currentMappings.subitemPrice.startsWith('file_') || currentMappings.subitemPrice.startsWith('checkbox_') ||
+            currentMappings.subitemPrice.startsWith('rating_') || currentMappings.subitemPrice.startsWith('timeline_') ||
+            currentMappings.subitemPrice.startsWith('dependency_') || currentMappings.subitemPrice.startsWith('location_') ||
+            currentMappings.subitemPrice.startsWith('tags_') || currentMappings.subitemPrice.startsWith('vote_') ||
+            currentMappings.subitemPrice.startsWith('hour_') || currentMappings.subitemPrice.startsWith('week_') ||
+            currentMappings.subitemPrice.startsWith('item_id_') || currentMappings.subitemPrice.startsWith('auto_number_') ||
+            currentMappings.subitemPrice.startsWith('creation_log_') || currentMappings.subitemPrice.startsWith('last_updated_') ||
+            currentMappings.subitemPrice.startsWith('connect_boards_') || currentMappings.subitemPrice.startsWith('country_') ||
+            currentMappings.subitemPrice.startsWith('time_tracking_') || currentMappings.subitemPrice.startsWith('integration_')) {
+          preferredColumn = currentMappings.subitemPrice;
         } else {
           // It might be a mapping key (like 'column11'), try to resolve it
-          preferredColumn = board.columnMappings[fieldMappings.subitemPrice] || fieldMappings.subitemPrice;
-          console.log('[App] Resolved subitemPrice for loadSelectedItem:', fieldMappings.subitemPrice, '->', preferredColumn);
+          preferredColumn = board.columnMappings[currentMappings.subitemPrice] || currentMappings.subitemPrice;
+          console.log('[App] Resolved subitemPrice for loadSelectedItem:', currentMappings.subitemPrice, '->', preferredColumn);
         }
       }
       
@@ -463,36 +473,36 @@ const App = () => {
 
     setFormData(prev => {
       const newFormData = {
-        invoiceNumber: getMappedValue(selectedItem, fieldMappings.invoiceNumber) || prev.invoiceNumber,
-        clientName: getMappedValue(selectedItem, fieldMappings.clientName) || '',
-        clientDepartment: getMappedValue(selectedItem, fieldMappings.clientDepartment) || '',
-        clientContact: getMappedValue(selectedItem, fieldMappings.clientContact) || '',
-        clientZip: getMappedValue(selectedItem, fieldMappings.clientZip) || '',
-        clientAddress: getMappedValue(selectedItem, fieldMappings.clientAddress) || '',
-        clientPhone: getMappedValue(selectedItem, fieldMappings.clientPhone) || '',
-        clientEmail: getMappedValue(selectedItem, fieldMappings.clientEmail) || '',
-        invoiceDate: fieldMappings.invoiceDate !== 'manual' && fieldMappings.invoiceDate
-          ? (selectedItem[fieldMappings.invoiceDate] 
-              ? new Date(selectedItem[fieldMappings.invoiceDate]).toISOString().split('T')[0]
+      invoiceNumber: getMappedValue(selectedItem, currentMappings.invoiceNumber) || prev.invoiceNumber,
+      clientName: getMappedValue(selectedItem, currentMappings.clientName) || '',
+      clientDepartment: getMappedValue(selectedItem, currentMappings.clientDepartment) || '',
+      clientContact: getMappedValue(selectedItem, currentMappings.clientContact) || '',
+        clientZip: getMappedValue(selectedItem, currentMappings.clientZip) || '',
+        clientAddress: getMappedValue(selectedItem, currentMappings.clientAddress) || '',
+        clientPhone: getMappedValue(selectedItem, currentMappings.clientPhone) || '',
+        clientEmail: getMappedValue(selectedItem, currentMappings.clientEmail) || '',
+        invoiceDate: currentMappings.invoiceDate !== 'manual' && currentMappings.invoiceDate
+          ? (selectedItem[currentMappings.invoiceDate] 
+        ? new Date(selectedItem[currentMappings.invoiceDate]).toISOString().split('T')[0]
               : prev.invoiceDate)
-          : prev.invoiceDate,
-        discount: getNumericMappedValue(selectedItem, fieldMappings.discount),
-        taxAmount: getNumericMappedValue(selectedItem, fieldMappings.taxAmount),
-        items: invoiceItems.length > 0 ? invoiceItems : prev.items
+        : prev.invoiceDate,
+        discount: getNumericMappedValue(selectedItem, currentMappings.discount),
+        taxAmount: getNumericMappedValue(selectedItem, currentMappings.taxAmount),
+      items: invoiceItems.length > 0 ? invoiceItems : prev.items
       };
       
       console.log('[App] ===== FormData Update =====');
       console.log('[App] newFormData:', newFormData);
       console.log('[App] Mapping results:', {
-        clientName: { mapping: fieldMappings.clientName, value: newFormData.clientName },
-        clientDepartment: { mapping: fieldMappings.clientDepartment, value: newFormData.clientDepartment },
-        clientContact: { mapping: fieldMappings.clientContact, value: newFormData.clientContact },
-        clientZip: { mapping: fieldMappings.clientZip, value: newFormData.clientZip },
-        clientAddress: { mapping: fieldMappings.clientAddress, value: newFormData.clientAddress },
-        clientPhone: { mapping: fieldMappings.clientPhone, value: newFormData.clientPhone },
-        clientEmail: { mapping: fieldMappings.clientEmail, value: newFormData.clientEmail },
-        discount: { mapping: fieldMappings.discount, value: newFormData.discount },
-        taxAmount: { mapping: fieldMappings.taxAmount, value: newFormData.taxAmount }
+        clientName: { mapping: currentMappings.clientName, value: newFormData.clientName },
+        clientDepartment: { mapping: currentMappings.clientDepartment, value: newFormData.clientDepartment },
+        clientContact: { mapping: currentMappings.clientContact, value: newFormData.clientContact },
+        clientZip: { mapping: currentMappings.clientZip, value: newFormData.clientZip },
+        clientAddress: { mapping: currentMappings.clientAddress, value: newFormData.clientAddress },
+        clientPhone: { mapping: currentMappings.clientPhone, value: newFormData.clientPhone },
+        clientEmail: { mapping: currentMappings.clientEmail, value: newFormData.clientEmail },
+        discount: { mapping: currentMappings.discount, value: newFormData.discount },
+        taxAmount: { mapping: currentMappings.taxAmount, value: newFormData.taxAmount }
       });
       
       return {
@@ -504,11 +514,13 @@ const App = () => {
     setCurrentStep('edit');
   };
 
-  const handleSaveMappings = (newMappings) => {
+  const handleSaveMappings = async (newMappings) => {
+    console.log('[App] handleSaveMappings: Saving new mappings:', newMappings);
     setFieldMappings(newMappings);
     localStorage.setItem('invoiceFieldMappings', JSON.stringify(newMappings));
-    // Refetch board data with new mappings
-    fetchBoardData(newMappings);
+    // Refetch board data with new mappings and wait for it to complete
+    await fetchBoardData(newMappings);
+    console.log('[App] handleSaveMappings: Board data refetched with new mappings');
   };
   const handleTemplatesSave = (newTemplates) => {
     setTemplates(newTemplates);

@@ -80,15 +80,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   useEffect(() => {
     if (!isOpen) return;
     
-    // TEST: Clear localStorage when dialog opens
-    // Remove this block after testing
-    try {
-      localStorage.removeItem('invoiceFieldMappings');
-      console.log('[FieldMappingDialog] Cleared localStorage for testing');
-    } catch (e) {
-      console.error('[FieldMappingDialog] Failed to clear localStorage:', e);
-    }
-    
     const fetchColumns = async () => {
       setLoadingColumns(true);
       try {
@@ -204,7 +195,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   const columnIdsArray = Array.from(subitemColumnIds);
                   console.log('[FieldMappingDialog] Looking for subitem columns in main board columns:', columnIdsArray);
                   
-                  // First, check if these column IDs exist in the main board's columns
+                  // Subitems are part of the same board, so their columns should be in the main board's column list
+                  // Find subitem column titles from the main board's columns
                   const subitemColumnMap = new Map();
                   columnIdsArray.forEach(colId => {
                     // Check if this column ID exists in the main board's columns
@@ -217,52 +209,21 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       });
                       console.log('[FieldMappingDialog] Found subitem column in main board:', colId, '->', mainBoardColumn.title);
                     } else {
-                      // Column not found in main board - try to fetch using column IDs query
-                      // Monday.com API allows querying columns by ID directly
+                      // Column not found in main board - this shouldn't happen if subitems are in the same board
+                      // But if it does, use the column ID as the title and get type from subitem data
                       const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
                       subitemColumnMap.set(colId, {
                         id: colId,
-                        title: colId, // Will be updated if we can fetch the title
+                        title: colId, // Use column ID as fallback title
                         type: colType
                       });
-                      console.warn('[FieldMappingDialog] Subitem column not found in main board columns:', colId);
+                      console.warn('[FieldMappingDialog] Subitem column not found in main board columns (unexpected):', colId);
                     }
                   });
                   
-                  // If some columns were not found, try to fetch them using column IDs query
-                  const missingColumns = columnIdsArray.filter(colId => !subitemColumnMap.has(colId) || subitemColumnMap.get(colId).title === colId);
-                  if (missingColumns.length > 0) {
-                    console.log('[FieldMappingDialog] Trying to fetch missing column titles by ID:', missingColumns);
-                    try {
-                      const columnTitlesQuery = `
-                        query GetColumnTitles($columnIds: [String!]!) {
-                          columns(ids: $columnIds) {
-                            id
-                            title
-                            type
-                          }
-                        }
-                      `;
-                      const titlesResponse = await board.query(columnTitlesQuery, { columnIds: missingColumns });
-                      const columnTitles = titlesResponse?.columns || titlesResponse?.data?.columns || [];
-                      console.log('[FieldMappingDialog] Fetched column titles by IDs:', columnTitles.length);
-                      
-                      // Update the map with fetched titles
-                      columnTitles.forEach(col => {
-                        if (subitemColumnMap.has(col.id)) {
-                          subitemColumnMap.set(col.id, {
-                            id: col.id,
-                            title: col.title,
-                            type: col.type || 'text'
-                          });
-                          console.log('[FieldMappingDialog] Updated subitem column title by ID:', col.id, '->', col.title);
-                        }
-                      });
-                    } catch (titlesError) {
-                      console.error('[FieldMappingDialog] Failed to fetch column titles by ID:', titlesError);
-                      // Keep the column IDs as titles (no inference)
-                    }
-                  }
+                  // Note: columns(ids: ...) query is not supported by Monday.com GraphQL API
+                  // Since subitems are in the same board, all columns should be in the main board's column list
+                  // If a column is not found, we use the column ID as the title (fallback)
                   
                   subitemColumns = Array.from(subitemColumnMap.values());
                   console.log('[FieldMappingDialog] Extracted subitem columns with titles:', subitemColumns.length);
