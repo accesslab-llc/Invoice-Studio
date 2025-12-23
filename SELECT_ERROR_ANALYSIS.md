@@ -181,13 +181,16 @@ const validBoardColumnsItems = useMemo(() => {
 - **原因**: 
   1. `transformItem`でマッピングキー（`clientName`, `discount`, `taxAmount`など）が保存されていなかった。`getMappedValue`でマッピングキーを解決できていなかった
   2. `handleSaveMappings`の後に`fetchBoardData`を呼んでいたが、`items`が更新された後に`loadSelectedItem`を実行していなかった
+  3. `getMappedValue`でカラムID（例：`lookup_mkyw9s2q`）が渡された場合、マッピングキー（例：`clientName`）を逆引きして値を取得していなかった
 - **試行した対策**: 
   1. `fetchBoardData`でマッピングキーをカラムIDに変換するように修正したが、`transformItem`でマッピングキーが保存されていなかった
   2. `handleSaveMappings`を`async`関数に変更し、`fetchBoardData`の完了を待つように修正したが、`items`が更新された後に`loadSelectedItem`を実行していなかった
-- **結果**: フィールドマッピングを保存後、請求書編集に進んでも内容が反映されず空欄のままになっていた
+- **結果**: フィールドマッピングを保存後、請求書編集に進んでも内容が反映されず空欄のままになっていた（特に`lookup_`タイプのカラム）
 - **最終解決策**: 
-  1. `transformItem`でマッピングキーとカラムIDの両方を保存するように修正。`getMappedValue`でマッピングキーとカラムIDの両方を試すように修正済み
-  2. `handleSaveMappings`の後に、`selectedItemId`が設定されていて`currentStep === 'edit'`の場合、`setTimeout`で200ms待ってから`loadSelectedItem`を呼ぶように修正。これにより、`items`が更新されるまで待ってから`loadSelectedItem`を実行する
+  1. `transformItem`でマッピングキーとカラムIDの両方を保存するように修正
+  2. `getMappedValue`でサブアイテムと同じ方法に統一：マッピングキー（例：`clientName`）を先に試し、見つからない場合はカラムID（例：`lookup_mkyw9s2q`）を試す
+  3. カラムIDが渡された場合、逆引きでマッピングキーを見つけて、マッピングキーで値を取得するように修正
+  4. `handleSaveMappings`の後に、`selectedItemId`が設定されていて`currentStep === 'edit'`の場合、`setTimeout`で200ms待ってから`loadSelectedItem`を呼ぶように修正。これにより、`items`が更新されるまで待ってから`loadSelectedItem`を実行する
 
 ### 実装した解決策
 
@@ -200,13 +203,18 @@ const validBoardColumnsItems = useMemo(() => {
   4. それでも見つからない場合は生成されたタイトル（例: `数値 (mkywyf4v...)`）を使用
 - **結果**: サブアイテムカラムのタイトルが取得できるようになった（または、より読みやすい形式で表示されるようになった）
 
-#### 解決策2: フィールドマッピング反映の修正
-- **実装**: `transformItem`でマッピングキーとカラムIDの両方を保存
+#### 解決策2: フィールドマッピング反映の修正（更新）
+- **実装**: 
+  1. `transformItem`でマッピングキーとカラムIDの両方を保存
+  2. `getMappedValue`でサブアイテムと同じ方法に統一：マッピングキーを先に試し、見つからない場合はカラムIDを試す
+  3. カラムIDが渡された場合、逆引きでマッピングキーを見つけて、マッピングキーで値を取得するように修正
 - **処理フロー**:
-  1. `columnMappings`からマッピングキーを検索（例: `clientName` -> `text_mkwjtrys`）
+  1. `columnMappings`からマッピングキーを検索（例: `clientName` -> `lookup_mkyw9s2q`）
   2. マッピングキーが見つかった場合、そのキーとカラムIDの両方で値を保存
-  3. `getMappedValue`でマッピングキーとカラムIDの両方を試す
-- **結果**: フィールドマッピングが正しく反映されるようになった
+  3. `getMappedValue`で、まずマッピングキー（例：`clientName`）を試す
+  4. マッピングキーが見つからない場合、カラムID（例：`lookup_mkyw9s2q`）を試す
+  5. カラムIDが渡された場合、逆引きでマッピングキーを見つけて、マッピングキーで値を取得
+- **結果**: フィールドマッピングが正しく反映されるようになった（特に`lookup_`タイプのカラム）
 
 #### 解決策3: マッピング保存後の反映の修正
 - **実装**: `handleSaveMappings`の後に`loadSelectedItem`を呼ぶように修正
@@ -292,7 +300,7 @@ const validBoardColumnsItems = useMemo(() => {
 - **UIと固まる問題は解決済み**: `collection`プロパティを使わず、`items`プロパティを直接使用することで解決。**この部分は変更しないこと。**
 - **同じ対策を繰り返さない**: `columns(ids: ...)`クエリは使えないことが判明したので、今後は使用しない。
 - **サブアイテムカラムのタイトル取得**: サブアイテムの`board`情報からカラムを取得する方法を実装済み。これが最も確実な方法。
-- **フィールドマッピング反映**: `transformItem`でマッピングキーとカラムIDの両方を保存する必要がある。これにより、`getMappedValue`で正しく値を取得できる。
+- **フィールドマッピング反映**: `transformItem`でマッピングキーとカラムIDの両方を保存する必要がある。`getMappedValue`でサブアイテムと同じ方法に統一：マッピングキー（例：`clientName`）を先に試し、見つからない場合はカラムID（例：`lookup_mkyw9s2q`）を試す。カラムIDが渡された場合、逆引きでマッピングキーを見つけて、マッピングキーで値を取得する。これにより、`getMappedValue`で正しく値を取得できる。
 - **フィールドマッピングUIの配置**: フィールドマッピングボタンは請求書編集画面に配置する。アイテム選択画面には配置しない。これにより、ユーザーはアイテムを選択してからマッピングを設定し、保存時に即座に反映される。
 - **サブアイテム値の取得**: `transformSubItem`でマッピングキーとカラムIDの両方で値を保存する必要がある。`loadSelectedItem`でもマッピングキーとカラムIDの両方を試す必要がある。これにより、サブアイテムの値が正しく取得できる。
 - **lookup_とboard_relation_タイプのカラム**: Monday.comのGraphQL APIでは`LookupValue`と`BoardRelationValue`という型が存在しないため、インラインフラグメントは使用しない。`transformItem`で`lookup_`と`board_relation_`タイプのカラムの値を取得する際、まず`col.text`を確認し、空の場合は`col.value`をパースして値を取得する。`col.value`をパースする際、`parsed?.text || parsed?.name || parsed?.value || parsed?.linkedItemIds?.join(', ') || ''`の順で値を取得。Monday.comのAPIが`col.text`に値を返さない場合でも、`col.value`から値を取得できるようになる。
