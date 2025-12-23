@@ -545,17 +545,23 @@ const App = () => {
     console.log('[App] handleSaveMappings: Saving new mappings:', newMappings);
     setFieldMappings(newMappings);
     localStorage.setItem('invoiceFieldMappings', JSON.stringify(newMappings));
-    // Refetch board data with new mappings and wait for it to complete
-    await fetchBoardData(newMappings);
-    console.log('[App] handleSaveMappings: Board data refetched with new mappings');
     
-    // If an item is already selected and we're in edit step, reload it with new mappings
+    // If we're in edit step and have a selected item, reload it with new mappings
+    // This allows users to see the changes immediately after saving mappings
     if (selectedItemId && currentStep === 'edit') {
       console.log('[App] handleSaveMappings: Reloading selected item with new mappings');
-      // Wait a bit for items state to update after fetchBoardData
+      // Refetch board data with new mappings and wait for it to complete
+      await fetchBoardData(newMappings);
+      console.log('[App] handleSaveMappings: Board data refetched with new mappings');
+      
+      // Wait a bit for items state to update after fetchBoardData, then reload
       setTimeout(() => {
         loadSelectedItem();
       }, 200);
+    } else {
+      // If not in edit step, just refetch board data (for next time)
+      await fetchBoardData(newMappings);
+      console.log('[App] handleSaveMappings: Board data refetched with new mappings');
     }
   };
   const handleTemplatesSave = (newTemplates) => {
@@ -714,9 +720,6 @@ const App = () => {
             <Button onClick={fetchBoardData} variant="outline">
               <RefreshCw size={16} /> {t.loadData}
             </Button>
-            <Button onClick={() => setIsFieldMappingOpen(true)} variant="outline" colorPalette="blue">
-              <Settings size={16} /> {t.fieldMapping}
-            </Button>
             <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline" colorPalette="blue">
               <FileText size={16} /> {t.manageTemplates}
             </Button>
@@ -826,10 +829,15 @@ const App = () => {
 
         {currentStep === 'edit' && (
           <Stack gap="6">
-            <HStack justify="space-between">
-              <Button variant="outline" onClick={() => setCurrentStep('select')}>
-                ← {t.backToSelection}
-              </Button>
+            <HStack justify="space-between" wrap="wrap" gap="4">
+              <HStack gap="4" wrap="wrap">
+                <Button variant="outline" onClick={() => setCurrentStep('select')}>
+                  ← {t.backToSelection}
+                </Button>
+                <Button onClick={() => setIsFieldMappingOpen(true)} variant="outline" colorPalette="blue">
+                  <Settings size={16} /> {t.fieldMapping}
+                </Button>
+              </HStack>
               <Button colorPalette="blue" onClick={() => setCurrentStep('download')}>
                 {t.continueToDownload} →
               </Button>
