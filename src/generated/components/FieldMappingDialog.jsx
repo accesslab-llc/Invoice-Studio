@@ -139,12 +139,24 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           }
           
           // First, get subitem column IDs from actual subitem data
+          // Also try to get subitem board information to fetch columns
           const testQuery = `
             query GetSubitemColumns($boardId: [ID!]!) {
               boards(ids: $boardId) {
                 items_page(limit: 10) {
                   items {
                     subitems {
+                      id
+                      name
+                      board {
+                        id
+                        name
+                        columns {
+                          id
+                          title
+                          type
+                        }
+                      }
                       column_values {
                         id
                         type
@@ -164,10 +176,16 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           if (testBoards?.[0]?.items_page?.items) {
             console.log('[FieldMappingDialog] Found items with subitems:', testBoards[0].items_page.items.length);
             const allSubitemColumnValues = [];
+            let subitemBoardColumns = null;
             testBoards[0].items_page.items.forEach(item => {
               if (item.subitems) {
                 console.log('[FieldMappingDialog] Item has subitems:', item.subitems.length);
                 item.subitems.forEach(subitem => {
+                  // Try to get subitem board columns if available
+                  if (subitem.board && subitem.board.columns && !subitemBoardColumns) {
+                    subitemBoardColumns = subitem.board.columns;
+                    console.log('[FieldMappingDialog] Found subitem board columns:', subitemBoardColumns.length);
+                  }
                   if (subitem.column_values && subitem.column_values.length > 0) {
                     console.log('[FieldMappingDialog] Subitem has column_values:', subitem.column_values.length);
                     allSubitemColumnValues.push(...subitem.column_values);
@@ -199,20 +217,32 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   // Find subitem column titles from the main board's columns
                   const subitemColumnMap = new Map();
                   columnIdsArray.forEach(colId => {
-                    // Check if this column ID exists in the main board's columns
-                    const mainBoardColumn = columns.find(c => c.id === colId);
-                    if (mainBoardColumn) {
+                    // First, try to find in subitem board columns (if available)
+                    let foundColumn = null;
+                    if (subitemBoardColumns) {
+                      foundColumn = subitemBoardColumns.find(c => c.id === colId);
+                      if (foundColumn) {
+                        console.log('[FieldMappingDialog] Found subitem column in subitem board:', colId, '->', foundColumn.title);
+                      }
+                    }
+                    
+                    // If not found in subitem board, try main board columns
+                    if (!foundColumn) {
+                      foundColumn = columns.find(c => c.id === colId);
+                      if (foundColumn) {
+                        console.log('[FieldMappingDialog] Found subitem column in main board:', colId, '->', foundColumn.title);
+                      }
+                    }
+                    
+                    if (foundColumn) {
                       subitemColumnMap.set(colId, {
                         id: colId,
-                        title: mainBoardColumn.title,
-                        type: mainBoardColumn.type || 'text'
+                        title: foundColumn.title,
+                        type: foundColumn.type || 'text'
                       });
-                      console.log('[FieldMappingDialog] Found subitem column in main board:', colId, '->', mainBoardColumn.title);
                     } else {
-                      // Column not found in main board - this can happen if subitem columns are not in the main board's column list
-                      // Try to get a more readable title from the column ID pattern or use a descriptive label
+                      // Column not found in either board - use generated title
                       const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
-                      // Generate a more readable title from column ID (e.g., "numeric_mkywyf4v" -> "数値カラム (mkywyf4v)")
                       const typeLabel = getColumnTypeLabel(colType);
                       const shortId = colId.replace(/^(numeric_|text_|date_|status_|person_|email_|phone_|link_|file_|checkbox_|rating_|timeline_|dependency_|location_|tags_|vote_|hour_|week_|item_id_|auto_number_|creation_log_|last_updated_|connect_boards_|country_|time_tracking_|integration_|board_relation_|lookup_|formula_|mirror_)/, '');
                       const readableTitle = `${typeLabel} (${shortId.substring(0, 8)}...)`;
@@ -221,7 +251,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         title: readableTitle,
                         type: colType
                       });
-                      console.warn('[FieldMappingDialog] Subitem column not found in main board columns, using generated title:', colId, '->', readableTitle);
+                      console.warn('[FieldMappingDialog] Subitem column not found in any board, using generated title:', colId, '->', readableTitle);
                     }
                   });
                   

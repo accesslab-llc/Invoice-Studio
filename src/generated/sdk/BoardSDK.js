@@ -229,7 +229,7 @@ class BoardSDK {
         console.log('[BoardSDK] About to call monday.api()...');
         const result = await this.monday.api(query, { variables });
         console.log('[BoardSDK] monday.api() call completed');
-        console.log('[BoardSDK] API response received:', result);
+      console.log('[BoardSDK] API response received:', result);
         console.log('[BoardSDK] API response type:', typeof result);
       
           // Check if result is undefined or null
@@ -241,19 +241,19 @@ class BoardSDK {
           console.error('[BoardSDK] 3. The app may not be properly authenticated');
           throw new Error('Monday.com API returned undefined. Please check API permissions in Monday.com Developer Center (boards:read, items:read, subitems:read).');
         }
-        
-        if (result.errors) {
-          console.error('[BoardSDK] GraphQL errors:', result.errors);
-          throw new Error(result.errors[0]?.message || 'GraphQL error');
-        }
+      
+      if (result.errors) {
+        console.error('[BoardSDK] GraphQL errors:', result.errors);
+        throw new Error(result.errors[0]?.message || 'GraphQL error');
+      }
 
-        if (!result.data) {
-          console.error('[BoardSDK] No data in response:', result);
-          throw new Error('No data returned from API');
-        }
+      if (!result.data) {
+        console.error('[BoardSDK] No data in response:', result);
+        throw new Error('No data returned from API');
+      }
 
         console.log('[BoardSDK] Returning data:', result.data);
-        return result.data;
+      return result.data;
       } catch (apiError) {
         console.error('[BoardSDK] Error in monday.api() call:', apiError);
         console.error('[BoardSDK] API error message:', apiError.message);
@@ -293,8 +293,8 @@ class BoardSDK {
     const columnIds = columns === null 
       ? null // null means fetch all columns
       : columns.length > 0 
-        ? columns.map(col => this.columnMappings[col] || col)
-        : Object.values(this.columnMappings);
+      ? columns.map(col => this.columnMappings[col] || col)
+      : Object.values(this.columnMappings);
     
     // If subItems is null, fetch all subitem columns (don't specify subItemColumnIds in query)
     // If subItems is empty array, don't fetch any subitem columns
@@ -302,8 +302,8 @@ class BoardSDK {
     const subItemColumnIds = subItems === null
       ? null // null means fetch all subitem columns
       : subItems.length > 0
-        ? subItems.map(col => this.columnMappings[col] || col)
-        : [];
+      ? subItems.map(col => this.columnMappings[col] || col)
+      : [];
 
     // Build GraphQL query - items_page uses cursor-based pagination, not page numbers
     // Use different queries based on whether cursor is provided and whether subItemColumnIds are specified
@@ -433,9 +433,13 @@ class BoardSDK {
 
     // Map column values
     item.column_values?.forEach(col => {
-      const key = Object.keys(this.columnMappings).find(
+      // Find mapping key (e.g., 'clientName', 'discount', 'taxAmount') for this column ID
+      const mappingKey = Object.keys(this.columnMappings).find(
         k => this.columnMappings[k] === col.id
-      ) || col.id;
+      );
+      
+      // Use mapping key if found, otherwise use column ID directly
+      const key = mappingKey || col.id;
       
       // Parse value based on type
       let value = col.text;
@@ -463,7 +467,12 @@ class BoardSDK {
         value = col.text || '';
       }
 
+      // Store value with both mapping key and column ID for flexibility
       transformed[key] = value;
+      // Also store with column ID directly for direct access
+      if (mappingKey && col.id !== key) {
+        transformed[col.id] = value;
+      }
     });
 
     return transformed;
