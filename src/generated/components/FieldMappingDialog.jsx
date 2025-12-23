@@ -288,29 +288,61 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       console.log('[FieldMappingDialog] Fallback: subitem columns:', subitemColumns);
                     } else {
                       console.warn('[FieldMappingDialog] No columns found in subitem board response');
-                      // Use column IDs as fallback with extracted types
-                      subitemColumns = columnIdsArray.map(colId => {
-                        const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
-                        return {
-                          id: colId,
-                          title: colId,
-                          type: colType
-                        };
+                      // Try to get titles from main board mirror columns
+                      const subitemColumnMap = new Map();
+                      columnIdsArray.forEach(colId => {
+                        // Check if it's a mirror column in the main board
+                        const mainBoardColumn = columns.find(c => c.id === colId);
+                        if (mainBoardColumn) {
+                          subitemColumnMap.set(colId, {
+                            id: colId,
+                            title: mainBoardColumn.title,
+                            type: mainBoardColumn.type || 'text'
+                          });
+                          console.log('[FieldMappingDialog] Found mirror column in main board:', colId, '->', mainBoardColumn.title);
+                        } else {
+                          // Last resort: use column ID as title
+                          const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                          subitemColumnMap.set(colId, {
+                            id: colId,
+                            title: colId,
+                            type: colType
+                          });
+                          console.warn('[FieldMappingDialog] No mirror column found, using ID as title:', colId);
+                        }
                       });
-                      console.log('[FieldMappingDialog] Fallback: using column IDs as titles:', subitemColumns.length);
+                      subitemColumns = Array.from(subitemColumnMap.values());
+                      console.log('[FieldMappingDialog] Fallback: using mirror columns from main board:', subitemColumns.length);
+                      console.log('[FieldMappingDialog] Fallback: subitem columns:', subitemColumns);
                     }
                   } catch (titlesError) {
                     console.error('[FieldMappingDialog] Failed to fetch subitem column titles:', titlesError);
-                    // Use column IDs as fallback
-                    subitemColumns = columnIdsArray.map(colId => {
-                      const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
-                      return {
-                        id: colId,
-                        title: colId,
-                        type: colType
-                      };
+                    // Try to get titles from main board mirror columns
+                    const subitemColumnMap = new Map();
+                    columnIdsArray.forEach(colId => {
+                      // Check if it's a mirror column in the main board
+                      const mainBoardColumn = columns.find(c => c.id === colId);
+                      if (mainBoardColumn) {
+                        subitemColumnMap.set(colId, {
+                          id: colId,
+                          title: mainBoardColumn.title,
+                          type: mainBoardColumn.type || 'text'
+                        });
+                        console.log('[FieldMappingDialog] Found mirror column in main board (error case):', colId, '->', mainBoardColumn.title);
+                      } else {
+                        // Last resort: use column ID as title
+                        const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                        subitemColumnMap.set(colId, {
+                          id: colId,
+                          title: colId,
+                          type: colType
+                        });
+                        console.warn('[FieldMappingDialog] No mirror column found (error case), using ID as title:', colId);
+                      }
                     });
-                    console.log('[FieldMappingDialog] Fallback: using column IDs as titles (error case):', subitemColumns.length);
+                    subitemColumns = Array.from(subitemColumnMap.values());
+                    console.log('[FieldMappingDialog] Fallback: using mirror columns from main board (error case):', subitemColumns.length);
+                    console.log('[FieldMappingDialog] Fallback: subitem columns (error case):', subitemColumns);
                   }
                 } else {
                   console.warn('[FieldMappingDialog] No subitem column IDs found in data');

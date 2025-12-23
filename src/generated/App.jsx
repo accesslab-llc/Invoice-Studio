@@ -287,9 +287,10 @@ const App = () => {
       
       // Fetch items with dynamically determined columns
       // If no columns specified, fetch all columns (pass null to fetch all)
+      // For subitems, always fetch all columns to ensure we get the data even if the mapped column ID doesn't exist
       const result = await board.items()
         .withColumns(columnIds.length > 0 ? columnIds : null) // null means fetch all columns
-        .withSubItems(subitemColumnIds.length > 0 ? subitemColumnIds : null) // null means fetch all subitem columns
+        .withSubItems(null) // Always fetch all subitem columns to ensure we get the data
         .withPagination({ limit: 50 })
         .execute();
 
