@@ -314,126 +314,108 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     console.warn('[FieldMappingDialog] Failed to fetch column settings (fallback):', e);
                   }
                   
+                  // Try to fetch column titles using column IDs directly
+                  // Use a query that fetches columns by IDs from any board the user has access to
                   const columnTitlesQuery = `
-                    query GetSubitemColumnTitles($subitemBoardId: [ID!]!) {
-                      boards(ids: $subitemBoardId) {
-                        columns {
-                          id
-                          title
-                          type
-                        }
+                    query GetColumnTitles($columnIds: [String!]!) {
+                      columns(ids: $columnIds) {
+                        id
+                        title
+                        type
                       }
                     }
                   `;
                   try {
-                    console.log('[FieldMappingDialog] Fetching subitem column titles with board ID:', actualSubitemBoardId);
-                    const titlesResponse = await board.query(columnTitlesQuery, { subitemBoardId: [actualSubitemBoardId] });
-                    const titlesBoards = titlesResponse?.boards || titlesResponse?.data?.boards;
-                    if (titlesBoards?.[0]?.columns) {
-                      const subitemBoardColumns = titlesBoards[0].columns;
-                      console.log('[FieldMappingDialog] Found subitem board columns:', subitemBoardColumns.length);
-                      console.log('[FieldMappingDialog] Subitem board columns:', subitemBoardColumns.map(c => ({ id: c.id, title: c.title, type: c.type })));
+                    console.log('[FieldMappingDialog] Fetching subitem column titles by column IDs:', columnIdsArray);
+                    const titlesResponse = await board.query(columnTitlesQuery, { columnIds: columnIdsArray });
+                    const columnTitles = titlesResponse?.columns || titlesResponse?.data?.columns || [];
+                    console.log('[FieldMappingDialog] Fetched column titles by IDs:', columnTitles.length);
+                    
+                    if (columnTitles.length > 0) {
                       const subitemColumnMap = new Map();
                       columnIdsArray.forEach(colId => {
-                        const subitemBoardColumn = subitemBoardColumns.find(c => c.id === colId);
-                        if (subitemBoardColumn) {
+                        const columnInfo = columnTitles.find(c => c.id === colId);
+                        if (columnInfo) {
                           subitemColumnMap.set(colId, {
                             id: colId,
-                            title: subitemBoardColumn.title,
-                            type: subitemBoardColumn.type || 'text'
+                            title: columnInfo.title,
+                            type: columnInfo.type || 'text'
                           });
-                          console.log('[FieldMappingDialog] Found subitem column title:', colId, '->', subitemBoardColumn.title);
+                          console.log('[FieldMappingDialog] Found subitem column title by ID:', colId, '->', columnInfo.title);
                         } else {
-                          // Column not found in subitem board - use column ID as title (no inference)
+                          // Column not found - use column ID as title (no inference)
                           const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
                           subitemColumnMap.set(colId, {
                             id: colId,
                             title: colId,
                             type: colType
                           });
-                          console.warn('[FieldMappingDialog] Subitem column not found in board:', colId);
+                          console.warn('[FieldMappingDialog] Subitem column not found by ID:', colId);
                         }
                       });
                       subitemColumns = Array.from(subitemColumnMap.values());
-                      console.log('[FieldMappingDialog] Extracted subitem columns with titles:', subitemColumns.length);
+                      console.log('[FieldMappingDialog] Extracted subitem columns with titles (by ID):', subitemColumns.length);
                       console.log('[FieldMappingDialog] Subitem columns:', subitemColumns);
                     } else {
-                      console.warn('[FieldMappingDialog] No columns found in subitem board response');
-                      // Fetch mirror column settings to find which mirror columns link to which subitem columns
-                      // First, fetch columns with settings to get mirror column mappings
-                      const columnsWithSettingsQuery = `
-                        query GetColumnsWithSettings($boardId: [ID!]!) {
-                          boards(ids: $boardId) {
+                      // Fallback: try to query subitem board
+                      console.log('[FieldMappingDialog] No columns found by ID, trying subitem board query...');
+                      const subitemBoardQuery = `
+                        query GetSubitemColumnTitles($subitemBoardId: [ID!]!) {
+                          boards(ids: $subitemBoardId) {
                             columns {
                               id
                               title
                               type
-                              settings_str
                             }
                           }
                         }
                       `;
                       try {
-                        const columnsWithSettingsResponse = await board.query(columnsWithSettingsQuery, { boardId: [board.boardId] });
-                        const columnsWithSettingsBoards = columnsWithSettingsResponse?.boards || columnsWithSettingsResponse?.data?.boards;
-                        const columnsWithSettings = columnsWithSettingsBoards?.[0]?.columns || [];
-                        
-                        console.log('[FieldMappingDialog] Fetched columns with settings:', columnsWithSettings.length);
-                        
-                        // Find mirror columns that link to the subitem board
-                        const mirrorColumns = columnsWithSettings.filter(c => c.type === 'mirror' || c.type === 'mirror__');
-                        console.log('[FieldMappingDialog] Found mirror columns:', mirrorColumns.length);
-                        
-                        // Create a map of subitem column ID to mirror column title
-                        const subitemColumnMap = new Map();
-                        columnIdsArray.forEach(colId => {
-                          // Try to find a mirror column that links to this subitem column ID
-                          let foundMirrorColumn = null;
-                          
-                          for (const mirrorCol of mirrorColumns) {
-                            try {
-                              // Parse settings_str to find linked column ID
-                              if (mirrorCol.settings_str) {
-                                const settings = JSON.parse(mirrorCol.settings_str);
-                                // Check if this mirror column links to the subitem column ID
-                                // Mirror column settings contain the linked column ID
-                                if (settings.linkedColumnId === colId || settings.columnId === colId) {
-                                  foundMirrorColumn = mirrorCol;
-                                  break;
-                                }
-                              }
-                            } catch (e) {
-                              // Ignore parse errors
+                        const subitemBoardResponse = await board.query(subitemBoardQuery, { subitemBoardId: [actualSubitemBoardId] });
+                        const titlesBoards = subitemBoardResponse?.boards || subitemBoardResponse?.data?.boards;
+                        if (titlesBoards?.[0]?.columns) {
+                          const subitemBoardColumns = titlesBoards[0].columns;
+                          console.log('[FieldMappingDialog] Found subitem board columns:', subitemBoardColumns.length);
+                          console.log('[FieldMappingDialog] Subitem board columns:', subitemBoardColumns.map(c => ({ id: c.id, title: c.title, type: c.type })));
+                          const subitemColumnMap = new Map();
+                          columnIdsArray.forEach(colId => {
+                            const subitemBoardColumn = subitemBoardColumns.find(c => c.id === colId);
+                            if (subitemBoardColumn) {
+                              subitemColumnMap.set(colId, {
+                                id: colId,
+                                title: subitemBoardColumn.title,
+                                type: subitemBoardColumn.type || 'text'
+                              });
+                              console.log('[FieldMappingDialog] Found subitem column title:', colId, '->', subitemBoardColumn.title);
+                            } else {
+                              // Column not found in subitem board - use column ID as title (no inference)
+                              const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                              subitemColumnMap.set(colId, {
+                                id: colId,
+                                title: colId,
+                                type: colType
+                              });
+                              console.warn('[FieldMappingDialog] Subitem column not found in board:', colId);
                             }
-                          }
-                          
-                          if (foundMirrorColumn) {
-                            subitemColumnMap.set(colId, {
-                              id: colId,
-                              title: foundMirrorColumn.title,
-                              type: foundMirrorColumn.type || 'text'
-                            });
-                            console.log('[FieldMappingDialog] Found mirror column for subitem column:', colId, '->', foundMirrorColumn.title);
-                          } else {
-                            // If no mirror column found, try to query the subitem board directly using column IDs
-                            // We'll use the column ID as-is and try to get more info from the actual data
+                          });
+                          subitemColumns = Array.from(subitemColumnMap.values());
+                          console.log('[FieldMappingDialog] Extracted subitem columns with titles:', subitemColumns.length);
+                          console.log('[FieldMappingDialog] Subitem columns:', subitemColumns);
+                        } else {
+                          // Last resort: use column IDs as titles (no inference)
+                          console.warn('[FieldMappingDialog] No columns found in subitem board response, using column IDs as titles');
+                          subitemColumns = columnIdsArray.map(colId => {
                             const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
-                            // Use column ID as title (user said they don't want inference)
-                            subitemColumnMap.set(colId, {
+                            return {
                               id: colId,
-                              title: colId, // Use column ID as title since we can't get the actual name
+                              title: colId,
                               type: colType
-                            });
-                            console.warn('[FieldMappingDialog] No mirror column found for subitem column:', colId);
-                          }
-                        });
-                        
-                        subitemColumns = Array.from(subitemColumnMap.values());
-                        console.log('[FieldMappingDialog] Fallback: using mirror columns from main board:', subitemColumns.length);
-                        console.log('[FieldMappingDialog] Fallback: subitem columns:', subitemColumns);
-                      } catch (settingsError) {
-                        console.error('[FieldMappingDialog] Failed to fetch columns with settings:', settingsError);
-                        // Last resort: use column IDs as titles
+                            };
+                          });
+                        }
+                      } catch (subitemBoardError) {
+                        console.error('[FieldMappingDialog] Failed to query subitem board:', subitemBoardError);
+                        // Last resort: use column IDs as titles (no inference)
                         subitemColumns = columnIdsArray.map(colId => {
                           const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
                           return {
@@ -442,7 +424,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                             type: colType
                           };
                         });
-                        console.log('[FieldMappingDialog] Fallback: using column IDs as titles (error case):', subitemColumns.length);
                       }
                     }
                   } catch (titlesError) {
@@ -830,7 +811,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       }
                       return (
                         <option key={item.value} value={item.value}>
-                          {item.label}
+                            {item.label}
                         </option>
                       );
                     })}
@@ -859,9 +840,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('invoiceDate', '例: column3')}
                   <Field.HelperText fontSize="xs">
@@ -893,9 +874,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('clientName', '例: text_mkwjtrys')}
                   <Field.HelperText fontSize="xs">
@@ -921,9 +902,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('clientDepartment', '例: text_department')}
                   <Field.HelperText fontSize="xs">
@@ -949,9 +930,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('clientContact', '例: text_contact')}
                   <Field.HelperText fontSize="xs">
@@ -1107,9 +1088,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('discount', '例: numeric_mkwjxbfn')}
                   <Field.HelperText fontSize="xs">
@@ -1135,9 +1116,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('taxAmount', '例: numeric_mkwqnby1')}
                   <Field.HelperText fontSize="xs">
@@ -1163,9 +1144,9 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <option value="">{t.fieldMappingSelectColumn}</option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                            {item.label}
                       </option>
-                    ))}
+                        ))}
                   </Box>
                   {renderCustomInput('items', '例: subitems')}
                   <Field.HelperText fontSize="xs">
