@@ -272,6 +272,19 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       });
                       subitemColumns = Array.from(subitemColumnMap.values());
                       console.log('[FieldMappingDialog] Fallback: extracted subitem columns with titles:', subitemColumns.length);
+                      console.log('[FieldMappingDialog] Fallback: subitem columns:', subitemColumns);
+                    } else {
+                      console.warn('[FieldMappingDialog] No columns found in subitem board response');
+                      // Use column IDs as fallback with extracted types
+                      subitemColumns = columnIdsArray.map(colId => {
+                        const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                        return {
+                          id: colId,
+                          title: colId,
+                          type: colType
+                        };
+                      });
+                      console.log('[FieldMappingDialog] Fallback: using column IDs as titles:', subitemColumns.length);
                     }
                   } catch (titlesError) {
                     console.error('[FieldMappingDialog] Failed to fetch subitem column titles:', titlesError);
@@ -284,11 +297,20 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         type: colType
                       };
                     });
+                    console.log('[FieldMappingDialog] Fallback: using column IDs as titles (error case):', subitemColumns.length);
                   }
+                } else {
+                  console.warn('[FieldMappingDialog] No subitem column IDs found in data');
                 }
+              } else {
+                console.warn('[FieldMappingDialog] No items with subitems found');
               }
             } catch (fallbackError) {
               console.error('[FieldMappingDialog] Fallback also failed:', fallbackError);
+              console.error('[FieldMappingDialog] Fallback error details:', {
+                message: fallbackError.message,
+                stack: fallbackError.stack
+              });
               subitemColumns = [];
             }
           }

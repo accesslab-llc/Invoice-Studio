@@ -460,43 +460,45 @@ const App = () => {
       return Number.isFinite(num) ? num : 0;
     };
 
-    const newFormData = {
-      invoiceNumber: getMappedValue(selectedItem, fieldMappings.invoiceNumber) || prev.invoiceNumber,
-      clientName: getMappedValue(selectedItem, fieldMappings.clientName) || '',
-      clientDepartment: getMappedValue(selectedItem, fieldMappings.clientDepartment) || '',
-      clientContact: getMappedValue(selectedItem, fieldMappings.clientContact) || '',
-      clientZip: getMappedValue(selectedItem, fieldMappings.clientZip) || '',
-      clientAddress: getMappedValue(selectedItem, fieldMappings.clientAddress) || '',
-      clientPhone: getMappedValue(selectedItem, fieldMappings.clientPhone) || '',
-      clientEmail: getMappedValue(selectedItem, fieldMappings.clientEmail) || '',
-      invoiceDate: fieldMappings.invoiceDate !== 'manual' && fieldMappings.invoiceDate
-        ? (selectedItem[fieldMappings.invoiceDate] 
-            ? new Date(selectedItem[fieldMappings.invoiceDate]).toISOString().split('T')[0]
-            : prev.invoiceDate)
-        : prev.invoiceDate,
-      discount: getNumericMappedValue(selectedItem, fieldMappings.discount),
-      taxAmount: getNumericMappedValue(selectedItem, fieldMappings.taxAmount),
-      items: invoiceItems.length > 0 ? invoiceItems : prev.items
-    };
-    
-    console.log('[App] ===== FormData Update =====');
-    console.log('[App] newFormData:', newFormData);
-    console.log('[App] Mapping results:', {
-      clientName: { mapping: fieldMappings.clientName, value: newFormData.clientName },
-      clientDepartment: { mapping: fieldMappings.clientDepartment, value: newFormData.clientDepartment },
-      clientContact: { mapping: fieldMappings.clientContact, value: newFormData.clientContact },
-      clientZip: { mapping: fieldMappings.clientZip, value: newFormData.clientZip },
-      clientAddress: { mapping: fieldMappings.clientAddress, value: newFormData.clientAddress },
-      clientPhone: { mapping: fieldMappings.clientPhone, value: newFormData.clientPhone },
-      clientEmail: { mapping: fieldMappings.clientEmail, value: newFormData.clientEmail },
-      discount: { mapping: fieldMappings.discount, value: newFormData.discount },
-      taxAmount: { mapping: fieldMappings.taxAmount, value: newFormData.taxAmount }
+    setFormData(prev => {
+      const newFormData = {
+        invoiceNumber: getMappedValue(selectedItem, fieldMappings.invoiceNumber) || prev.invoiceNumber,
+        clientName: getMappedValue(selectedItem, fieldMappings.clientName) || '',
+        clientDepartment: getMappedValue(selectedItem, fieldMappings.clientDepartment) || '',
+        clientContact: getMappedValue(selectedItem, fieldMappings.clientContact) || '',
+        clientZip: getMappedValue(selectedItem, fieldMappings.clientZip) || '',
+        clientAddress: getMappedValue(selectedItem, fieldMappings.clientAddress) || '',
+        clientPhone: getMappedValue(selectedItem, fieldMappings.clientPhone) || '',
+        clientEmail: getMappedValue(selectedItem, fieldMappings.clientEmail) || '',
+        invoiceDate: fieldMappings.invoiceDate !== 'manual' && fieldMappings.invoiceDate
+          ? (selectedItem[fieldMappings.invoiceDate] 
+              ? new Date(selectedItem[fieldMappings.invoiceDate]).toISOString().split('T')[0]
+              : prev.invoiceDate)
+          : prev.invoiceDate,
+        discount: getNumericMappedValue(selectedItem, fieldMappings.discount),
+        taxAmount: getNumericMappedValue(selectedItem, fieldMappings.taxAmount),
+        items: invoiceItems.length > 0 ? invoiceItems : prev.items
+      };
+      
+      console.log('[App] ===== FormData Update =====');
+      console.log('[App] newFormData:', newFormData);
+      console.log('[App] Mapping results:', {
+        clientName: { mapping: fieldMappings.clientName, value: newFormData.clientName },
+        clientDepartment: { mapping: fieldMappings.clientDepartment, value: newFormData.clientDepartment },
+        clientContact: { mapping: fieldMappings.clientContact, value: newFormData.clientContact },
+        clientZip: { mapping: fieldMappings.clientZip, value: newFormData.clientZip },
+        clientAddress: { mapping: fieldMappings.clientAddress, value: newFormData.clientAddress },
+        clientPhone: { mapping: fieldMappings.clientPhone, value: newFormData.clientPhone },
+        clientEmail: { mapping: fieldMappings.clientEmail, value: newFormData.clientEmail },
+        discount: { mapping: fieldMappings.discount, value: newFormData.discount },
+        taxAmount: { mapping: fieldMappings.taxAmount, value: newFormData.taxAmount }
+      });
+      
+      return {
+        ...prev,
+        ...newFormData
+      };
     });
-    
-    setFormData(prev => ({
-      ...prev,
-      ...newFormData
-    }));
 
     setCurrentStep('edit');
   };
