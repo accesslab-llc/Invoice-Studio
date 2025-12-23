@@ -329,6 +329,20 @@ class BoardSDK {
                   text
                   value
                   type
+                  ... on BoardRelationValue {
+                    linked_item_ids
+                    linked_items {
+                      id
+                      name
+                    }
+                  }
+                  ... on LookupValue {
+                    linked_item_ids
+                    linked_items {
+                      id
+                      name
+                    }
+                  }
                 }
                 subitems {
                   id
@@ -338,6 +352,20 @@ class BoardSDK {
                     text
                     value
                     type
+                    ... on BoardRelationValue {
+                      linked_item_ids
+                      linked_items {
+                        id
+                        name
+                      }
+                    }
+                    ... on LookupValue {
+                      linked_item_ids
+                      linked_items {
+                        id
+                        name
+                      }
+                    }
                   }
                 }
               }
@@ -358,6 +386,20 @@ class BoardSDK {
                   text
                   value
                   type
+                  ... on BoardRelationValue {
+                    linked_item_ids
+                    linked_items {
+                      id
+                      name
+                    }
+                  }
+                  ... on LookupValue {
+                    linked_item_ids
+                    linked_items {
+                      id
+                      name
+                    }
+                  }
                 }
                 subitems {
                   id
@@ -367,6 +409,20 @@ class BoardSDK {
                     text
                     value
                     type
+                    ... on BoardRelationValue {
+                      linked_item_ids
+                      linked_items {
+                        id
+                        name
+                      }
+                    }
+                    ... on LookupValue {
+                      linked_item_ids
+                      linked_items {
+                        id
+                        name
+                      }
+                    }
                   }
                 }
               }
@@ -441,12 +497,8 @@ class BoardSDK {
       // Use mapping key if found, otherwise use column ID directly
       const key = mappingKey || col.id;
       
-      // Debug: Log lookup and board_relation columns to understand their structure
-      if ((col.type === 'lookup' || col.type === 'lookup__' || col.type === 'board_relation' || col.type === 'board_relation__') && (!col.text || col.text === '')) {
-        console.log('[BoardSDK] transformItem: Empty text for', col.type, 'column', col.id, 'value:', col.value);
-      }
-      
       // Parse value based on type
+      // Use the same simple approach as transformSubItem - col.text for most types
       let value = col.text;
       if (col.type === 'numeric' || col.type === 'numbers') {
         try {
@@ -467,45 +519,10 @@ class BoardSDK {
       } else if (col.type === 'mirror' || col.type === 'mirror__') {
         // Mirror column: use text value which contains the displayed value
         value = col.text || '';
-      } else if (col.type === 'lookup' || col.type === 'lookup__') {
-        // Lookup column: try to parse value, fallback to text
-        if (col.value && col.value !== 'null' && col.value !== '""') {
-          try {
-            const parsed = JSON.parse(col.value);
-            // Lookup value might be in different formats
-            value = parsed?.text || parsed?.name || parsed?.value || col.text || '';
-          } catch {
-            value = col.text || '';
-          }
-        } else {
-          value = col.text || '';
-        }
-      } else if (col.type === 'board_relation' || col.type === 'board_relation__') {
-        // Board relation column: try to parse value, fallback to text
-        if (col.value && col.value !== 'null' && col.value !== '""') {
-          try {
-            const parsed = JSON.parse(col.value);
-            // Board relation value might be in different formats
-            value = parsed?.text || parsed?.name || parsed?.linkedItemIds || col.text || '';
-          } catch {
-            value = col.text || '';
-          }
-        } else {
-          value = col.text || '';
-        }
       } else {
-        // For other types (status, person, etc.), use text value
-        // If text is empty, try to parse value
-        if (!col.text && col.value && col.value !== 'null' && col.value !== '""') {
-          try {
-            const parsed = JSON.parse(col.value);
-            value = parsed?.text || parsed?.name || parsed?.value || '';
-          } catch {
-            value = col.text || '';
-          }
-        } else {
-          value = col.text || '';
-        }
+        // For all other types (lookup, board_relation, status, person, etc.), use text value
+        // This is the same approach as transformSubItem - simple and works
+        value = col.text || '';
       }
 
       // Store value with both mapping key and column ID for flexibility

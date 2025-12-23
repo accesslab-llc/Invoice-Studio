@@ -497,6 +497,14 @@ const App = () => {
       discount: selectedItem.discount,
       taxAmount: selectedItem.taxAmount
     });
+    // Debug: Log all column values to understand the structure
+    console.log('[App] loadSelectedItem: All column values in selectedItem:', 
+      Object.keys(selectedItem).filter(k => !['id', 'name', 'subitems'].includes(k)).map(k => ({
+        key: k,
+        value: selectedItem[k],
+        type: typeof selectedItem[k]
+      }))
+    );
 
     let invoiceItems = [];
     if (currentMappings.items === 'subitems' && selectedItem.subitems) {
