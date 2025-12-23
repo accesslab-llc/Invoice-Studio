@@ -255,8 +255,30 @@ const App = () => {
       // Add subitem price column if mapped
       const subitemColumnIds = [];
       if (mappings.subitemPrice && mappings.subitemPrice !== 'manual' && mappings.subitemPrice !== 'custom') {
-        if (mappings.subitemPrice.startsWith('numeric_') || mappings.subitemPrice.startsWith('text_')) {
+        // Check if it's a direct column ID (starts with numeric_, text_, etc.)
+        if (mappings.subitemPrice.startsWith('numeric_') || mappings.subitemPrice.startsWith('text_') ||
+            mappings.subitemPrice.startsWith('date_') || mappings.subitemPrice.startsWith('board_relation_') ||
+            mappings.subitemPrice.startsWith('lookup_') || mappings.subitemPrice.startsWith('formula_') ||
+            mappings.subitemPrice.startsWith('mirror_') || mappings.subitemPrice.startsWith('status_') ||
+            mappings.subitemPrice.startsWith('person_') || mappings.subitemPrice.startsWith('email_') ||
+            mappings.subitemPrice.startsWith('phone_') || mappings.subitemPrice.startsWith('link_') ||
+            mappings.subitemPrice.startsWith('file_') || mappings.subitemPrice.startsWith('checkbox_') ||
+            mappings.subitemPrice.startsWith('rating_') || mappings.subitemPrice.startsWith('timeline_') ||
+            mappings.subitemPrice.startsWith('dependency_') || mappings.subitemPrice.startsWith('location_') ||
+            mappings.subitemPrice.startsWith('tags_') || mappings.subitemPrice.startsWith('vote_') ||
+            mappings.subitemPrice.startsWith('hour_') || mappings.subitemPrice.startsWith('week_') ||
+            mappings.subitemPrice.startsWith('item_id_') || mappings.subitemPrice.startsWith('auto_number_') ||
+            mappings.subitemPrice.startsWith('creation_log_') || mappings.subitemPrice.startsWith('last_updated_') ||
+            mappings.subitemPrice.startsWith('connect_boards_') || mappings.subitemPrice.startsWith('country_') ||
+            mappings.subitemPrice.startsWith('time_tracking_') || mappings.subitemPrice.startsWith('integration_')) {
           subitemColumnIds.push(mappings.subitemPrice);
+        } else {
+          // It might be a mapping key (like 'column11'), try to resolve it
+          const resolvedColumnId = board.columnMappings[mappings.subitemPrice] || mappings.subitemPrice;
+          if (resolvedColumnId && resolvedColumnId !== mappings.subitemPrice) {
+            console.log('[App] Resolved subitemPrice mapping:', mappings.subitemPrice, '->', resolvedColumnId);
+            subitemColumnIds.push(resolvedColumnId);
+          }
         }
       }
       
@@ -375,10 +397,34 @@ const App = () => {
 
     let invoiceItems = [];
     if (fieldMappings.items === 'subitems' && selectedItem.subitems) {
+      // Resolve subitemPrice mapping key to actual column ID
+      let preferredColumn = null;
+      if (fieldMappings.subitemPrice && fieldMappings.subitemPrice !== 'custom' && fieldMappings.subitemPrice !== 'manual') {
+        // Check if it's a direct column ID
+        if (fieldMappings.subitemPrice.startsWith('numeric_') || fieldMappings.subitemPrice.startsWith('text_') ||
+            fieldMappings.subitemPrice.startsWith('date_') || fieldMappings.subitemPrice.startsWith('board_relation_') ||
+            fieldMappings.subitemPrice.startsWith('lookup_') || fieldMappings.subitemPrice.startsWith('formula_') ||
+            fieldMappings.subitemPrice.startsWith('mirror_') || fieldMappings.subitemPrice.startsWith('status_') ||
+            fieldMappings.subitemPrice.startsWith('person_') || fieldMappings.subitemPrice.startsWith('email_') ||
+            fieldMappings.subitemPrice.startsWith('phone_') || fieldMappings.subitemPrice.startsWith('link_') ||
+            fieldMappings.subitemPrice.startsWith('file_') || fieldMappings.subitemPrice.startsWith('checkbox_') ||
+            fieldMappings.subitemPrice.startsWith('rating_') || fieldMappings.subitemPrice.startsWith('timeline_') ||
+            fieldMappings.subitemPrice.startsWith('dependency_') || fieldMappings.subitemPrice.startsWith('location_') ||
+            fieldMappings.subitemPrice.startsWith('tags_') || fieldMappings.subitemPrice.startsWith('vote_') ||
+            fieldMappings.subitemPrice.startsWith('hour_') || fieldMappings.subitemPrice.startsWith('week_') ||
+            fieldMappings.subitemPrice.startsWith('item_id_') || fieldMappings.subitemPrice.startsWith('auto_number_') ||
+            fieldMappings.subitemPrice.startsWith('creation_log_') || fieldMappings.subitemPrice.startsWith('last_updated_') ||
+            fieldMappings.subitemPrice.startsWith('connect_boards_') || fieldMappings.subitemPrice.startsWith('country_') ||
+            fieldMappings.subitemPrice.startsWith('time_tracking_') || fieldMappings.subitemPrice.startsWith('integration_')) {
+          preferredColumn = fieldMappings.subitemPrice;
+        } else {
+          // It might be a mapping key (like 'column11'), try to resolve it
+          preferredColumn = board.columnMappings[fieldMappings.subitemPrice] || fieldMappings.subitemPrice;
+          console.log('[App] Resolved subitemPrice for loadSelectedItem:', fieldMappings.subitemPrice, '->', preferredColumn);
+        }
+      }
+      
       invoiceItems = selectedItem.subitems.map(sub => {
-        const preferredColumn = fieldMappings.subitemPrice && fieldMappings.subitemPrice !== 'custom'
-          ? fieldMappings.subitemPrice
-          : null;
 
         const getNumericValue = (raw) => {
           if (raw === undefined || raw === null || raw === '') return null;

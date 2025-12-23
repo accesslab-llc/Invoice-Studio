@@ -139,6 +139,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         
         // Fetch subitem columns from subitem board
         // Use the subitem board ID to fetch column information with titles
+        console.log('[FieldMappingDialog] ===== STARTING SUBITEM COLUMNS FETCH =====');
         let subitemColumns = [];
         try {
           // Ensure board is initialized
@@ -148,6 +149,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           
           // Get subitem board ID from BoardSDK
           const subitemBoardId = board.subitemBoardId || '18144719619';
+          console.log('[FieldMappingDialog] subitemBoardId:', subitemBoardId);
+          console.log('[FieldMappingDialog] board.boardId:', board.boardId);
           
           // Fetch subitem board columns with titles
           const subitemBoardQuery = `
@@ -162,8 +165,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             }
           `;
           
+          console.log('[FieldMappingDialog] About to query subitem board...');
           const subitemBoardResponse = await board.query(subitemBoardQuery, { subitemBoardId: [subitemBoardId] });
+          console.log('[FieldMappingDialog] subitemBoardResponse:', subitemBoardResponse);
           const subitemBoards = subitemBoardResponse?.boards || subitemBoardResponse?.data?.boards;
+          console.log('[FieldMappingDialog] subitemBoards:', subitemBoards);
+          console.log('[FieldMappingDialog] subitemBoards?.[0]?.columns:', subitemBoards?.[0]?.columns);
           
           if (subitemBoards?.[0]?.columns) {
             subitemColumns = subitemBoards[0].columns.map(col => ({
@@ -286,9 +293,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
             }
           }
         } catch (error) {
-          console.error('[FieldMappingDialog] Failed to fetch subitem board columns:', error);
+          console.error('[FieldMappingDialog] ===== ERROR FETCHING SUBITEM COLUMNS =====');
+          console.error('[FieldMappingDialog] Error:', error);
+          console.error('[FieldMappingDialog] Error message:', error.message);
+          console.error('[FieldMappingDialog] Error stack:', error.stack);
           subitemColumns = [];
         }
+        console.log('[FieldMappingDialog] ===== FINISHED SUBITEM COLUMNS FETCH =====');
+        console.log('[FieldMappingDialog] Final subitemColumns:', subitemColumns);
+        console.log('[FieldMappingDialog] Final subitemColumns count:', subitemColumns.length);
         
         // Filter base columns to only include those that exist in the actual board
         // Also include special values like 'manual', 'name', 'subitems', 'custom'
