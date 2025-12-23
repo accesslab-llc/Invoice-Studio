@@ -319,8 +319,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
           value: col.id
         }));
         
+        console.log('[FieldMappingDialog] ===== SUBITEM COLUMNS DEBUG =====');
+        console.log('[FieldMappingDialog] subitemColumns raw:', subitemColumns);
+        console.log('[FieldMappingDialog] subitemColumns count:', subitemColumns.length);
+        console.log('[FieldMappingDialog] subitemDynamicColumns:', subitemDynamicColumns);
+        console.log('[FieldMappingDialog] subitemDynamicColumns count:', subitemDynamicColumns.length);
         console.log('[FieldMappingDialog] Dynamic columns created:', dynamicColumns.length);
-        console.log('[FieldMappingDialog] Subitem columns created:', subitemDynamicColumns.length);
         console.log('[FieldMappingDialog] Mirror columns in dynamic:', dynamicColumns.filter(c => c.label.includes('ミラー')));
         
         // Get existing base column values to avoid duplicates
@@ -357,8 +361,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         console.log('[FieldMappingDialog] Subitem columns:', validColumns.filter(c => c.label && c.label.includes('[サブアイテム]')).map(c => ({ value: c.value, label: c.label })));
         
         // Update items directly (no collection needed when using items prop)
+        console.log('[FieldMappingDialog] ===== BEFORE setBoardColumnsItems =====');
+        console.log('[FieldMappingDialog] validColumns count:', validColumns.length);
+        console.log('[FieldMappingDialog] validColumns with [サブアイテム]:', validColumns.filter(c => c.label && c.label.includes('[サブアイテム]')).map(c => ({ value: c.value, label: c.label })));
         setBoardColumnsItems(validColumns);
         console.log('[FieldMappingDialog] Loaded', columns.length, 'columns from board,', uniqueDynamicColumns.length, 'unique dynamic columns added,', subitemDynamicColumns.length, 'subitem columns added');
+        console.log('[FieldMappingDialog] ===== AFTER setBoardColumnsItems =====');
       } catch (error) {
         console.error('FieldMappingDialog: Failed to fetch columns:', error);
         // Fallback to base columns only
@@ -436,6 +444,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   }, [isOpen, mappings, boardColumnsItems]);
 
   const handleSave = () => {
+    console.log('[FieldMappingDialog] ===== handleSave =====');
+    console.log('[FieldMappingDialog] Saving mappings:', mappings);
     localStorage.setItem('invoiceFieldMappings', JSON.stringify(mappings));
     onSave(mappings);
     onClose();
@@ -970,19 +980,30 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                     >
                       <option value="">{t.fieldMappingSelectColumn}</option>
-                      {validBoardColumnsItems?.map((item) => {
-                        if (!item || !item.value) {
-                          console.error('[FieldMappingDialog] Invalid item:', item);
-                          return null;
-                        }
-                        // Only show subitem columns for subitemPrice field
-                        const isSubitemColumn = item.label && item.label.includes('[サブアイテム]');
-                        return (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        );
-                      })}
+                      {(() => {
+                        console.log('[FieldMappingDialog] ===== subitemPrice Select Render =====');
+                        console.log('[FieldMappingDialog] validBoardColumnsItems:', validBoardColumnsItems);
+                        console.log('[FieldMappingDialog] validBoardColumnsItems count:', validBoardColumnsItems?.length);
+                        const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes('[サブアイテム]'));
+                        console.log('[FieldMappingDialog] subitemItems in Select:', subitemItems);
+                        console.log('[FieldMappingDialog] subitemItems count:', subitemItems?.length);
+                        return validBoardColumnsItems?.map((item) => {
+                          if (!item || !item.value) {
+                            console.error('[FieldMappingDialog] Invalid item:', item);
+                            return null;
+                          }
+                          // Only show subitem columns for subitemPrice field
+                          const isSubitemColumn = item.label && item.label.includes('[サブアイテム]');
+                          if (!isSubitemColumn) {
+                            return null; // Don't show non-subitem columns
+                          }
+                          return (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
+                            </option>
+                          );
+                        });
+                      })()}
                     </Box>
                     {renderCustomInput('subitemPrice', '例: numeric_mkwjthws')}
                     <Field.HelperText fontSize="xs">
