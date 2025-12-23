@@ -153,6 +153,8 @@ const validBoardColumnsItems = useMemo(() => {
 ### ✅ 解決済み（最新）
 - **サブアイテムカラム名の表示**: サブアイテムの`board`情報からカラムを取得する方法を実装。サブアイテムボードのカラムからタイトルを取得し、見つからない場合はメインボードを検索、それでも見つからない場合は生成されたタイトル（例: `数値 (mkywyf4v...)`）を使用。
 - **フィールドマッピング反映**: `transformItem`でマッピングキー（`clientName`, `discount`, `taxAmount`など）とカラムIDの両方を保存するように修正。`getMappedValue`でマッピングキーとカラムIDの両方を試すように修正済み。
+- **マッピング保存後の反映**: `handleSaveMappings`の後に、`selectedItemId`が設定されていて`currentStep === 'edit'`の場合、`loadSelectedItem`を呼ぶように修正。`setTimeout`で200ms待ってから`loadSelectedItem`を呼ぶことで、`items`が更新されるまで待つ。
+- **サブアイテム数量マッピング**: `subitemQuantity`フィールドを追加し、サブアイテムの数量もマッピングできるように修正。`FieldMappingDialog`に数量マッピングの選択フィールドを追加。`loadSelectedItem`で数量も取得するように修正（マッピングされたカラムから取得、見つからない場合は1をデフォルト）。
 
 ### エラー分析（最新）
 
@@ -172,10 +174,16 @@ const validBoardColumnsItems = useMemo(() => {
 
 #### エラー3: フィールドマッピングが反映されない（解決済み）
 - **発生箇所**: `App.jsx`の`loadSelectedItem`関数
-- **原因**: `transformItem`でマッピングキー（`clientName`, `discount`, `taxAmount`など）が保存されていなかった。`getMappedValue`でマッピングキーを解決できていなかった
-- **試行した対策**: `fetchBoardData`でマッピングキーをカラムIDに変換するように修正したが、`transformItem`でマッピングキーが保存されていなかった
+- **原因**: 
+  1. `transformItem`でマッピングキー（`clientName`, `discount`, `taxAmount`など）が保存されていなかった。`getMappedValue`でマッピングキーを解決できていなかった
+  2. `handleSaveMappings`の後に`fetchBoardData`を呼んでいたが、`items`が更新された後に`loadSelectedItem`を実行していなかった
+- **試行した対策**: 
+  1. `fetchBoardData`でマッピングキーをカラムIDに変換するように修正したが、`transformItem`でマッピングキーが保存されていなかった
+  2. `handleSaveMappings`を`async`関数に変更し、`fetchBoardData`の完了を待つように修正したが、`items`が更新された後に`loadSelectedItem`を実行していなかった
 - **結果**: フィールドマッピングを保存後、請求書編集に進んでも内容が反映されず空欄のままになっていた
-- **最終解決策**: `transformItem`でマッピングキーとカラムIDの両方を保存するように修正。`getMappedValue`でマッピングキーとカラムIDの両方を試すように修正済み
+- **最終解決策**: 
+  1. `transformItem`でマッピングキーとカラムIDの両方を保存するように修正。`getMappedValue`でマッピングキーとカラムIDの両方を試すように修正済み
+  2. `handleSaveMappings`の後に、`selectedItemId`が設定されていて`currentStep === 'edit'`の場合、`setTimeout`で200ms待ってから`loadSelectedItem`を呼ぶように修正。これにより、`items`が更新されるまで待ってから`loadSelectedItem`を実行する
 
 ### 実装した解決策
 
@@ -195,6 +203,22 @@ const validBoardColumnsItems = useMemo(() => {
   2. マッピングキーが見つかった場合、そのキーとカラムIDの両方で値を保存
   3. `getMappedValue`でマッピングキーとカラムIDの両方を試す
 - **結果**: フィールドマッピングが正しく反映されるようになった
+
+#### 解決策3: マッピング保存後の反映の修正
+- **実装**: `handleSaveMappings`の後に`loadSelectedItem`を呼ぶように修正
+- **処理フロー**:
+  1. `handleSaveMappings`で`fetchBoardData`を呼び、`items`を更新
+  2. `selectedItemId`が設定されていて`currentStep === 'edit'`の場合、`setTimeout`で200ms待ってから`loadSelectedItem`を呼ぶ
+  3. これにより、`items`が更新されるまで待ってから`loadSelectedItem`を実行する
+- **結果**: マッピング保存後、請求書編集画面で内容が正しく反映されるようになった
+
+#### 解決策4: サブアイテム数量マッピングの追加
+- **実装**: `subitemQuantity`フィールドを追加し、サブアイテムの数量もマッピングできるように修正
+- **処理フロー**:
+  1. `FieldMappingDialog`に数量マッピングの選択フィールドを追加
+  2. `loadSelectedItem`で数量も取得するように修正（マッピングされたカラムから取得、見つからない場合は1をデフォルト）
+  3. `fetchBoardData`で`subitemQuantity`も取得するように修正
+- **結果**: サブアイテムの数量もマッピングできるようになった
 
 ### 注意事項
 - **UIと固まる問題は解決済み**: `collection`プロパティを使わず、`items`プロパティを直接使用することで解決。**この部分は変更しないこと。**

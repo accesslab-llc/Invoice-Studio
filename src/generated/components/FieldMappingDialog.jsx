@@ -32,7 +32,8 @@ const defaultMappings = {
   discount: 'discount',
   taxAmount: 'taxAmount',
   items: 'subitems',
-  subitemPrice: 'column11' // サブアイテムの価格カラム
+  subitemPrice: 'column11', // サブアイテムの価格カラム
+  subitemQuantity: 'manual' // サブアイテムの数量カラム
 };
 
 // Base column items (always available - includes commonly used columns)
@@ -453,7 +454,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     discount: { ja: '割引', en: 'Discount', es: 'Descuento' },
     taxAmount: { ja: '税額', en: 'Tax Amount', es: 'Importe del Impuesto' },
     items: { ja: '明細', en: 'Line Items', es: 'Artículos' },
-    subitemPrice: { ja: 'サブアイテム価格カラム', en: 'Subitem Price Column', es: 'Columna de Precio de Subartículo' }
+    subitemPrice: { ja: 'サブアイテム価格カラム', en: 'Subitem Price Column', es: 'Columna de Precio de Subartículo' },
+    subitemQuantity: { ja: 'サブアイテム数量カラム', en: 'Subitem Quantity Column', es: 'Columna de Cantidad de Subartículo' }
   };
 
   const getFieldLabel = (fieldKey) => {
@@ -953,52 +955,92 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 </Field.Root>
 
                 {getSelectValue('items') === 'subitems' && (
-                  <Field.Root>
-                    <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
-                    <Box
-                      as="select"
-                      value={getSelectValue('subitemPrice')}
-                      onChange={(e) => handleSelectChange('subitemPrice', e.target.value)}
-                      width="100%"
-                      px="3"
-                      py="2"
-                      fontSize="sm"
-                      borderWidth="1px"
-                      borderRadius="md"
-                      bg="bg"
-                      _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
-                    >
-                      <option value="">{t.fieldMappingSelectColumn}</option>
-                      {(() => {
-                        console.log('[FieldMappingDialog] ===== subitemPrice Select Render =====');
-                        console.log('[FieldMappingDialog] validBoardColumnsItems:', validBoardColumnsItems);
-                        console.log('[FieldMappingDialog] validBoardColumnsItems count:', validBoardColumnsItems?.length);
-                        const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes('[サブアイテム]'));
-                        console.log('[FieldMappingDialog] subitemItems in Select:', subitemItems);
-                        console.log('[FieldMappingDialog] subitemItems count:', subitemItems?.length);
-                        return validBoardColumnsItems?.map((item) => {
-                          if (!item || !item.value) {
-                            console.error('[FieldMappingDialog] Invalid item:', item);
-                            return null;
-                          }
-                          // Only show subitem columns for subitemPrice field
-                          const isSubitemColumn = item.label && item.label.includes('[サブアイテム]');
-                          if (!isSubitemColumn) {
-                            return null; // Don't show non-subitem columns
-                          }
-                          return (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          );
-                        });
-                      })()}
-                    </Box>
-                    {renderCustomInput('subitemPrice', '例: numeric_mkwjthws')}
-                    <Field.HelperText fontSize="xs">
-                      {t.fieldMappingCurrent} {getDisplayLabel('subitemPrice')}
-                    </Field.HelperText>
-                  </Field.Root>
+                  <>
+                    <Field.Root>
+                      <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
+                      <Box
+                        as="select"
+                        value={getSelectValue('subitemPrice')}
+                        onChange={(e) => handleSelectChange('subitemPrice', e.target.value)}
+                        width="100%"
+                        px="3"
+                        py="2"
+                        fontSize="sm"
+                        borderWidth="1px"
+                        borderRadius="md"
+                        bg="bg"
+                        _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
+                      >
+                        <option value="">{t.fieldMappingSelectColumn}</option>
+                        {(() => {
+                          const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes('[サブアイテム]'));
+                          return validBoardColumnsItems?.map((item) => {
+                            if (!item || !item.value) {
+                              console.error('[FieldMappingDialog] Invalid item:', item);
+                              return null;
+                            }
+                            // Only show subitem columns for subitemPrice field
+                            const isSubitemColumn = item.label && item.label.includes('[サブアイテム]');
+                            if (!isSubitemColumn) {
+                              return null; // Don't show non-subitem columns
+                            }
+                            return (
+                              <option key={item.value} value={item.value}>
+                                {item.label}
+                              </option>
+                            );
+                          });
+                        })()}
+                      </Box>
+                      {renderCustomInput('subitemPrice', '例: numeric_mkwjthws')}
+                      <Field.HelperText fontSize="xs">
+                        {t.fieldMappingCurrent} {getDisplayLabel('subitemPrice')}
+                      </Field.HelperText>
+                    </Field.Root>
+
+                    <Field.Root>
+                      <Field.Label>{getFieldLabel('subitemQuantity')}</Field.Label>
+                      <Box
+                        as="select"
+                        value={getSelectValue('subitemQuantity')}
+                        onChange={(e) => handleSelectChange('subitemQuantity', e.target.value)}
+                        width="100%"
+                        px="3"
+                        py="2"
+                        fontSize="sm"
+                        borderWidth="1px"
+                        borderRadius="md"
+                        bg="bg"
+                        _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
+                      >
+                        <option value="">{t.fieldMappingSelectColumn}</option>
+                        {(() => {
+                          const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes('[サブアイテム]'));
+                          return validBoardColumnsItems?.map((item) => {
+                            if (!item || !item.value) {
+                              console.error('[FieldMappingDialog] Invalid item:', item);
+                              return null;
+                            }
+                            // Show subitem columns and 'manual' option for subitemQuantity field
+                            const isSubitemColumn = item.label && item.label.includes('[サブアイテム]');
+                            const isManual = item.value === 'manual';
+                            if (!isSubitemColumn && !isManual) {
+                              return null; // Don't show non-subitem columns except 'manual'
+                            }
+                            return (
+                              <option key={item.value} value={item.value}>
+                                {item.label}
+                              </option>
+                            );
+                          });
+                        })()}
+                      </Box>
+                      {renderCustomInput('subitemQuantity', '例: numeric_mkywyf4v')}
+                      <Field.HelperText fontSize="xs">
+                        {t.fieldMappingCurrent} {getDisplayLabel('subitemQuantity')}
+                      </Field.HelperText>
+                    </Field.Root>
+                  </>
                 )}
               </Stack>
             </Stack>
