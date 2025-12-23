@@ -192,6 +192,13 @@ class BoardSDK {
    */
   async query(query, variables = {}) {
     try {
+      // Log query and variables FIRST, before any validation or API calls
+      // This ensures we can see the query even if validation errors occur
+      console.log('[BoardSDK] ===== GraphQL Query Debug =====');
+      console.log('[BoardSDK] Query:', query);
+      console.log('[BoardSDK] Variables:', JSON.stringify(variables, null, 2));
+      console.log('[BoardSDK] ===== End Query Debug =====');
+      
       console.log('[BoardSDK] Executing GraphQL query using Monday SDK api() method...');
       
       // Check if monday object exists
@@ -453,11 +460,13 @@ class BoardSDK {
         variables.subItemColumnIds = subItemColumnIds;
       }
 
-      // Debug: Log the actual query and variables
+      // Debug: Log the actual query and variables BEFORE calling query()
+      console.log('[BoardSDK] ===== fetchItems Debug =====');
       console.log('[BoardSDK] Generated GraphQL query:', query);
-      console.log('[BoardSDK] Query variables:', variables);
+      console.log('[BoardSDK] Query variables:', JSON.stringify(variables, null, 2));
       console.log('[BoardSDK] hasColumnIds:', hasColumnIds, 'columnIds:', columnIds);
       console.log('[BoardSDK] hasSubItemColumns:', hasSubItemColumns, 'subItemColumnIds:', subItemColumnIds);
+      console.log('[BoardSDK] ===== End fetchItems Debug =====');
 
       const data = await this.query(query, variables);
 
