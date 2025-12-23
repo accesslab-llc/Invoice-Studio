@@ -311,8 +311,9 @@ class BoardSDK {
     // If columnIds is empty array, don't fetch any columns (no ids parameter)
     // If columnIds has values, fetch specific columns (ids parameter)
     // Same logic applies to subItemColumnIds
-    const hasColumnIds = columnIds !== null && columnIds.length > 0;
-    const hasSubItemColumns = subItemColumnIds !== null && subItemColumnIds.length > 0;
+    // Check if columnIds has valid values (not null and not empty array)
+    const hasColumnIds = columnIds !== null && Array.isArray(columnIds) && columnIds.length > 0;
+    const hasSubItemColumns = subItemColumnIds !== null && Array.isArray(subItemColumnIds) && subItemColumnIds.length > 0;
     const columnArgs = hasColumnIds ? '(ids: $columnIds)' : '';
     const columnVar = hasColumnIds ? ', $columnIds: [String!]' : '';
     const subItemColumnArgs = hasSubItemColumns ? '(ids: $subItemColumnIds)' : '';
