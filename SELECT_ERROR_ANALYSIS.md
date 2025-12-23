@@ -158,6 +158,7 @@ const validBoardColumnsItems = useMemo(() => {
 - **フィールドマッピングUIの改善**: アイテム選択画面からフィールドマッピングボタンを削除し、請求書編集画面に移動。これにより、ユーザーはアイテムを選択して請求書編集画面に進んだ後、必要に応じてフィールドマッピングを設定し、保存時にその場で反映されるようになった。
 - **サブアイテム値取得の修正**: `transformSubItem`でマッピングキー（`subitemQuantity`, `subitemPrice`）とカラムIDの両方で値を保存するように修正。`loadSelectedItem`でサブアイテムの値を取得する際に、マッピングキーとカラムIDの両方を試すように修正。これにより、サブアイテムの値が正しく取得できるようになった。
 - **lookup_とboard_relation_タイプのカラム値取得の改善**: GraphQLクエリで`BoardRelationValue`と`LookupValue`のインラインフラグメントを使用して`linked_items`を取得するように修正。`transformItem`をサブアイテムと同じシンプルな方法（`col.text`を直接使用）に統一。これにより、これらのタイプのカラムの値が正しく取得できるようになった。
+- **GraphQL validation errorsの修正**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないように修正。これにより、GraphQL validation errorsが解決され、アプリが正常に開くようになった。
 
 ### エラー分析（最新）
 
@@ -261,6 +262,19 @@ const validBoardColumnsItems = useMemo(() => {
   3. これにより、Monday.comのAPIが`col.text`に正しい値を返すようになる
 - **結果**: `lookup_`や`board_relation_`タイプのカラムの値が正しく取得できるようになった
 
+#### 解決策8: GraphQL validation errorsの修正
+- **問題**: アプリが開かず、GraphQL validation errorsが発生していた。`columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを指定するとvalidation errorが発生する
+- **実装**: 
+  1. `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正
+  2. 変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないように修正
+  3. 同様に、`subItemColumnIds`についても同じ処理を適用
+- **処理フロー**:
+  1. `columnIds`がnullまたは空配列の場合、`hasColumnIds`を`false`に設定
+  2. `hasColumnIds`が`false`の場合、GraphQLクエリで`column_values`の`ids`パラメータを省略
+  3. 変数定義でも`columnIds`を含めないように条件分岐
+  4. これにより、Monday.comのGraphQL APIがvalidation errorを返さなくなる
+- **結果**: GraphQL validation errorsが解決され、アプリが正常に開くようになった
+
 ### 注意事項
 - **UIと固まる問題は解決済み**: `collection`プロパティを使わず、`items`プロパティを直接使用することで解決。**この部分は変更しないこと。**
 - **同じ対策を繰り返さない**: `columns(ids: ...)`クエリは使えないことが判明したので、今後は使用しない。
@@ -269,4 +283,5 @@ const validBoardColumnsItems = useMemo(() => {
 - **フィールドマッピングUIの配置**: フィールドマッピングボタンは請求書編集画面に配置する。アイテム選択画面には配置しない。これにより、ユーザーはアイテムを選択してからマッピングを設定し、保存時に即座に反映される。
 - **サブアイテム値の取得**: `transformSubItem`でマッピングキーとカラムIDの両方で値を保存する必要がある。`loadSelectedItem`でもマッピングキーとカラムIDの両方を試す必要がある。これにより、サブアイテムの値が正しく取得できる。
 - **lookup_とboard_relation_タイプのカラム**: GraphQLクエリで`BoardRelationValue`と`LookupValue`のインラインフラグメントを使用して`linked_items`を取得する必要がある。`transformItem`はサブアイテムと同じシンプルな方法（`col.text`を直接使用）を使う。Monday.comのAPIが`col.text`に正しい値を返すようになる。
+- **GraphQLクエリのパラメータ**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略する必要がある。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないようにする。これにより、GraphQL validation errorsが発生しない。
 
