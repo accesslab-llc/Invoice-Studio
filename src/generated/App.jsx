@@ -424,7 +424,7 @@ const App = () => {
     }
     // Third, if mapping is already a column ID, try it directly
     else if (mapping.startsWith('text_') || mapping.startsWith('numeric_') || mapping.startsWith('date_') ||
-             mapping.startsWith('board_relation_') || mapping.startsWith('lookup_') || mapping.startsWith('formula_') ||
+             mapping.startsWith('lookup_') || mapping.startsWith('board_relation_') || mapping.startsWith('formula_') ||
              mapping.startsWith('mirror_') || mapping.startsWith('status_') || mapping.startsWith('person_') ||
              mapping.startsWith('email_') || mapping.startsWith('phone_') || mapping.startsWith('link_') ||
              mapping.startsWith('file_') || mapping.startsWith('checkbox_') || mapping.startsWith('rating_') ||
