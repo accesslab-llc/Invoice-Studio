@@ -490,8 +490,9 @@ class BoardSDK {
       } else if (col.type === 'mirror' || col.type === 'mirror__') {
         // Mirror column: use text value which contains the displayed value
         value = col.text || '';
-      } else if (col.type === 'lookup' || col.type === 'lookup__' || col.type === 'board_relation' || col.type === 'board_relation__') {
+      } else if (isLookupColumn || col.type === 'lookup' || col.type === 'lookup__' || col.type === 'board_relation' || col.type === 'board_relation__') {
         // Lookup and board_relation types: try to get value from col.text first, then col.value
+        // Use column ID to detect lookup/board_relation columns (more reliable than col.type)
         if (col.text && col.text !== '') {
           value = col.text;
         } else if (col.value) {
