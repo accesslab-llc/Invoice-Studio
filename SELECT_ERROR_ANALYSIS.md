@@ -271,6 +271,7 @@ const validBoardColumnsItems = useMemo(() => {
   4. 同様に、`subItemColumnIds`についても同じ処理を適用
   5. デバッグログを追加して、実際のクエリと変数を確認できるように改善
   6. `hasColumnIds`と`hasSubItemColumns`の判定に`Array.isArray`チェックを追加して、`undefined`の場合でもエラーが発生しないように修正
+  7. `query`メソッドの最初にクエリと変数をログ出力するように修正して、GraphQL validation errorsが発生する前にもログが表示されるように改善
 - **処理フロー**:
   1. `columnIds`がnullまたは空配列の場合、`null`として扱う
   2. `columnIds`が`null`の場合、`hasColumnIds`を`false`に設定（`Array.isArray`チェックも追加）
