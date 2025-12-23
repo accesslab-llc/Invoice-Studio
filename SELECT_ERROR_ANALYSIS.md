@@ -156,6 +156,7 @@ const validBoardColumnsItems = useMemo(() => {
 - **マッピング保存後の反映**: `handleSaveMappings`の後に、`selectedItemId`が設定されていて`currentStep === 'edit'`の場合、`loadSelectedItem`を呼ぶように修正。`setTimeout`で200ms待ってから`loadSelectedItem`を呼ぶことで、`items`が更新されるまで待つ。
 - **サブアイテム数量マッピング**: `subitemQuantity`フィールドを追加し、サブアイテムの数量もマッピングできるように修正。`FieldMappingDialog`に数量マッピングの選択フィールドを追加。`loadSelectedItem`で数量も取得するように修正（マッピングされたカラムから取得、見つからない場合は1をデフォルト）。
 - **フィールドマッピングUIの改善**: アイテム選択画面からフィールドマッピングボタンを削除し、請求書編集画面に移動。これにより、ユーザーはアイテムを選択して請求書編集画面に進んだ後、必要に応じてフィールドマッピングを設定し、保存時にその場で反映されるようになった。
+- **サブアイテム値取得の修正**: `transformSubItem`でマッピングキー（`subitemQuantity`, `subitemPrice`）とカラムIDの両方で値を保存するように修正。`loadSelectedItem`でサブアイテムの値を取得する際に、マッピングキーとカラムIDの両方を試すように修正。これにより、サブアイテムの値が正しく取得できるようになった。
 
 ### エラー分析（最新）
 
@@ -233,10 +234,26 @@ const validBoardColumnsItems = useMemo(() => {
   4. マッピングを保存すると、`handleSaveMappings`が呼ばれ、`fetchBoardData`の後に`loadSelectedItem`を呼んで即座に反映される
 - **結果**: マッピング保存後に請求書編集画面で即座に反映されるようになった
 
+#### 解決策6: サブアイテム値取得の修正
+- **問題**: サブアイテムが入力されなくなった。`transformSubItem`でマッピングキー（`subitemQuantity`, `subitemPrice`）で保存していたが、`loadSelectedItem`では解決されたカラムID（`numeric_mkyw61b`, `numeric_mkywyf4v`）で値を取得しようとしていた
+- **実装**: 
+  1. `transformSubItem`でマッピングキーとカラムIDの両方で値を保存するように修正
+  2. `loadSelectedItem`でサブアイテムの値を取得する際に、マッピングキーを先に試し、見つからない場合は解決されたカラムIDを試すように修正
+- **処理フロー**:
+  1. `transformSubItem`でサブアイテムのカラムを変換
+     - マッピングキー（`subitemQuantity`, `subitemPrice`）で保存
+     - カラムID（`numeric_mkyw61b`, `numeric_mkywyf4v`）でも保存
+  2. `loadSelectedItem`でサブアイテムの値を取得
+     - マッピングキーを先に試す
+     - 見つからない場合は解決されたカラムIDを試す
+     - それでも見つからない場合はフォールバック処理を使用
+- **結果**: サブアイテムの値が正しく取得できるようになった
+
 ### 注意事項
 - **UIと固まる問題は解決済み**: `collection`プロパティを使わず、`items`プロパティを直接使用することで解決。**この部分は変更しないこと。**
 - **同じ対策を繰り返さない**: `columns(ids: ...)`クエリは使えないことが判明したので、今後は使用しない。
 - **サブアイテムカラムのタイトル取得**: サブアイテムの`board`情報からカラムを取得する方法を実装済み。これが最も確実な方法。
 - **フィールドマッピング反映**: `transformItem`でマッピングキーとカラムIDの両方を保存する必要がある。これにより、`getMappedValue`で正しく値を取得できる。
 - **フィールドマッピングUIの配置**: フィールドマッピングボタンは請求書編集画面に配置する。アイテム選択画面には配置しない。これにより、ユーザーはアイテムを選択してからマッピングを設定し、保存時に即座に反映される。
+- **サブアイテム値の取得**: `transformSubItem`でマッピングキーとカラムIDの両方で値を保存する必要がある。`loadSelectedItem`でもマッピングキーとカラムIDの両方を試す必要がある。これにより、サブアイテムの値が正しく取得できる。
 

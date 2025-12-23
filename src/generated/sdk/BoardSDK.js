@@ -496,13 +496,13 @@ class BoardSDK {
     }
 
     subitem.column_values?.forEach(col => {
-      // Try to find the key in columnMappings
-      const key = Object.keys(this.columnMappings).find(
+      // Try to find the mapping key (e.g., 'subitemQuantity', 'subitemPrice') for this column ID
+      const mappingKey = Object.keys(this.columnMappings).find(
         k => this.columnMappings[k] === col.id
       );
       
-      // If not found in mappings, use the column ID directly or try to infer from common patterns
-      const finalKey = key || col.id;
+      // Use mapping key if found, otherwise use column ID directly
+      const key = mappingKey || col.id;
       
       let value = col.text || '';
       
@@ -556,10 +556,10 @@ class BoardSDK {
         value = col.text || '';
       }
 
-      transformed[finalKey] = value;
-      
-      // Also store with the original column ID for fallback
-      if (!key) {
+      // Store value with both mapping key and column ID for flexibility
+      transformed[key] = value;
+      // Also store with column ID directly for direct access
+      if (mappingKey && col.id !== key) {
         transformed[col.id] = value;
       }
     });

@@ -540,8 +540,17 @@ const App = () => {
           return Number.isFinite(num) ? num : null;
         };
 
-        // Get price from preferred column or fallback to first numeric column
-        let price = preferredPriceColumn ? getNumericValue(sub[preferredPriceColumn]) : null;
+        // Get price: try mapping key first, then resolved column ID, then fallback
+        let price = null;
+        if (currentMappings.subitemPrice && currentMappings.subitemPrice !== 'manual' && currentMappings.subitemPrice !== 'custom') {
+          // Try mapping key first (e.g., 'subitemPrice')
+          price = getNumericValue(sub[currentMappings.subitemPrice]);
+          // If not found, try resolved column ID
+          if (price === null && preferredPriceColumn) {
+            price = getNumericValue(sub[preferredPriceColumn]);
+          }
+        }
+        // Fallback to first numeric column
         if (price === null) {
           const numericKey = Object.keys(sub).find((key) => {
             if (['id', 'name'].includes(key)) return false;
@@ -551,10 +560,19 @@ const App = () => {
           price = numericKey ? getNumericValue(sub[numericKey]) : 0;
         }
 
-        // Get quantity from preferred column or default to 1
-        let quantity = preferredQuantityColumn ? getNumericValue(sub[preferredQuantityColumn]) : null;
+        // Get quantity: try mapping key first, then resolved column ID, then default to 1
+        let quantity = null;
+        if (currentMappings.subitemQuantity && currentMappings.subitemQuantity !== 'manual' && currentMappings.subitemQuantity !== 'custom') {
+          // Try mapping key first (e.g., 'subitemQuantity')
+          quantity = getNumericValue(sub[currentMappings.subitemQuantity]);
+          // If not found, try resolved column ID
+          if (quantity === null && preferredQuantityColumn) {
+            quantity = getNumericValue(sub[preferredQuantityColumn]);
+          }
+        }
+        // Default to 1 if not found or 0
         if (quantity === null || quantity === 0) {
-          quantity = 1; // Default to 1 if not found or 0
+          quantity = 1;
         }
 
         return {
