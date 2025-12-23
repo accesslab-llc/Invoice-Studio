@@ -306,25 +306,28 @@ class BoardSDK {
       : [];
 
     // Build GraphQL query - items_page uses cursor-based pagination, not page numbers
-    // Use different queries based on whether cursor is provided and whether subItemColumnIds are specified
-    // If subItemColumnIds is null, fetch all subitem columns (no ids parameter)
-    // If subItemColumnIds is empty array, don't fetch any subitem columns (no ids parameter)
-    // If subItemColumnIds has values, fetch specific columns (ids parameter)
+    // Use different queries based on whether cursor is provided and whether columnIds/subItemColumnIds are specified
+    // If columnIds is null, fetch all columns (no ids parameter)
+    // If columnIds is empty array, don't fetch any columns (no ids parameter)
+    // If columnIds has values, fetch specific columns (ids parameter)
+    // Same logic applies to subItemColumnIds
+    const hasColumnIds = columnIds !== null && columnIds.length > 0;
     const hasSubItemColumns = subItemColumnIds !== null && subItemColumnIds.length > 0;
-    const fetchAllSubItemColumns = subItemColumnIds === null;
+    const columnArgs = hasColumnIds ? '(ids: $columnIds)' : '';
+    const columnVar = hasColumnIds ? ', $columnIds: [String!]' : '';
     const subItemColumnArgs = hasSubItemColumns ? '(ids: $subItemColumnIds)' : '';
     const subItemColumnVar = hasSubItemColumns ? ', $subItemColumnIds: [String!]' : '';
     
     const query = cursor
       ? `
-        query GetBoardItems($boardId: [ID!]!, $limit: Int, $cursor: String!, $columnIds: [String!]${subItemColumnVar}) {
+        query GetBoardItems($boardId: [ID!]!, $limit: Int, $cursor: String!${columnVar}${subItemColumnVar}) {
           boards(ids: $boardId) {
             items_page(limit: $limit, cursor: $cursor) {
               cursor
               items {
                 id
                 name
-                column_values(ids: $columnIds) {
+                column_values${columnArgs} {
                   id
                   text
                   value
@@ -374,14 +377,14 @@ class BoardSDK {
         }
       `
       : `
-        query GetBoardItems($boardId: [ID!]!, $limit: Int, $columnIds: [String!]${subItemColumnVar}) {
+        query GetBoardItems($boardId: [ID!]!, $limit: Int${columnVar}${subItemColumnVar}) {
           boards(ids: $boardId) {
             items_page(limit: $limit) {
               cursor
               items {
                 id
                 name
-                column_values(ids: $columnIds) {
+                column_values${columnArgs} {
                   id
                   text
                   value
@@ -434,12 +437,15 @@ class BoardSDK {
     try {
       const variables = {
         boardId: [this.boardId],
-        limit,
-        columnIds: columnIds === null ? null : (columnIds.length > 0 ? columnIds : null)
+        limit
       };
       
       if (cursor) {
         variables.cursor = cursor;
+      }
+      
+      if (hasColumnIds) {
+        variables.columnIds = columnIds;
       }
       
       if (hasSubItemColumns) {
