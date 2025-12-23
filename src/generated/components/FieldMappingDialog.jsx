@@ -273,15 +273,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
               } else {
                 console.warn('[FieldMappingDialog] No items with subitems found');
               }
-            } catch (fallbackError) {
-              console.error('[FieldMappingDialog] Fallback also failed:', fallbackError);
-              console.error('[FieldMappingDialog] Fallback error details:', {
-                message: fallbackError.message,
-                stack: fallbackError.stack
-              });
-              subitemColumns = [];
-            }
-          }
         } catch (error) {
           console.error('[FieldMappingDialog] ===== ERROR FETCHING SUBITEM COLUMNS =====');
           console.error('[FieldMappingDialog] Error:', error);
