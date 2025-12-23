@@ -118,11 +118,22 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
 
   const handleDeleteTemplate = () => {
     if (!currentTemplateId) return;
+    
+    // Get template name for confirmation message
+    const templateToDelete = localTemplates.find((tpl) => tpl.id === currentTemplateId);
+    const templateName = templateToDelete?.name || t.deleteTemplate;
+    
+    // Show confirmation dialog
+    if (!confirm(`${templateName}${t.deleteTemplateConfirm || 'を削除しますか？'}`)) {
+      return;
+    }
+    
     const updatedTemplates = localTemplates.filter((tpl) => tpl.id !== currentTemplateId);
     setLocalTemplates(updatedTemplates);
     setCurrentTemplateId('');
     setFormValues(initialTemplate);
     onSave?.(updatedTemplates);
+    alert(t.templateDeleted || 'テンプレートを削除しました。');
   };
 
   const renderCompanyFields = () => (
