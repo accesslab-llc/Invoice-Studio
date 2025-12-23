@@ -474,12 +474,23 @@ class BoardSDK {
       const lookupColumns = item.column_values.filter(col => col.id && col.id.startsWith('lookup_'));
       console.log('[BoardSDK] Lookup columns found:', lookupColumns.length);
       if (lookupColumns.length > 0) {
-        console.log('[BoardSDK] Lookup columns:', lookupColumns.map(col => ({
-          id: col.id,
-          type: col.type,
-          text: col.text,
-          value: col.value
-        })));
+        console.log('[BoardSDK] Lookup columns (detailed):', lookupColumns.map(col => {
+          let parsedValue = null;
+          if (col.value) {
+            try {
+              parsedValue = JSON.parse(col.value);
+            } catch (e) {
+              parsedValue = col.value;
+            }
+          }
+          return {
+            id: col.id,
+            type: col.type,
+            text: col.text,
+            value: col.value,
+            parsedValue: parsedValue
+          };
+        }));
       } else {
         console.warn('[BoardSDK] WARNING: No lookup_ columns found in column_values!');
         console.warn('[BoardSDK] This might indicate that lookup columns are not being returned by the API.');
@@ -526,9 +537,32 @@ class BoardSDK {
         }
       } else if (col.type === 'text') {
         value = col.text || '';
-      } else if (col.type === 'mirror' || col.type === 'mirror__') {
-        // Mirror column: use text value which contains the displayed value
-        value = col.text || '';
+      } else if (col.type === 'mirror' || col.type === 'mirror__' || (isLookupColumn && col.type === 'mirror')) {
+        // Mirror column (including lookup_ columns that are returned as mirror type): 
+        // Try to get value from col.text first, then try to parse col.value
+        if (col.text && col.text !== '') {
+          value = col.text;
+        } else if (col.value) {
+          // If col.text is empty, try to parse col.value for mirror columns
+          try {
+            const parsed = JSON.parse(col.value);
+            // Mirror columns might have the value in different fields
+            value = parsed?.text || parsed?.name || parsed?.value || parsed?.display_value || '';
+          } catch {
+            // If parsing fails, try using col.value as string
+            value = String(col.value) || '';
+          }
+        } else {
+          value = '';
+        }
+        // Debug: Log mirror columns (including lookup_ columns)
+        if (isLookupColumn) {
+          if (!value || value === '') {
+            console.log('[BoardSDK] transformItem: Empty value for mirror (lookup_) column', col.id, 'text:', col.text, 'value:', col.value);
+          } else {
+            console.log('[BoardSDK] transformItem: Found value for mirror (lookup_) column', col.id, 'value:', value);
+          }
+        }
       } else if (isLookupColumn || col.type === 'lookup' || col.type === 'lookup__' || col.type === 'board_relation' || col.type === 'board_relation__') {
         // Lookup and board_relation types: try to get value from col.text first, then col.value
         // Use column ID to detect lookup/board_relation columns (more reliable than col.type)
