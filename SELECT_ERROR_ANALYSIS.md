@@ -250,6 +250,17 @@ const validBoardColumnsItems = useMemo(() => {
      - それでも見つからない場合はフォールバック処理を使用
 - **結果**: サブアイテムの値が正しく取得できるようになった
 
+#### 解決策7: lookup_とboard_relation_タイプのカラム値取得の改善
+- **問題**: `lookup_`や`board_relation_`タイプのカラムの値が空文字列になっていた。Monday.comのAPIでは、これらのタイプのカラムの値を取得する際に、`BoardRelationValue`や`LookupValue`のインラインフラグメントを使用して`linked_items`を取得する必要がある
+- **実装**: 
+  1. GraphQLクエリで`BoardRelationValue`と`LookupValue`のインラインフラグメントを使用して`linked_items`を取得するように修正
+  2. `transformItem`をサブアイテムと同じシンプルな方法（`col.text`を直接使用）に統一
+- **処理フロー**:
+  1. GraphQLクエリで`column_values`に`... on BoardRelationValue { linked_item_ids, linked_items { id, name } }`と`... on LookupValue { linked_item_ids, linked_items { id, name } }`を追加
+  2. `transformItem`で、サブアイテムと同じように`col.text`を直接使用（シンプルな方法）
+  3. これにより、Monday.comのAPIが`col.text`に正しい値を返すようになる
+- **結果**: `lookup_`や`board_relation_`タイプのカラムの値が正しく取得できるようになった
+
 ### 注意事項
 - **UIと固まる問題は解決済み**: `collection`プロパティを使わず、`items`プロパティを直接使用することで解決。**この部分は変更しないこと。**
 - **同じ対策を繰り返さない**: `columns(ids: ...)`クエリは使えないことが判明したので、今後は使用しない。
