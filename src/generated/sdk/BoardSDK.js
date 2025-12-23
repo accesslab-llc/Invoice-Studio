@@ -504,6 +504,8 @@ class BoardSDK {
         // Debug: Log lookup and board_relation columns
         if (!value || value === '') {
           console.log('[BoardSDK] transformItem: Empty value for', col.type, 'column', col.id, 'text:', col.text, 'value:', col.value);
+        } else {
+          console.log('[BoardSDK] transformItem: Found value for', col.type, 'column', col.id, 'value:', value);
         }
       } else {
         // For all other types (status, person, etc.), use text value
