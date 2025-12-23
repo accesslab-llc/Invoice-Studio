@@ -229,22 +229,30 @@ const App = () => {
       console.log('[App] Board SDK initialized, boardId:', board.boardId);
       
       // Get column IDs from fieldMappings dynamically
+      // Resolve mapping keys (like 'clientName', 'discount', 'taxAmount') to actual column IDs
       const columnIds = [];
       Object.values(mappings).forEach(mapping => {
         if (mapping && mapping !== 'manual' && mapping !== 'subitems' && mapping !== 'name' && mapping !== 'custom') {
-          // Check if it's a column ID (starts with text_, numeric_, date_, etc.)
-          if (mapping.startsWith('text_') || mapping.startsWith('numeric_') || mapping.startsWith('date_') || 
-              mapping.startsWith('board_relation_') || mapping.startsWith('lookup_') || mapping.startsWith('formula_') ||
-              mapping.startsWith('mirror_') || mapping.startsWith('status_') || mapping.startsWith('person_') ||
-              mapping.startsWith('email_') || mapping.startsWith('phone_') || mapping.startsWith('link_') ||
-              mapping.startsWith('file_') || mapping.startsWith('checkbox_') || mapping.startsWith('rating_') ||
-              mapping.startsWith('timeline_') || mapping.startsWith('dependency_') || mapping.startsWith('location_') ||
-              mapping.startsWith('tags_') || mapping.startsWith('vote_') || mapping.startsWith('hour_') ||
-              mapping.startsWith('week_') || mapping.startsWith('item_id_') || mapping.startsWith('auto_number_') ||
-              mapping.startsWith('creation_log_') || mapping.startsWith('last_updated_') || mapping.startsWith('connect_boards_') ||
-              mapping.startsWith('country_') || mapping.startsWith('time_tracking_') || mapping.startsWith('integration_')) {
-            if (!columnIds.includes(mapping)) {
-              columnIds.push(mapping);
+          // First, try to resolve mapping key to actual column ID using columnMappings
+          let resolvedColumnId = mapping;
+          if (board.columnMappings && board.columnMappings[mapping]) {
+            resolvedColumnId = board.columnMappings[mapping];
+            console.log('[App] Resolved mapping key to column ID:', mapping, '->', resolvedColumnId);
+          }
+          
+          // Check if resolved column ID is a valid column ID (starts with text_, numeric_, date_, etc.)
+          if (resolvedColumnId.startsWith('text_') || resolvedColumnId.startsWith('numeric_') || resolvedColumnId.startsWith('date_') || 
+              resolvedColumnId.startsWith('board_relation_') || resolvedColumnId.startsWith('lookup_') || resolvedColumnId.startsWith('formula_') ||
+              resolvedColumnId.startsWith('mirror_') || resolvedColumnId.startsWith('status_') || resolvedColumnId.startsWith('person_') ||
+              resolvedColumnId.startsWith('email_') || resolvedColumnId.startsWith('phone_') || resolvedColumnId.startsWith('link_') ||
+              resolvedColumnId.startsWith('file_') || resolvedColumnId.startsWith('checkbox_') || resolvedColumnId.startsWith('rating_') ||
+              resolvedColumnId.startsWith('timeline_') || resolvedColumnId.startsWith('dependency_') || resolvedColumnId.startsWith('location_') ||
+              resolvedColumnId.startsWith('tags_') || resolvedColumnId.startsWith('vote_') || resolvedColumnId.startsWith('hour_') ||
+              resolvedColumnId.startsWith('week_') || resolvedColumnId.startsWith('item_id_') || resolvedColumnId.startsWith('auto_number_') ||
+              resolvedColumnId.startsWith('creation_log_') || resolvedColumnId.startsWith('last_updated_') || resolvedColumnId.startsWith('connect_boards_') ||
+              resolvedColumnId.startsWith('country_') || resolvedColumnId.startsWith('time_tracking_') || resolvedColumnId.startsWith('integration_')) {
+            if (!columnIds.includes(resolvedColumnId)) {
+              columnIds.push(resolvedColumnId);
             }
           } else if (mapping === 'clientName') {
             // clientName is a special mapping, try common column IDs
@@ -352,28 +360,29 @@ const App = () => {
     }
     if (mapping === 'subitems') return item.subitems;
     if (mapping === 'name') return item.name || '';
-    if (mapping === 'clientName') {
-      // clientName is a special mapping that might be a column ID or a key
-      // First try the direct mapping, then fallback to common column IDs
-      const value = item.clientName || item['text_mkwjtrys'] || '';
-      console.log('[App] getMappedValue: clientName mapping:', { mapping, value, itemClientName: item.clientName, itemTextMkwjtrys: item['text_mkwjtrys'] });
-      return value;
-    }
-    // Check if mapping is a column ID (starts with text_, numeric_, date_, board_relation_, lookup_, etc.)
-    // Try direct property access first (transformItem uses col.id as key)
-    let value = item[mapping];
     
-    // If not found, try to find in columnMappings (for backward compatibility)
-    if ((value === undefined || value === null || value === '') && board.columnMappings) {
-      const mappedKey = Object.keys(board.columnMappings).find(
-        k => board.columnMappings[k] === mapping
-      );
-      if (mappedKey) {
-        value = item[mappedKey];
-      }
+    // First, try to resolve mapping key to actual column ID using columnMappings
+    let resolvedColumnId = mapping;
+    if (board.columnMappings && board.columnMappings[mapping]) {
+      resolvedColumnId = board.columnMappings[mapping];
+      console.log('[App] getMappedValue: Resolved mapping key to column ID:', mapping, '->', resolvedColumnId);
     }
     
-    console.log('[App] getMappedValue:', { mapping, value, hasValue: value !== undefined && value !== null && value !== '', itemKeys: Object.keys(item).slice(0, 10) });
+    // Try direct property access first (transformItem uses col.id as key, or mapping key if in columnMappings)
+    // Try both the mapping key and the resolved column ID
+    let value = item[mapping] || item[resolvedColumnId];
+    
+    // If still not found and mapping is a mapping key, try to find the value using the resolved column ID
+    if ((value === undefined || value === null || value === '') && resolvedColumnId !== mapping) {
+      value = item[resolvedColumnId];
+    }
+    
+    // Special handling for clientName
+    if (mapping === 'clientName' && (value === undefined || value === null || value === '')) {
+      value = item.clientName || item['text_mkwjtrys'] || '';
+    }
+    
+    console.log('[App] getMappedValue:', { mapping, resolvedColumnId, value, hasValue: value !== undefined && value !== null && value !== '', itemKeys: Object.keys(item).slice(0, 10) });
     if (value !== undefined && value !== null && value !== '') {
       return value;
     }

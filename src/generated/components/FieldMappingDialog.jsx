@@ -209,15 +209,19 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       });
                       console.log('[FieldMappingDialog] Found subitem column in main board:', colId, '->', mainBoardColumn.title);
                     } else {
-                      // Column not found in main board - this shouldn't happen if subitems are in the same board
-                      // But if it does, use the column ID as the title and get type from subitem data
+                      // Column not found in main board - this can happen if subitem columns are not in the main board's column list
+                      // Try to get a more readable title from the column ID pattern or use a descriptive label
                       const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                      // Generate a more readable title from column ID (e.g., "numeric_mkywyf4v" -> "数値カラム (mkywyf4v)")
+                      const typeLabel = getColumnTypeLabel(colType);
+                      const shortId = colId.replace(/^(numeric_|text_|date_|status_|person_|email_|phone_|link_|file_|checkbox_|rating_|timeline_|dependency_|location_|tags_|vote_|hour_|week_|item_id_|auto_number_|creation_log_|last_updated_|connect_boards_|country_|time_tracking_|integration_|board_relation_|lookup_|formula_|mirror_)/, '');
+                      const readableTitle = `${typeLabel} (${shortId.substring(0, 8)}...)`;
                       subitemColumnMap.set(colId, {
                         id: colId,
-                        title: colId, // Use column ID as fallback title
+                        title: readableTitle,
                         type: colType
                       });
-                      console.warn('[FieldMappingDialog] Subitem column not found in main board columns (unexpected):', colId);
+                      console.warn('[FieldMappingDialog] Subitem column not found in main board columns, using generated title:', colId, '->', readableTitle);
                     }
                   });
                   
