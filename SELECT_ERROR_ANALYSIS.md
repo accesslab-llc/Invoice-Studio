@@ -157,7 +157,7 @@ const validBoardColumnsItems = useMemo(() => {
 - **サブアイテム数量マッピング**: `subitemQuantity`フィールドを追加し、サブアイテムの数量もマッピングできるように修正。`FieldMappingDialog`に数量マッピングの選択フィールドを追加。`loadSelectedItem`で数量も取得するように修正（マッピングされたカラムから取得、見つからない場合は1をデフォルト）。
 - **フィールドマッピングUIの改善**: アイテム選択画面からフィールドマッピングボタンを削除し、請求書編集画面に移動。これにより、ユーザーはアイテムを選択して請求書編集画面に進んだ後、必要に応じてフィールドマッピングを設定し、保存時にその場で反映されるようになった。
 - **サブアイテム値取得の修正**: `transformSubItem`でマッピングキー（`subitemQuantity`, `subitemPrice`）とカラムIDの両方で値を保存するように修正。`loadSelectedItem`でサブアイテムの値を取得する際に、マッピングキーとカラムIDの両方を試すように修正。これにより、サブアイテムの値が正しく取得できるようになった。
-- **lookup_とboard_relation_タイプのカラム値取得の改善**: Monday.comのGraphQL APIでは`LookupValue`と`BoardRelationValue`という型が存在しないため、インラインフラグメントを削除。`transformItem`をサブアイテムと同じシンプルな方法（`col.text`を直接使用）に統一。これにより、GraphQL validation errorsが解決され、これらのタイプのカラムの値が正しく取得できるようになった。
+- **lookup_とboard_relation_タイプのカラム値取得の改善**: Monday.comのGraphQL APIでは`LookupValue`と`BoardRelationValue`という型が存在しないため、インラインフラグメントを削除。`transformItem`で`lookup_`と`board_relation_`タイプのカラムの値を取得する際、`col.text`が空の場合は`col.value`をパースして値を取得するように修正。`col.value`をパースする際、`parsed?.text || parsed?.name || parsed?.value || parsed?.linkedItemIds?.join(', ') || ''`の順で値を取得。これにより、GraphQL validation errorsが解決され、これらのタイプのカラムの値が正しく取得できるようになった。
 - **GraphQL validation errorsの修正**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないように修正。空配列の場合も`null`として扱うように修正。これにより、GraphQL validation errorsが解決され、アプリが正常に開くようになった。
 
 ### エラー分析（最新）
@@ -252,17 +252,21 @@ const validBoardColumnsItems = useMemo(() => {
 - **結果**: サブアイテムの値が正しく取得できるようになった
 
 #### 解決策7: lookup_とboard_relation_タイプのカラム値取得の改善（修正）
-- **問題**: `lookup_`や`board_relation_`タイプのカラムの値が空文字列になっていた。Monday.comのAPIでは、これらのタイプのカラムの値を取得する際に、`BoardRelationValue`や`LookupValue`のインラインフラグメントを使用して`linked_items`を取得しようとしたが、これらの型が存在しない
+- **問題**: `lookup_`や`board_relation_`タイプのカラムの値が空文字列になっていた。Monday.comのAPIでは、これらのタイプのカラムの値を取得する際に、`BoardRelationValue`や`LookupValue`のインラインフラグメントを使用して`linked_items`を取得しようとしたが、これらの型が存在しない。また、`col.text`が空の場合、`col.value`をパースして値を取得する必要がある
 - **エラー**: `Unknown type "LookupValue". Did you mean "GroupValue", "HourValue", "LinkValue", "ColumnValue", or "DocValue"?`
 - **実装**: 
   1. GraphQLクエリから`BoardRelationValue`と`LookupValue`のインラインフラグメントを削除
-  2. `transformItem`をサブアイテムと同じシンプルな方法（`col.text`を直接使用）に統一
-  3. `col.text`と`col.value`から値を取得する方法に戻す
+  2. `transformItem`で`lookup_`と`board_relation_`タイプのカラムの値を取得する際、`col.text`が空の場合は`col.value`をパースして値を取得するように修正
+  3. `col.value`をパースする際、`parsed?.text || parsed?.name || parsed?.value || parsed?.linkedItemIds?.join(', ') || ''`の順で値を取得
+  4. デバッグログを追加して、値が見つかった場合もログを出力するように改善
+  5. `getMappedValue`で`lookup_`タイプのカラムIDチェック順序を修正（`lookup_`を`board_relation_`より先にチェック）
 - **処理フロー**:
   1. GraphQLクエリで`column_values`から`id`, `text`, `value`, `type`のみを取得（インラインフラグメントは使用しない）
-  2. `transformItem`で、サブアイテムと同じように`col.text`を直接使用（シンプルな方法）
-  3. これにより、Monday.comのAPIが`col.text`に正しい値を返すようになる
-- **結果**: GraphQL validation errorsが解決され、`lookup_`や`board_relation_`タイプのカラムの値が`col.text`から取得できるようになった
+  2. `transformItem`で`lookup_`と`board_relation_`タイプのカラムの値を取得する際、まず`col.text`を確認
+  3. `col.text`が空の場合、`col.value`をパースして値を取得
+  4. パースした値から`text`, `name`, `value`, `linkedItemIds`の順で値を取得
+  5. これにより、Monday.comのAPIが`col.text`に値を返さない場合でも、`col.value`から値を取得できるようになる
+- **結果**: GraphQL validation errorsが解決され、`lookup_`や`board_relation_`タイプのカラムの値が`col.text`または`col.value`から取得できるようになった
 
 #### 解決策8: GraphQL validation errorsの修正
 - **問題**: アプリが開かず、GraphQL validation errorsが発生していた。`columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを指定するとvalidation errorが発生する
@@ -291,6 +295,6 @@ const validBoardColumnsItems = useMemo(() => {
 - **フィールドマッピング反映**: `transformItem`でマッピングキーとカラムIDの両方を保存する必要がある。これにより、`getMappedValue`で正しく値を取得できる。
 - **フィールドマッピングUIの配置**: フィールドマッピングボタンは請求書編集画面に配置する。アイテム選択画面には配置しない。これにより、ユーザーはアイテムを選択してからマッピングを設定し、保存時に即座に反映される。
 - **サブアイテム値の取得**: `transformSubItem`でマッピングキーとカラムIDの両方で値を保存する必要がある。`loadSelectedItem`でもマッピングキーとカラムIDの両方を試す必要がある。これにより、サブアイテムの値が正しく取得できる。
-- **lookup_とboard_relation_タイプのカラム**: Monday.comのGraphQL APIでは`LookupValue`と`BoardRelationValue`という型が存在しないため、インラインフラグメントは使用しない。`transformItem`はサブアイテムと同じシンプルな方法（`col.text`を直接使用）を使う。Monday.comのAPIが`col.text`に正しい値を返すようになる。
+- **lookup_とboard_relation_タイプのカラム**: Monday.comのGraphQL APIでは`LookupValue`と`BoardRelationValue`という型が存在しないため、インラインフラグメントは使用しない。`transformItem`で`lookup_`と`board_relation_`タイプのカラムの値を取得する際、まず`col.text`を確認し、空の場合は`col.value`をパースして値を取得する。`col.value`をパースする際、`parsed?.text || parsed?.name || parsed?.value || parsed?.linkedItemIds?.join(', ') || ''`の順で値を取得。Monday.comのAPIが`col.text`に値を返さない場合でも、`col.value`から値を取得できるようになる。
 - **GraphQLクエリのパラメータ**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略する必要がある。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないようにする。空配列の場合も`null`として扱うようにする（`Object.values(this.columnMappings)`の代わりに`null`を返す）。これにより、GraphQL validation errorsが発生しない。
 
