@@ -447,6 +447,13 @@ class BoardSDK {
    * Transform Monday API item to app format
    */
   transformItem(item) {
+    // Debug: Log item structure first
+    console.log('[BoardSDK] ===== transformItem START =====');
+    console.log('[BoardSDK] Item ID:', item.id);
+    console.log('[BoardSDK] Item name:', item.name);
+    console.log('[BoardSDK] item.column_values exists:', !!item.column_values);
+    console.log('[BoardSDK] item.column_values length:', item.column_values?.length || 0);
+    
     const transformed = {
       id: item.id,
       name: item.name,
@@ -455,12 +462,31 @@ class BoardSDK {
 
     // Debug: Log all column_values to see the structure
     if (item.column_values && item.column_values.length > 0) {
-      console.log('[BoardSDK] transformItem: All column_values:', item.column_values.map(col => ({
+      console.log('[BoardSDK] ===== transformItem: All column_values =====');
+      console.log('[BoardSDK] Total column_values count:', item.column_values.length);
+      console.log('[BoardSDK] All column_values:', item.column_values.map(col => ({
         id: col.id,
         type: col.type,
         text: col.text,
         value: col.value
       })));
+      // Check if lookup_ columns are present
+      const lookupColumns = item.column_values.filter(col => col.id && col.id.startsWith('lookup_'));
+      console.log('[BoardSDK] Lookup columns found:', lookupColumns.length);
+      if (lookupColumns.length > 0) {
+        console.log('[BoardSDK] Lookup columns:', lookupColumns.map(col => ({
+          id: col.id,
+          type: col.type,
+          text: col.text,
+          value: col.value
+        })));
+      } else {
+        console.warn('[BoardSDK] WARNING: No lookup_ columns found in column_values!');
+        console.warn('[BoardSDK] This might indicate that lookup columns are not being returned by the API.');
+      }
+      console.log('[BoardSDK] ===== End All column_values =====');
+    } else {
+      console.warn('[BoardSDK] WARNING: item.column_values is empty or undefined!');
     }
     
     // Map column values
