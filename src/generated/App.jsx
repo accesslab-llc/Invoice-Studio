@@ -229,6 +229,37 @@ const App = () => {
       await board.initialize();
       console.log('[App] Board SDK initialized, boardId:', board.boardId);
       
+      // Update board.columnMappings with new mappings
+      // This ensures transformItem uses the latest mappings
+      const updatedColumnMappings = { ...board.columnMappings };
+      Object.entries(mappings).forEach(([key, value]) => {
+        // If the mapping value is a direct column ID (starts with text_, numeric_, etc.), use it
+        // Otherwise, if it's a mapping key (like 'column11'), keep the existing mapping
+        if (value && (value.startsWith('text_') || value.startsWith('numeric_') || value.startsWith('date_') ||
+            value.startsWith('board_relation_') || value.startsWith('lookup_') || value.startsWith('formula_') ||
+            value.startsWith('mirror_') || value.startsWith('status_') || value.startsWith('person_') ||
+            value.startsWith('email_') || value.startsWith('phone_') || value.startsWith('link_') ||
+            value.startsWith('file_') || value.startsWith('checkbox_') || value.startsWith('rating_') ||
+            value.startsWith('timeline_') || value.startsWith('dependency_') || value.startsWith('location_') ||
+            value.startsWith('tags_') || value.startsWith('vote_') || value.startsWith('hour_') ||
+            value.startsWith('week_') || value.startsWith('item_id_') || value.startsWith('auto_number_') ||
+            value.startsWith('creation_log_') || value.startsWith('last_updated_') || value.startsWith('connect_boards_') ||
+            value.startsWith('country_') || value.startsWith('time_tracking_') || value.startsWith('integration_'))) {
+          // Direct column ID - update the mapping
+          updatedColumnMappings[key] = value;
+          console.log('[App] Updated columnMappings:', key, '->', value);
+        } else if (value && value !== 'manual' && value !== 'subitems' && value !== 'name' && value !== 'custom') {
+          // It's a mapping key (like 'column11'), keep existing mapping if it exists
+          if (!updatedColumnMappings[key]) {
+            // If no existing mapping, try to use the value as is (might be a column ID we don't recognize)
+            updatedColumnMappings[key] = value;
+            console.log('[App] Added new columnMappings:', key, '->', value);
+          }
+        }
+      });
+      board.columnMappings = updatedColumnMappings;
+      console.log('[App] Updated board.columnMappings:', board.columnMappings);
+      
       // Get column IDs from fieldMappings dynamically
       // Resolve mapping keys (like 'clientName', 'discount', 'taxAmount') to actual column IDs
       const columnIds = [];
@@ -375,21 +406,56 @@ const App = () => {
       console.log('[App] getMappedValue: Resolved mapping key to column ID:', mapping, '->', resolvedColumnId);
     }
     
-    // Try direct property access first (transformItem uses col.id as key, or mapping key if in columnMappings)
-    // Try both the mapping key and the resolved column ID
-    let value = item[mapping] || item[resolvedColumnId];
+    // Try multiple approaches to get the value:
+    // 1. Direct property access with mapping key (transformItem may have saved it with mapping key)
+    // 2. Direct property access with resolved column ID (transformItem may have saved it with column ID)
+    // 3. Check if mapping is already a column ID (starts with text_, numeric_, etc.)
+    let value = null;
     
-    // If still not found and mapping is a mapping key, try to find the value using the resolved column ID
-    if ((value === undefined || value === null || value === '') && resolvedColumnId !== mapping) {
+    // First, try the mapping key directly (e.g., 'clientName')
+    if (item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
+      value = item[mapping];
+      console.log('[App] getMappedValue: Found value using mapping key:', mapping, '=', value);
+    }
+    // Second, try the resolved column ID (e.g., 'text_mkwjtrys')
+    else if (resolvedColumnId !== mapping && item[resolvedColumnId] !== undefined && item[resolvedColumnId] !== null && item[resolvedColumnId] !== '') {
       value = item[resolvedColumnId];
+      console.log('[App] getMappedValue: Found value using resolved column ID:', resolvedColumnId, '=', value);
+    }
+    // Third, if mapping is already a column ID, try it directly
+    else if (mapping.startsWith('text_') || mapping.startsWith('numeric_') || mapping.startsWith('date_') ||
+             mapping.startsWith('board_relation_') || mapping.startsWith('lookup_') || mapping.startsWith('formula_') ||
+             mapping.startsWith('mirror_') || mapping.startsWith('status_') || mapping.startsWith('person_') ||
+             mapping.startsWith('email_') || mapping.startsWith('phone_') || mapping.startsWith('link_') ||
+             mapping.startsWith('file_') || mapping.startsWith('checkbox_') || mapping.startsWith('rating_') ||
+             mapping.startsWith('timeline_') || mapping.startsWith('dependency_') || mapping.startsWith('location_') ||
+             mapping.startsWith('tags_') || mapping.startsWith('vote_') || mapping.startsWith('hour_') ||
+             mapping.startsWith('week_') || mapping.startsWith('item_id_') || mapping.startsWith('auto_number_') ||
+             mapping.startsWith('creation_log_') || mapping.startsWith('last_updated_') || mapping.startsWith('connect_boards_') ||
+             mapping.startsWith('country_') || mapping.startsWith('time_tracking_') || mapping.startsWith('integration_')) {
+      if (item[mapping] !== undefined && item[mapping] !== null && item[mapping] !== '') {
+        value = item[mapping];
+        console.log('[App] getMappedValue: Found value using direct column ID:', mapping, '=', value);
+      }
     }
     
-    // Special handling for clientName
-    if (mapping === 'clientName' && (value === undefined || value === null || value === '')) {
+    // Special handling for clientName (fallback)
+    if ((value === undefined || value === null || value === '') && mapping === 'clientName') {
       value = item.clientName || item['text_mkwjtrys'] || '';
+      if (value) {
+        console.log('[App] getMappedValue: Found value using clientName fallback:', value);
+      }
     }
     
-    console.log('[App] getMappedValue:', { mapping, resolvedColumnId, value, hasValue: value !== undefined && value !== null && value !== '', itemKeys: Object.keys(item).slice(0, 10) });
+    console.log('[App] getMappedValue result:', { 
+      mapping, 
+      resolvedColumnId, 
+      value, 
+      hasValue: value !== undefined && value !== null && value !== '', 
+      itemKeys: Object.keys(item).slice(0, 20),
+      availableKeys: Object.keys(item).filter(k => k !== 'id' && k !== 'name' && k !== 'subitems').slice(0, 10)
+    });
+    
     if (value !== undefined && value !== null && value !== '') {
       return value;
     }
@@ -400,11 +466,21 @@ const App = () => {
   const loadSelectedItem = async () => {
     if (!selectedItemId) return;
 
-    const selectedItem = items.find(item => item.id === selectedItemId);
-    if (!selectedItem) return;
-    
     // Use ref to get the latest fieldMappings (in case it was just updated)
     const currentMappings = fieldMappingsRef.current;
+    
+    // If items don't have the selected item, or if we need to refresh with latest mappings,
+    // fetch the data first
+    let selectedItem = items.find(item => item.id === selectedItemId);
+    if (!selectedItem) {
+      console.log('[App] loadSelectedItem: Selected item not found in items, fetching data...');
+      await fetchBoardData(currentMappings);
+      selectedItem = items.find(item => item.id === selectedItemId);
+      if (!selectedItem) {
+        console.error('[App] loadSelectedItem: Selected item still not found after fetch');
+        return;
+      }
+    }
     
     console.log('[App] ===== loadSelectedItem DEBUG =====');
     console.log('[App] loadSelectedItem: fieldMappings (from ref):', currentMappings);
@@ -498,23 +574,42 @@ const App = () => {
       return Number.isFinite(num) ? num : 0;
     };
 
+    // Get mapped values using current mappings
+    const mappedValues = {
+      invoiceNumber: getMappedValue(selectedItem, currentMappings.invoiceNumber),
+      clientName: getMappedValue(selectedItem, currentMappings.clientName),
+      clientDepartment: getMappedValue(selectedItem, currentMappings.clientDepartment),
+      clientContact: getMappedValue(selectedItem, currentMappings.clientContact),
+      clientZip: getMappedValue(selectedItem, currentMappings.clientZip),
+      clientAddress: getMappedValue(selectedItem, currentMappings.clientAddress),
+      clientPhone: getMappedValue(selectedItem, currentMappings.clientPhone),
+      clientEmail: getMappedValue(selectedItem, currentMappings.clientEmail),
+      discount: getNumericMappedValue(selectedItem, currentMappings.discount),
+      taxAmount: getNumericMappedValue(selectedItem, currentMappings.taxAmount),
+    };
+    
+    console.log('[App] ===== Mapped Values =====');
+    console.log('[App] mappedValues:', mappedValues);
+    console.log('[App] selectedItem keys:', Object.keys(selectedItem));
+    console.log('[App] currentMappings:', currentMappings);
+    
     setFormData(prev => {
       const newFormData = {
-      invoiceNumber: getMappedValue(selectedItem, currentMappings.invoiceNumber) || prev.invoiceNumber,
-      clientName: getMappedValue(selectedItem, currentMappings.clientName) || '',
-      clientDepartment: getMappedValue(selectedItem, currentMappings.clientDepartment) || '',
-      clientContact: getMappedValue(selectedItem, currentMappings.clientContact) || '',
-        clientZip: getMappedValue(selectedItem, currentMappings.clientZip) || '',
-        clientAddress: getMappedValue(selectedItem, currentMappings.clientAddress) || '',
-        clientPhone: getMappedValue(selectedItem, currentMappings.clientPhone) || '',
-        clientEmail: getMappedValue(selectedItem, currentMappings.clientEmail) || '',
+      invoiceNumber: mappedValues.invoiceNumber || prev.invoiceNumber,
+      clientName: mappedValues.clientName || '',
+      clientDepartment: mappedValues.clientDepartment || '',
+      clientContact: mappedValues.clientContact || '',
+        clientZip: mappedValues.clientZip || '',
+        clientAddress: mappedValues.clientAddress || '',
+        clientPhone: mappedValues.clientPhone || '',
+        clientEmail: mappedValues.clientEmail || '',
         invoiceDate: currentMappings.invoiceDate !== 'manual' && currentMappings.invoiceDate
           ? (selectedItem[currentMappings.invoiceDate] 
         ? new Date(selectedItem[currentMappings.invoiceDate]).toISOString().split('T')[0]
               : prev.invoiceDate)
         : prev.invoiceDate,
-        discount: getNumericMappedValue(selectedItem, currentMappings.discount),
-        taxAmount: getNumericMappedValue(selectedItem, currentMappings.taxAmount),
+        discount: mappedValues.discount,
+        taxAmount: mappedValues.taxAmount,
       items: invoiceItems.length > 0 ? invoiceItems : prev.items
       };
       
@@ -541,6 +636,24 @@ const App = () => {
     setCurrentStep('edit');
   };
 
+  // Track if we need to reload selected item after items update
+  const [shouldReloadItem, setShouldReloadItem] = useState(false);
+  
+  // Reload selected item when items are updated after mapping change
+  useEffect(() => {
+    if (shouldReloadItem && selectedItemId && currentStep === 'edit' && items.length > 0) {
+      const selectedItem = items.find(item => item.id === selectedItemId);
+      if (selectedItem) {
+        console.log('[App] Items updated, reloading selected item with new data');
+        setShouldReloadItem(false);
+        // Use setTimeout to ensure state updates are complete
+        setTimeout(() => {
+          loadSelectedItem();
+        }, 100);
+      }
+    }
+  }, [items, selectedItemId, currentStep, shouldReloadItem]);
+
   const handleSaveMappings = async (newMappings) => {
     console.log('[App] handleSaveMappings: Saving new mappings:', newMappings);
     setFieldMappings(newMappings);
@@ -550,14 +663,11 @@ const App = () => {
     // This allows users to see the changes immediately after saving mappings
     if (selectedItemId && currentStep === 'edit') {
       console.log('[App] handleSaveMappings: Reloading selected item with new mappings');
+      // Set flag to reload after items update
+      setShouldReloadItem(true);
       // Refetch board data with new mappings and wait for it to complete
       await fetchBoardData(newMappings);
       console.log('[App] handleSaveMappings: Board data refetched with new mappings');
-      
-      // Wait a bit for items state to update after fetchBoardData, then reload
-      setTimeout(() => {
-        loadSelectedItem();
-      }, 200);
     } else {
       // If not in edit step, just refetch board data (for next time)
       await fetchBoardData(newMappings);
