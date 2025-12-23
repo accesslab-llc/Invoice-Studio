@@ -468,6 +468,20 @@ const App = () => {
       }
     }
     
+    // Debug: Log actual values in item for lookup columns
+    if (mapping.startsWith('lookup_') || mapping.startsWith('board_relation_') || mappingKey) {
+      const actualMappingKeyValue = mappingKey ? item[mappingKey] : undefined;
+      const actualColumnIdValue = item[resolvedColumnId];
+      console.log('[App] getMappedValue DEBUG for', mapping, ':', {
+        mappingKey,
+        mappingKeyValue: actualMappingKeyValue,
+        resolvedColumnId,
+        columnIdValue: actualColumnIdValue,
+        mappingValue: item[mapping],
+        allLookupKeys: Object.keys(item).filter(k => k.includes('lookup_') || k.includes('board_relation_') || ['clientName', 'clientDepartment', 'clientZip', 'clientAddress', 'clientPhone', 'clientEmail'].includes(k))
+      });
+    }
+    
     console.log('[App] getMappedValue result:', { 
       mapping, 
       mappingKey,
