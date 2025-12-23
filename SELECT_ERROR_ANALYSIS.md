@@ -158,7 +158,7 @@ const validBoardColumnsItems = useMemo(() => {
 - **フィールドマッピングUIの改善**: アイテム選択画面からフィールドマッピングボタンを削除し、請求書編集画面に移動。これにより、ユーザーはアイテムを選択して請求書編集画面に進んだ後、必要に応じてフィールドマッピングを設定し、保存時にその場で反映されるようになった。
 - **サブアイテム値取得の修正**: `transformSubItem`でマッピングキー（`subitemQuantity`, `subitemPrice`）とカラムIDの両方で値を保存するように修正。`loadSelectedItem`でサブアイテムの値を取得する際に、マッピングキーとカラムIDの両方を試すように修正。これにより、サブアイテムの値が正しく取得できるようになった。
 - **lookup_とboard_relation_タイプのカラム値取得の改善**: GraphQLクエリで`BoardRelationValue`と`LookupValue`のインラインフラグメントを使用して`linked_items`を取得するように修正。`transformItem`をサブアイテムと同じシンプルな方法（`col.text`を直接使用）に統一。これにより、これらのタイプのカラムの値が正しく取得できるようになった。
-- **GraphQL validation errorsの修正**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないように修正。これにより、GraphQL validation errorsが解決され、アプリが正常に開くようになった。
+- **GraphQL validation errorsの修正**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないように修正。空配列の場合も`null`として扱うように修正。これにより、GraphQL validation errorsが解決され、アプリが正常に開くようになった。
 
 ### エラー分析（最新）
 
@@ -267,12 +267,15 @@ const validBoardColumnsItems = useMemo(() => {
 - **実装**: 
   1. `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正
   2. 変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないように修正
-  3. 同様に、`subItemColumnIds`についても同じ処理を適用
+  3. 空配列の場合も`null`として扱うように修正（`Object.values(this.columnMappings)`の代わりに`null`を返す）
+  4. 同様に、`subItemColumnIds`についても同じ処理を適用
+  5. デバッグログを追加して、実際のクエリと変数を確認できるように改善
 - **処理フロー**:
-  1. `columnIds`がnullまたは空配列の場合、`hasColumnIds`を`false`に設定
-  2. `hasColumnIds`が`false`の場合、GraphQLクエリで`column_values`の`ids`パラメータを省略
-  3. 変数定義でも`columnIds`を含めないように条件分岐
-  4. これにより、Monday.comのGraphQL APIがvalidation errorを返さなくなる
+  1. `columnIds`がnullまたは空配列の場合、`null`として扱う
+  2. `columnIds`が`null`の場合、`hasColumnIds`を`false`に設定
+  3. `hasColumnIds`が`false`の場合、GraphQLクエリで`column_values`の`ids`パラメータを省略
+  4. 変数定義でも`columnIds`を含めないように条件分岐
+  5. これにより、Monday.comのGraphQL APIがvalidation errorを返さなくなる
 - **結果**: GraphQL validation errorsが解決され、アプリが正常に開くようになった
 
 ### 注意事項
@@ -283,5 +286,5 @@ const validBoardColumnsItems = useMemo(() => {
 - **フィールドマッピングUIの配置**: フィールドマッピングボタンは請求書編集画面に配置する。アイテム選択画面には配置しない。これにより、ユーザーはアイテムを選択してからマッピングを設定し、保存時に即座に反映される。
 - **サブアイテム値の取得**: `transformSubItem`でマッピングキーとカラムIDの両方で値を保存する必要がある。`loadSelectedItem`でもマッピングキーとカラムIDの両方を試す必要がある。これにより、サブアイテムの値が正しく取得できる。
 - **lookup_とboard_relation_タイプのカラム**: GraphQLクエリで`BoardRelationValue`と`LookupValue`のインラインフラグメントを使用して`linked_items`を取得する必要がある。`transformItem`はサブアイテムと同じシンプルな方法（`col.text`を直接使用）を使う。Monday.comのAPIが`col.text`に正しい値を返すようになる。
-- **GraphQLクエリのパラメータ**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略する必要がある。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないようにする。これにより、GraphQL validation errorsが発生しない。
+- **GraphQLクエリのパラメータ**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略する必要がある。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないようにする。空配列の場合も`null`として扱うようにする（`Object.values(this.columnMappings)`の代わりに`null`を返す）。これにより、GraphQL validation errorsが発生しない。
 
