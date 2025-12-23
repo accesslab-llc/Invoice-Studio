@@ -262,7 +262,7 @@ const validBoardColumnsItems = useMemo(() => {
   3. これにより、Monday.comのAPIが`col.text`に正しい値を返すようになる
 - **結果**: `lookup_`や`board_relation_`タイプのカラムの値が正しく取得できるようになった
 
-#### 解決策8: GraphQL validation errorsの修正
+#### 解決策8: GraphQL validation errorsの修正（進行中）
 - **問題**: アプリが開かず、GraphQL validation errorsが発生していた。`columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを指定するとvalidation errorが発生する
 - **実装**: 
   1. `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略するように修正
@@ -270,13 +270,15 @@ const validBoardColumnsItems = useMemo(() => {
   3. 空配列の場合も`null`として扱うように修正（`Object.values(this.columnMappings)`の代わりに`null`を返す）
   4. 同様に、`subItemColumnIds`についても同じ処理を適用
   5. デバッグログを追加して、実際のクエリと変数を確認できるように改善
+  6. `hasColumnIds`と`hasSubItemColumns`の判定に`Array.isArray`チェックを追加して、`undefined`の場合でもエラーが発生しないように修正
 - **処理フロー**:
   1. `columnIds`がnullまたは空配列の場合、`null`として扱う
-  2. `columnIds`が`null`の場合、`hasColumnIds`を`false`に設定
+  2. `columnIds`が`null`の場合、`hasColumnIds`を`false`に設定（`Array.isArray`チェックも追加）
   3. `hasColumnIds`が`false`の場合、GraphQLクエリで`column_values`の`ids`パラメータを省略
   4. 変数定義でも`columnIds`を含めないように条件分岐
   5. これにより、Monday.comのGraphQL APIがvalidation errorを返さなくなる
-- **結果**: GraphQL validation errorsが解決され、アプリが正常に開くようになった
+- **現在の状態**: 修正を実装したが、まだエラーが発生している可能性がある。ブラウザのコンソール（F12）で実際のクエリとエラーメッセージを確認する必要がある。デバッグログで生成されたクエリと変数を確認できる。
+- **次のステップ**: ブラウザのコンソールで実際のGraphQLクエリとエラーメッセージを確認し、問題を特定する
 
 ### 注意事項
 - **UIと固まる問題は解決済み**: `collection`プロパティを使わず、`items`プロパティを直接使用することで解決。**この部分は変更しないこと。**
