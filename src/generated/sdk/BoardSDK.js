@@ -463,9 +463,9 @@ class BoardSDK {
       // Use mapping key if found, otherwise use column ID directly
       const key = mappingKey || col.id;
       
-      // Debug: Log all lookup and board_relation columns
-      if (col.type === 'lookup' || col.type === 'lookup__' || col.type === 'board_relation' || col.type === 'board_relation__') {
-        console.log('[BoardSDK] transformItem: Processing', col.type, 'column', col.id, 'mappingKey:', mappingKey, 'key:', key, 'text:', col.text, 'value:', col.value);
+      // Debug: Log all columns to see their types
+      if (col.id && (col.id.startsWith('lookup_') || col.id.startsWith('board_relation_'))) {
+        console.log('[BoardSDK] transformItem: Processing column', col.id, 'type:', col.type, 'mappingKey:', mappingKey, 'key:', key, 'text:', col.text, 'value:', col.value);
       }
       
       // Parse value based on type
