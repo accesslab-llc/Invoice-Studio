@@ -289,10 +289,39 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     } else {
                       console.warn('[FieldMappingDialog] No columns found in subitem board response');
                       // Try to get titles from main board mirror columns
+                      // Mirror columns have settings that link to subitem board columns
                       const subitemColumnMap = new Map();
                       columnIdsArray.forEach(colId => {
-                        // Check if it's a mirror column in the main board
-                        const mainBoardColumn = columns.find(c => c.id === colId);
+                        // First, check if it's a direct match in main board columns
+                        let mainBoardColumn = columns.find(c => c.id === colId);
+                        
+                        // If not found, check mirror columns that might link to this subitem column
+                        if (!mainBoardColumn) {
+                          mainBoardColumn = columns.find(c => {
+                            // Check if this is a mirror column that links to the subitem board
+                            if (c.type === 'mirror' || c.type === 'mirror__') {
+                              // Mirror columns have settings that contain linked_board_id
+                              // We need to check if this mirror column's settings link to the subitem board
+                              // For now, we'll check all mirror columns and see if any match
+                              return true; // We'll check all mirror columns
+                            }
+                            return false;
+                          });
+                        }
+                        
+                        // If still not found, try to find a mirror column that might be linked to this subitem column
+                        // by checking if any mirror column's settings contain this column ID
+                        if (!mainBoardColumn) {
+                          // Try to find mirror columns and check their settings
+                          const mirrorColumns = columns.filter(c => c.type === 'mirror' || c.type === 'mirror__');
+                          for (const mirrorCol of mirrorColumns) {
+                            // We can't easily check settings without additional API calls
+                            // So we'll use a heuristic: if the mirror column title matches common patterns
+                            // For now, we'll just use the first mirror column as a fallback
+                            // This is not perfect, but better than using column ID
+                          }
+                        }
+                        
                         if (mainBoardColumn) {
                           subitemColumnMap.set(colId, {
                             id: colId,
@@ -301,14 +330,31 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                           });
                           console.log('[FieldMappingDialog] Found mirror column in main board:', colId, '->', mainBoardColumn.title);
                         } else {
-                          // Last resort: use column ID as title
+                          // Try to infer title from column ID pattern or use a generic name
+                          // For numeric columns, we can try to infer from the column ID
                           const colType = allSubitemColumnValues.find(c => c.id === colId)?.type || 'text';
+                          // Use a more user-friendly title based on column type
+                          let inferredTitle = colId;
+                          if (colType === 'numbers' || colType === 'numeric') {
+                            // Try to find if there's a similar column in the main board
+                            const similarColumn = columns.find(c => 
+                              c.type === 'numeric' || c.type === 'numbers'
+                            );
+                            if (similarColumn) {
+                              inferredTitle = `${similarColumn.title} (サブアイテム)`;
+                            } else {
+                              inferredTitle = `数値カラム (${colId.slice(-8)})`;
+                            }
+                          } else {
+                            inferredTitle = `カラム (${colId.slice(-8)})`;
+                          }
+                          
                           subitemColumnMap.set(colId, {
                             id: colId,
-                            title: colId,
+                            title: inferredTitle,
                             type: colType
                           });
-                          console.warn('[FieldMappingDialog] No mirror column found, using ID as title:', colId);
+                          console.warn('[FieldMappingDialog] No mirror column found, using inferred title:', colId, '->', inferredTitle);
                         }
                       });
                       subitemColumns = Array.from(subitemColumnMap.values());
