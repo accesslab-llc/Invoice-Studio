@@ -305,4 +305,9 @@ const validBoardColumnsItems = useMemo(() => {
 - **サブアイテム値の取得**: `transformSubItem`でマッピングキーとカラムIDの両方で値を保存する必要がある。`loadSelectedItem`でもマッピングキーとカラムIDの両方を試す必要がある。これにより、サブアイテムの値が正しく取得できる。
 - **lookup_とboard_relation_タイプのカラム**: Monday.comのGraphQL APIでは`LookupValue`と`BoardRelationValue`という型が存在しないため、インラインフラグメントは使用しない。`transformItem`で`lookup_`と`board_relation_`タイプのカラムの値を取得する際、まず`col.text`を確認し、空の場合は`col.value`をパースして値を取得する。`col.value`をパースする際、`parsed?.text || parsed?.name || parsed?.value || parsed?.linkedItemIds?.join(', ') || ''`の順で値を取得。Monday.comのAPIが`col.text`に値を返さない場合でも、`col.value`から値を取得できるようになる。
 - **GraphQLクエリのパラメータ**: `columnIds`がnullまたは空配列の場合、GraphQLクエリで`ids`パラメータを省略する必要がある。変数定義も条件付きにして、`columnIds`がnullまたは空配列の場合は変数に含めないようにする。空配列の場合も`null`として扱うようにする（`Object.values(this.columnMappings)`の代わりに`null`を返す）。これにより、GraphQL validation errorsが発生しない。
+- **lookup_カラムがmirrorタイプとして返される問題**: Monday.comのAPIでは、`lookup_`タイプのカラムが実際には`mirror`タイプとして返される場合がある。この場合、`MirrorValue`インラインフラグメントを使用して`display_value`を取得する必要がある。GraphQLクエリに`MirrorValue`インラインフラグメントを追加し、`transformItem`で`display_value`を優先的に使用するように修正。これにより、`lookup_`カラムの値が正しく取得できるようになった。
+- **Monday.comのAPI制限**: 以下のカラムタイプからはデータを取得できない（Monday.comのAPI仕様による制限）：
+  - **数式カラム**: 数式カラムは計算結果を表示するため、Monday.comのAPIから直接データを取得することはできない。
+  - **数式カラムをデータ元としたミラーカラム**: 数式カラムを参照するミラーカラムからもデータを取得することはできない。
+  - **接続カラム（board_relation）**: 接続カラムからは、接続されたアイテムの名前（タイトル）を取得することはできない。これはMonday.comのAPIの制限によるもの。
 
