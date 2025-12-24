@@ -237,7 +237,7 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
   );
 
   return (
-    <Dialog.Root open={isOpen} onClose={onClose} size="xl">
+    <Dialog.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="xl">
       <Dialog.Backdrop />
       <Dialog.Positioner>
         <Dialog.Content>
