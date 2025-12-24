@@ -1471,11 +1471,6 @@ const App = () => {
                 <Heading size="lg">{t.invoicePreview}</Heading>
                 <HStack gap="4" mt="2" wrap="wrap">
                   <Text fontSize="sm" color="fg.muted">{t.previewNote}</Text>
-                  {formData.watermarkImage && (
-                    <Text fontSize="xs" color="orange.600" fontWeight="medium">
-                      {t.watermarkPreviewNote}
-                    </Text>
-                  )}
                   <Badge colorPalette="blue" size="sm">
                     {pageSize === 'a4' ? 'A4 (210×297mm)' : 'Letter (216×279mm)'}
                   </Badge>
