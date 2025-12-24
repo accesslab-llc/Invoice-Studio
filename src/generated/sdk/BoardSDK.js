@@ -340,6 +340,9 @@ class BoardSDK {
                   text
                   value
                   type
+                  ... on MirrorValue {
+                    display_value
+                  }
                 }
                 subitems {
                   id
@@ -369,6 +372,9 @@ class BoardSDK {
                   text
                   value
                   type
+                  ... on MirrorValue {
+                    display_value
+                  }
                 }
                 subitems {
                   id
