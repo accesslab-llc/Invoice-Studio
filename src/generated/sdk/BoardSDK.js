@@ -335,6 +335,10 @@ class BoardSDK {
               items {
                 id
                 name
+                group {
+                  id
+                  title
+                }
                 column_values${columnArgs} {
                   id
                   text
@@ -367,6 +371,10 @@ class BoardSDK {
               items {
                 id
                 name
+                group {
+                  id
+                  title
+                }
                 column_values${columnArgs} {
                   id
                   text
@@ -463,6 +471,10 @@ class BoardSDK {
     const transformed = {
       id: item.id,
       name: item.name,
+      group: item.group ? {
+        id: item.group.id,
+        title: item.group.title
+      } : null,
       subitems: item.subitems?.map(sub => this.transformSubItem(sub)) || []
     };
 

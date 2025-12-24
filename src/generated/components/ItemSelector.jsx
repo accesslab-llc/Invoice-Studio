@@ -14,46 +14,18 @@ import {
 import { Search, FileText } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-const ItemSelector = ({ items, selectedItemId, onSelectItem, language, fieldMappings }) => {
+const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const t = translations[language];
-
-  // フィールドマッピングに基づいて表示するカラムを決定
-  const hasClientName = fieldMappings?.clientName && fieldMappings.clientName !== 'manual';
-  const hasInvoiceDate = fieldMappings?.invoiceDate && fieldMappings.invoiceDate !== 'manual';
 
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) return items;
     return items.filter(
-      (item) => {
-        const nameMatch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-        const clientMatch = hasClientName && item.clientName?.toLowerCase().includes(searchTerm.toLowerCase());
-        return nameMatch || clientMatch;
-      }
+      (item) =>
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.group?.title?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [items, searchTerm, hasClientName]);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  // 請求日の値を取得（フィールドマッピングに基づく）
-  const getInvoiceDate = (item) => {
-    if (!hasInvoiceDate) return null;
-    const dateMapping = fieldMappings.invoiceDate;
-    // マッピングキーまたはカラムIDから値を取得
-    return item[dateMapping] || item.invoiceDate || null;
-  };
-
-  // 請求先名の値を取得（フィールドマッピングに基づく）
-  const getClientName = (item) => {
-    if (!hasClientName) return null;
-    const clientMapping = fieldMappings.clientName;
-    // マッピングキーまたはカラムIDから値を取得
-    return item[clientMapping] || item.clientName || null;
-  };
+  }, [items, searchTerm]);
 
   if (items.length === 0) {
     return (
@@ -94,14 +66,8 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language, fieldMapp
             <Table.Row>
               <Table.ColumnHeader w="6"></Table.ColumnHeader>
               <Table.ColumnHeader minW="200px">{t.itemName}</Table.ColumnHeader>
-              {hasClientName && (
-                <Table.ColumnHeader minW="150px">{t.clientName}</Table.ColumnHeader>
-              )}
-              {hasInvoiceDate && (
-                <Table.ColumnHeader minW="120px">{t.date}</Table.ColumnHeader>
-              )}
+              <Table.ColumnHeader minW="150px">{t.groupName}</Table.ColumnHeader>
               <Table.ColumnHeader minW="100px">{t.subitems}</Table.ColumnHeader>
-              <Table.ColumnHeader minW="100px">{t.status}</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -126,31 +92,13 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language, fieldMapp
                 <Table.Cell>
                   <Text fontWeight="medium">{item.name}</Text>
                 </Table.Cell>
-                {hasClientName && (
-                  <Table.Cell>
-                    <Text>{getClientName(item) || '-'}</Text>
-                  </Table.Cell>
-                )}
-                {hasInvoiceDate && (
-                  <Table.Cell>
-                    <Text>{formatDate(getInvoiceDate(item))}</Text>
-                  </Table.Cell>
-                )}
+                <Table.Cell>
+                  <Text color="fg.muted">{item.group?.title || '-'}</Text>
+                </Table.Cell>
                 <Table.Cell>
                   <Badge colorPalette="blue" variant="subtle" size="sm">
                     {item.subitems?.length || 0} {t.items}
                   </Badge>
-                </Table.Cell>
-                <Table.Cell>
-                  {item.subitems?.length > 0 ? (
-                    <Badge colorPalette="green" variant="subtle" size="sm">
-                      {t.ready}
-                    </Badge>
-                  ) : (
-                    <Badge colorPalette="gray" variant="subtle" size="sm">
-                      {t.noSubitems}
-                    </Badge>
-                  )}
                 </Table.Cell>
               </Table.Row>
             ))}

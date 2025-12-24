@@ -994,7 +994,6 @@ const App = () => {
                 selectedItemId={selectedItemId}
                 onSelectItem={setSelectedItemId}
                 language={language}
-                fieldMappings={fieldMappings}
               />
             </Card.Body>
           </Card.Root>
