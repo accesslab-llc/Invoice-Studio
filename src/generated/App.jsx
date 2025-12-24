@@ -5,7 +5,7 @@ import {
   NumberInput, SimpleGrid, Card, Badge, Skeleton, Table, Image,
   Collapsible, Alert
 } from '@chakra-ui/react';
-import { FileText, Download, RefreshCw, Settings, Eye, EyeOff, HelpCircle } from 'lucide-react';
+import { FileText, Download, Settings, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import BoardSDK from './sdk/BoardSDK';
 import ItemSelector from './components/ItemSelector';
 import ImageUploader from './components/ImageUploader';
