@@ -354,6 +354,7 @@ export const translations = {
     fieldMapping: 'Mapeo de Campos',
     help: 'Ayuda',
     helpTitle: 'Manual de Usuario',
+    language: 'Idioma',
     fieldMappingTitle: 'Configuración de Mapeo de Campos',
     fieldMappingDescription: 'Mapee cada campo de factura a una columna del tablero de Monday',
     fieldMappingHint: 'Sugerencia',
