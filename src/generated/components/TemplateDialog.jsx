@@ -10,6 +10,7 @@ import {
   Text,
   Select,
   Separator,
+  CloseButton,
   createListCollection
 } from '@chakra-ui/react';
 import { Plus, Save, Trash2 } from 'lucide-react';
@@ -243,6 +244,9 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
           <Dialog.Header>
             <Dialog.Title>{t.manageTemplates}</Dialog.Title>
             <Dialog.Description>{t.templateDescription}</Dialog.Description>
+            <Dialog.CloseTrigger asChild>
+              <CloseButton size="sm" />
+            </Dialog.CloseTrigger>
           </Dialog.Header>
           <Dialog.Body>
             <Stack spacing="6">
@@ -294,25 +298,20 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
             </Stack>
           </Dialog.Body>
           <Dialog.Footer>
-            <HStack spacing="3" justify="space-between" w="full">
-              <Stack direction="row" spacing="3">
-                <Button
-                  variant="solid"
-                  colorScheme="blue"
-                  leftIcon={<Save size={16} />}
-                  onClick={handleSaveTemplate}
-                >
-                  {t.saveTemplate}
-                </Button>
-                {currentTemplateId && (
-                  <Button variant="ghost" colorScheme="red" leftIcon={<Trash2 size={16} />} onClick={handleDeleteTemplate}>
-                    {t.deleteTemplate}
-                  </Button>
-                )}
-              </Stack>
-              <Button variant="outline" onClick={onClose}>
-                {t.close}
+            <HStack spacing="3" justify="flex-start" w="full">
+              <Button
+                variant="solid"
+                colorScheme="blue"
+                leftIcon={<Save size={16} />}
+                onClick={handleSaveTemplate}
+              >
+                {t.saveTemplate}
               </Button>
+              {currentTemplateId && (
+                <Button variant="ghost" colorScheme="red" leftIcon={<Trash2 size={16} />} onClick={handleDeleteTemplate}>
+                  {t.deleteTemplate}
+                </Button>
+              )}
             </HStack>
           </Dialog.Footer>
         </Dialog.Content>

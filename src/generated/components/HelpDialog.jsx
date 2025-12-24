@@ -117,11 +117,23 @@ A: Monday.com Developer Centerでboards:read権限が有効になっているか
 Q: フィールドマッピングが反映されない
 A: フィールドマッピングを保存したか、マッピングしたカラムにデータが存在するか確認してください。
 
+Q: 特定のカラムタイプからデータが取得できない
+A: Monday.comのAPI仕様により、以下のカラムタイプからはデータを取得できません：
+
+- 数式カラム: 数式カラムは計算結果を表示するため、Monday.comのAPIから直接データを取得することはできません。数式カラムの値を取得したい場合は、数式の元となるカラムをマッピングしてください。
+
+- 数式カラムをデータ元としたミラーカラム: 数式カラムを参照するミラーカラムからもデータを取得することはできません。数式カラムの制限により、ミラーカラムでも値が取得できません。
+
+- 接続カラム（ボード接続）: 接続カラム（board_relationタイプ）からは、接続されたアイテムの名前（タイトル）を取得することはできません。これはMonday.comのAPIの制限によるものです。接続カラムを使用する場合は、手動入力で値を設定してください。
+
 Q: 請求書のレイアウトが崩れる
 A: 「1ページに収める」オプションをオフにするか、用紙サイズを変更してください。
 
+Q: テンプレートが保存されない
+A: テンプレート名が入力されているか、ブラウザのローカルストレージが有効か確認してください。
+
 Q: 多言語対応について
-A: アプリ上部の言語選択から、日本語・英語・スペイン語を切り替えられます。`
+A: アプリ上部の言語選択から、日本語・英語・スペイン語を切り替えられます。すべてのUI要素と請求書テンプレートが選択した言語で表示されます。`
         }
       ]
     },
@@ -226,11 +238,23 @@ A: Check if the boards:read permission is enabled in Monday.com Developer Center
 Q: Field mapping is not reflected
 A: Check if you saved the field mapping and if data exists in the mapped column.
 
+Q: Cannot retrieve data from specific column types
+A: Due to Monday.com API specifications, data cannot be retrieved from the following column types:
+
+- Formula Column: Formula columns display calculation results, so data cannot be directly retrieved from Monday.com API. If you want to retrieve formula column values, please map the columns that are the source of the formula.
+
+- Mirror Column with Formula Column as Data Source: Data cannot be retrieved from mirror columns that reference formula columns either. Due to formula column limitations, values cannot be retrieved from mirror columns.
+
+- Connection Column (Board Connection): Connection columns (board_relation type) cannot retrieve the names (titles) of connected items. This is a limitation of Monday.com API. When using connection columns, please set values manually.
+
 Q: Invoice layout is broken
 A: Turn off the "Fit to One Page" option or change the page size.
 
+Q: Templates are not saved
+A: Check if the template name is entered and if browser local storage is enabled.
+
 Q: About multi-language support
-A: You can switch between Japanese, English, and Spanish from the language selection at the top of the app.`
+A: You can switch between Japanese, English, and Spanish from the language selection at the top of the app. All UI elements and invoice templates will be displayed in the selected language.`
         }
       ]
     },
@@ -335,11 +359,23 @@ R: Verifique si el permiso boards:read está habilitado en Monday.com Developer 
 P: El mapeo de campos no se refleja
 R: Verifique si guardó el mapeo de campos y si existen datos en la columna mapeada.
 
+P: No se pueden recuperar datos de tipos de columna específicos
+R: Debido a las especificaciones de la API de Monday.com, no se pueden recuperar datos de los siguientes tipos de columna:
+
+- Columna de Fórmula: Las columnas de fórmula muestran resultados de cálculo, por lo que no se pueden recuperar datos directamente de la API de Monday.com. Si desea recuperar valores de columnas de fórmula, por favor mapee las columnas que son la fuente de la fórmula.
+
+- Columna Espejo con Columna de Fórmula como Fuente de Datos: Tampoco se pueden recuperar datos de columnas espejo que hacen referencia a columnas de fórmula. Debido a las limitaciones de las columnas de fórmula, no se pueden recuperar valores de las columnas espejo.
+
+- Columna de Conexión (Conexión de Tablero): Las columnas de conexión (tipo board_relation) no pueden recuperar los nombres (títulos) de los elementos conectados. Esta es una limitación de la API de Monday.com. Cuando use columnas de conexión, por favor establezca los valores manualmente.
+
 P: El diseño de la factura está roto
 R: Desactive la opción "Ajustar a Una Página" o cambie el tamaño de la página.
 
+P: Las plantillas no se guardan
+R: Verifique si se ingresó el nombre de la plantilla y si el almacenamiento local del navegador está habilitado.
+
 P: Acerca del soporte multiidioma
-R: Puede cambiar entre japonés, inglés y español desde la selección de idioma en la parte superior de la aplicación.`
+R: Puede cambiar entre japonés, inglés y español desde la selección de idioma en la parte superior de la aplicación. Todos los elementos de la interfaz de usuario y las plantillas de factura se mostrarán en el idioma seleccionado.`
         }
       ]
     }
