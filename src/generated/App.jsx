@@ -1500,13 +1500,27 @@ const App = () => {
                     h="full"
                     display="flex"
                     flexDirection="column"
+                    position="relative"
                   >
-                    <Stack gap="3">
-                      {formData.watermarkImage && (
-                        <Box position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" opacity="0.1" zIndex="-1" pointerEvents="none">
-                          <Image src={formData.watermarkImage} alt="Watermark" maxW="400px" maxH="400px" />
-                        </Box>
-                      )}
+                    {formData.watermarkImage && (
+                      <Box 
+                        position="absolute" 
+                        top="50%" 
+                        left="50%" 
+                        transform="translate(-50%, -50%)" 
+                        opacity="0.1" 
+                        zIndex={0}
+                        pointerEvents="none"
+                        width="100%"
+                        height="100%"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Image src={formData.watermarkImage} alt="Watermark" maxW="400px" maxH="400px" objectFit="contain" />
+                      </Box>
+                    )}
+                    <Stack gap="3" position="relative" zIndex={1}>
 
                       <VStack
                         alignItems={template === 'classic' ? 'flex-start' : 'center'}
