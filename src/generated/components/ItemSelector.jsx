@@ -9,23 +9,67 @@ import {
   Input,
   Checkbox,
   EmptyState,
-  Box
+  Box,
+  Select,
+  createListCollection
 } from '@chakra-ui/react';
 import { Search, FileText } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
   const t = translations[language];
 
+  // ユニークなグループのリストを取得
+  const groups = useMemo(() => {
+    const groupMap = new Map();
+    items.forEach(item => {
+      if (item.group?.id && item.group?.title) {
+        if (!groupMap.has(item.group.id)) {
+          groupMap.set(item.group.id, {
+            id: item.group.id,
+            title: item.group.title
+          });
+        }
+      }
+    });
+    return Array.from(groupMap.values()).sort((a, b) => a.title.localeCompare(b.title));
+  }, [items]);
+
+  // グループ選択用のコレクション
+  const groupCollection = useMemo(() => {
+    return createListCollection({
+      items: [
+        { label: t.allGroups || 'すべてのグループ', value: '' },
+        ...groups.map(group => ({
+          label: group.title,
+          value: group.id
+        }))
+      ]
+    });
+  }, [groups, t.allGroups]);
+
+  // フィルタリング（検索とグループの両方に対応）
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return items;
-    return items.filter(
-      (item) =>
-        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.group?.title?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [items, searchTerm]);
+    let filtered = items;
+
+    // グループでフィルタリング
+    if (selectedGroupId) {
+      filtered = filtered.filter(item => item.group?.id === selectedGroupId);
+    }
+
+    // 検索でフィルタリング
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (item) =>
+          item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.group?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filtered;
+  }, [items, searchTerm, selectedGroupId]);
 
   if (items.length === 0) {
     return (
@@ -43,7 +87,7 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
 
   return (
     <Stack gap="4">
-      <HStack>
+      <HStack gap="3" wrap="wrap">
         <Box position="relative" flex="1" maxW="400px">
           <Input
             placeholder={t.searchItems}
@@ -55,6 +99,26 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
             <Search size={16} />
           </Box>
         </Box>
+        <Select.Root
+          collection={groupCollection}
+          value={selectedGroupId ? [selectedGroupId] : ['']}
+          onValueChange={({ value }) => setSelectedGroupId(value[0] || '')}
+          size="sm"
+          width="200px"
+        >
+          <Select.Trigger>
+            <Select.ValueText placeholder={t.filterByGroup || 'グループでフィルター'} />
+          </Select.Trigger>
+          <Select.Positioner>
+            <Select.Content>
+              {groupCollection.items.map((item) => (
+                <Select.Item key={item.value} item={item}>
+                  {item.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Positioner>
+        </Select.Root>
         <Text color="fg.muted">
           {filteredItems.length} {t.itemsFound}
         </Text>
@@ -106,7 +170,7 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
         </Table.Root>
       </Table.ScrollArea>
 
-      {filteredItems.length === 0 && searchTerm && (
+      {filteredItems.length === 0 && (searchTerm || selectedGroupId) && (
         <EmptyState.Root>
           <EmptyState.Content>
             <EmptyState.Indicator>
