@@ -7,8 +7,7 @@ import {
   Text,
   Badge,
   Input,
-  RadioCard,
-  Group,
+  Checkbox,
   EmptyState,
   Box
 } from '@chakra-ui/react';
@@ -89,12 +88,14 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
                 _hover={{ bg: 'bg.subtle' }}
               >
                 <Table.Cell>
-                  <RadioCard.Root value={selectedItemId} size="sm">
-                    <RadioCard.Item value={item.id} width="auto">
-                      <RadioCard.ItemHiddenInput />
-                      <RadioCard.ItemControl />
-                    </RadioCard.Item>
-                  </RadioCard.Root>
+                  <Checkbox.Root
+                    checked={selectedItemId === item.id}
+                    onCheckedChange={() => onSelectItem(item.id)}
+                    size="sm"
+                  >
+                    <Checkbox.HiddenInput />
+                    <Checkbox.Control />
+                  </Checkbox.Root>
                 </Table.Cell>
                 <Table.Cell>
                   <Text fontWeight="medium">{item.name}</Text>
