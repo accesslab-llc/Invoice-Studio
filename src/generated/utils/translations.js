@@ -331,6 +331,7 @@ export const translations = {
     from: 'De',
     to: 'Para',
     itemName: 'Nombre del Artículo',
+    groupName: 'Grupo',
     date: 'Fecha',
     subitems: 'Subartículos',
     status: 'Estado',
