@@ -244,9 +244,6 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
           <Dialog.Header>
             <Dialog.Title>{t.manageTemplates}</Dialog.Title>
             <Dialog.Description>{t.templateDescription}</Dialog.Description>
-            <Dialog.CloseTrigger asChild>
-              <CloseButton size="sm" />
-            </Dialog.CloseTrigger>
           </Dialog.Header>
           <Dialog.Body>
             <Stack spacing="6">
@@ -314,6 +311,10 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
               )}
             </HStack>
           </Dialog.Footer>
+
+          <Dialog.CloseTrigger asChild>
+            <CloseButton size="sm" />
+          </Dialog.CloseTrigger>
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
