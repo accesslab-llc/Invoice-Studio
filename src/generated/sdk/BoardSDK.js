@@ -545,15 +545,17 @@ class BoardSDK {
         value = col.text || '';
       } else if (col.type === 'mirror' || col.type === 'mirror__' || (isLookupColumn && col.type === 'mirror')) {
         // Mirror column (including lookup_ columns that are returned as mirror type): 
-        // Try to get value from col.text first, then try to parse col.value
-        if (col.text && col.text !== '') {
+        // Try to get value from display_value (from MirrorValue fragment), then col.text, then col.value
+        if (col.display_value && col.display_value !== '') {
+          value = col.display_value;
+        } else if (col.text && col.text !== '') {
           value = col.text;
         } else if (col.value) {
           // If col.text is empty, try to parse col.value for mirror columns
           try {
             const parsed = JSON.parse(col.value);
             // Mirror columns might have the value in different fields
-            value = parsed?.text || parsed?.name || parsed?.value || parsed?.display_value || '';
+            value = parsed?.display_value || parsed?.text || parsed?.name || parsed?.value || '';
           } catch {
             // If parsing fails, try using col.value as string
             value = String(col.value) || '';
@@ -563,8 +565,9 @@ class BoardSDK {
         }
         // Debug: Log mirror columns (including lookup_ columns)
         if (isLookupColumn) {
+          console.log('[BoardSDK] transformItem: Processing mirror (lookup_) column', col.id, 'display_value:', col.display_value, 'text:', col.text, 'value:', col.value);
           if (!value || value === '') {
-            console.log('[BoardSDK] transformItem: Empty value for mirror (lookup_) column', col.id, 'text:', col.text, 'value:', col.value);
+            console.log('[BoardSDK] transformItem: Empty value for mirror (lookup_) column', col.id);
           } else {
             console.log('[BoardSDK] transformItem: Found value for mirror (lookup_) column', col.id, 'value:', value);
           }
