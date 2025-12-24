@@ -918,17 +918,20 @@ const App = () => {
               </Select.Root>
             </HStack>
             <HStack gap="3" wrap="wrap">
-              <Select.Root collection={layoutTemplates} value={[template]}
-                onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
-                <Select.Trigger><Select.ValueText /></Select.Trigger>
-                <Select.Positioner>
-                  <Select.Content>
-                    {layoutTemplates.items.map(item => (
-                      <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Positioner>
-              </Select.Root>
+              <HStack gap="2" align="center">
+                <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
+                <Select.Root collection={layoutTemplates} value={[template]}
+                  onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
+                  <Select.Trigger><Select.ValueText /></Select.Trigger>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {layoutTemplates.items.map(item => (
+                        <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+              </HStack>
               <Field.Root width="auto">
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
@@ -949,18 +952,21 @@ const App = () => {
                   />
                 </HStack>
               </Field.Root>
-              <Select.Root collection={currencies} value={[formData.currency]}
-                onValueChange={({ value }) => setFormData(prev => ({ ...prev, currency: value[0] }))}
-                size="sm" width="200px">
-                <Select.Trigger><Select.ValueText /></Select.Trigger>
-                <Select.Positioner>
-                  <Select.Content>
-                    {currencies.items.map(item => (
-                      <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Positioner>
-              </Select.Root>
+              <HStack gap="2" align="center">
+                <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
+                <Select.Root collection={currencies} value={[formData.currency]}
+                  onValueChange={({ value }) => setFormData(prev => ({ ...prev, currency: value[0] }))}
+                  size="sm" width="200px">
+                  <Select.Trigger><Select.ValueText /></Select.Trigger>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {currencies.items.map(item => (
+                        <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+              </HStack>
             </HStack>
           </HStack>
 
