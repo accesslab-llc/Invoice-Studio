@@ -32,27 +32,33 @@ Please enable the following permissions in Monday.com Developer Center:
 
 ## Basic Usage
 
-### Step 1: Load Data
+### Step 1: Launch App and Load Data
 
 1. Open the InvoiceStudio app in a Monday.com board
-2. Click the "Load Data" button
-3. Items will be fetched from the board
+2. The app will automatically fetch items from the board
+3. If data is not displayed, please reload the page
+
+**Note**: The "Load Data" button has been removed. To reload data, please reload the page.
 
 ### Step 2: Select Item
 
-1. Select the item you want to create an invoice for from the item list
-2. You can also filter items using the search function
+1. Select the item you want to create an invoice for from the item list (select using checkbox)
+2. You can filter items by item name or group name using the search function
+3. You can filter items by group using the group filter
+4. Click the "Create Invoice" button to proceed to the edit screen
 
 ### Step 3: Edit Invoice
 
 1. Information from the selected item will be automatically filled in
-2. Edit the following information as needed:
-   - Basic information (invoice number, invoice date, etc.)
-   - Issuer information (company name, address, etc.)
-   - Billing information (company name, address, etc.)
-   - Line items (item name, quantity, unit price, etc.)
-   - Payment information
+2. Click the **Field Mapping** button to configure mappings between Monday.com board columns and invoice fields (recommended for first-time setup)
+3. Edit the following information as needed:
+   - Basic information (invoice number, invoice date, due date, etc.)
+   - Issuer information (company name, representative, address, contact information, etc.)
+   - Billing information (company name, department, contact person, address, contact information, etc.)
+   - Line items (item name, quantity, unit price, etc.) - automatically retrieved from subitems
+   - Payment information (bank name, account information, etc.)
    - Notes
+   - Image settings (company logo, signature/seal, background watermark)
 
 ### Step 4: Download
 
@@ -82,9 +88,10 @@ The field mapping feature allows you to map Monday.com board columns to invoice 
 
 ### Setting Field Mapping
 
-1. Click the "Field Mapping" button
+1. Click the "Field Mapping" button in the invoice edit screen
 2. Select a Monday.com board column for each invoice field
-3. Click "Save"
+3. You can also map subitem price and quantity
+4. Click "Save" to save the mappings and automatically reload the selected item's data
 
 ### Mappable Fields
 
@@ -105,6 +112,8 @@ The field mapping feature allows you to map Monday.com board columns to invoice 
   - Discount
   - Tax Amount
   - Line Items (Subitems)
+  - Subitem Price
+  - Subitem Quantity
 
 ### Using Custom Column IDs
 
@@ -128,9 +137,8 @@ The template feature allows you to save and reuse issuer information and payment
 
 ### Applying a Template
 
-1. Click the "Template Management" button
-2. Select a saved template from "Apply Template"
-3. Template information will be automatically filled in
+1. In the invoice edit screen, select a saved template from "Apply Template"
+2. Template information (issuer information and payment information) will be automatically filled in
 
 ### Editing/Deleting Templates
 
@@ -173,7 +181,8 @@ You can toggle the display of each section (issuer, billing, payment information
 **A:** Please check the following:
 1. Is the `boards:read` permission enabled in Monday.com Developer Center?
 2. Do items exist in the board?
-3. Check for errors in the browser console
+3. Try reloading the page (data is automatically loaded)
+4. Check for errors in the browser console (F12)
 
 ### Q: Field mapping is not reflected
 

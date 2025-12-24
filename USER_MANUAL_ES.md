@@ -32,27 +32,33 @@ Por favor, habilite los siguientes permisos en Monday.com Developer Center:
 
 ## Uso Básico
 
-### Paso 1: Cargar Datos
+### Paso 1: Iniciar Aplicación y Cargar Datos
 
 1. Abra la aplicación InvoiceStudio en un tablero de Monday.com
-2. Haga clic en el botón "Cargar Datos"
-3. Los elementos se obtendrán del tablero
+2. La aplicación obtendrá automáticamente los elementos del tablero
+3. Si los datos no se muestran, por favor recargue la página
+
+**Nota**: El botón "Cargar Datos" ha sido eliminado. Para recargar los datos, por favor recargue la página.
 
 ### Paso 2: Seleccionar Elemento
 
-1. Seleccione el elemento para el que desea crear una factura desde la lista de elementos
-2. También puede filtrar elementos usando la función de búsqueda
+1. Seleccione el elemento para el que desea crear una factura desde la lista de elementos (seleccione usando la casilla de verificación)
+2. Puede filtrar elementos por nombre de elemento o nombre de grupo usando la función de búsqueda
+3. Puede filtrar elementos por grupo usando el filtro de grupo
+4. Haga clic en el botón "Crear Factura" para proceder a la pantalla de edición
 
 ### Paso 3: Editar Factura
 
 1. La información del elemento seleccionado se completará automáticamente
-2. Edite la siguiente información según sea necesario:
-   - Información básica (número de factura, fecha de factura, etc.)
-   - Información del emisor (nombre de la empresa, dirección, etc.)
-   - Información de facturación (nombre de la empresa, dirección, etc.)
-   - Artículos de línea (nombre del artículo, cantidad, precio unitario, etc.)
-   - Información de pago
+2. Haga clic en el botón **Mapeo de Campos** para configurar las asignaciones entre las columnas del tablero de Monday.com y los campos de factura (recomendado para la configuración inicial)
+3. Edite la siguiente información según sea necesario:
+   - Información básica (número de factura, fecha de factura, fecha de vencimiento, etc.)
+   - Información del emisor (nombre de la empresa, representante, dirección, información de contacto, etc.)
+   - Información de facturación (nombre de la empresa, departamento, persona de contacto, dirección, información de contacto, etc.)
+   - Artículos de línea (nombre del artículo, cantidad, precio unitario, etc.) - obtenidos automáticamente de subelementos
+   - Información de pago (nombre del banco, información de cuenta, etc.)
    - Notas
+   - Configuración de imágenes (logo de la empresa, firma/sello, marca de agua de fondo)
 
 ### Paso 4: Descargar
 
@@ -82,9 +88,10 @@ La función de mapeo de campos permite mapear columnas del tablero de Monday.com
 
 ### Configurar Mapeo de Campos
 
-1. Haga clic en el botón "Mapeo de Campos"
+1. Haga clic en el botón "Mapeo de Campos" en la pantalla de edición de factura
 2. Seleccione una columna del tablero de Monday.com para cada campo de factura
-3. Haga clic en "Guardar"
+3. También puede mapear el precio y la cantidad de subelementos
+4. Haga clic en "Guardar" para guardar las asignaciones y recargar automáticamente los datos del elemento seleccionado
 
 ### Campos Mapeables
 
@@ -105,6 +112,8 @@ La función de mapeo de campos permite mapear columnas del tablero de Monday.com
   - Descuento
   - Importe de Impuesto
   - Artículos de Línea (Subelementos)
+  - Precio de Subelemento
+  - Cantidad de Subelemento
 
 ### Uso de IDs de Columna Personalizados
 
@@ -128,9 +137,8 @@ La función de plantilla permite guardar y reutilizar información del emisor e 
 
 ### Aplicar una Plantilla
 
-1. Haga clic en el botón "Gestión de Plantillas"
-2. Seleccione una plantilla guardada desde "Aplicar Plantilla"
-3. La información de la plantilla se completará automáticamente
+1. En la pantalla de edición de factura, seleccione una plantilla guardada desde "Aplicar Plantilla"
+2. La información de la plantilla (información del emisor e información de pago) se completará automáticamente
 
 ### Editar/Eliminar Plantillas
 
@@ -173,7 +181,8 @@ Puede alternar la visualización de cada sección (emisor, facturación, informa
 **R:** Por favor, verifique lo siguiente:
 1. ¿Está habilitado el permiso `boards:read` en Monday.com Developer Center?
 2. ¿Existen elementos en el tablero?
-3. Verifique errores en la consola del navegador
+3. Intente recargar la página (los datos se cargan automáticamente)
+4. Verifique errores en la consola del navegador (F12)
 
 ### P: El mapeo de campos no se refleja
 

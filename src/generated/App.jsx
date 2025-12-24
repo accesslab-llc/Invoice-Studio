@@ -889,9 +889,6 @@ const App = () => {
 
         <HStack gap="4" wrap="wrap" justify="space-between">
           <HStack gap="4" wrap="wrap">
-            <Button onClick={fetchBoardData} variant="outline">
-              <RefreshCw size={16} /> {t.loadData}
-            </Button>
             <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline" colorPalette="blue">
               <FileText size={16} /> {t.manageTemplates}
             </Button>
