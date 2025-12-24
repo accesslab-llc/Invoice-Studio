@@ -898,22 +898,25 @@ const App = () => {
             <Button onClick={() => setIsHelpDialogOpen(true)} variant="outline" colorPalette="green">
               <HelpCircle size={16} /> {t.help}
             </Button>
-            <Select.Root collection={languages} value={[language]} 
-              onValueChange={({ value }) => {
-                console.log('[App] Language change:', value);
-                if (value && value.length > 0) {
-                  setLanguage(value[0]);
-                }
-              }} size="sm" width="200px">
-              <Select.Trigger><Select.ValueText /></Select.Trigger>
-              <Select.Positioner>
-                <Select.Content>
-                  {languages.items.map(item => (
-                    <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Positioner>
-            </Select.Root>
+            <HStack gap="2" align="center">
+              <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.language}:</Text>
+              <Select.Root collection={languages} value={[language]} 
+                onValueChange={({ value }) => {
+                  console.log('[App] Language change:', value);
+                  if (value && value.length > 0) {
+                    setLanguage(value[0]);
+                  }
+                }} size="sm" width="200px">
+                <Select.Trigger><Select.ValueText /></Select.Trigger>
+                <Select.Positioner>
+                  <Select.Content>
+                    {languages.items.map(item => (
+                      <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Select.Root>
+            </HStack>
             <HStack gap="3" wrap="wrap">
               <Select.Root collection={layoutTemplates} value={[template]}
                 onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
