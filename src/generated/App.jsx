@@ -1674,7 +1674,7 @@ const App = () => {
             </Card.Root>
             
             {/* ダウンロードへボタンをページの一番下に配置 */}
-            <HStack justify="flex-end" mt="6" mb="4">
+            <HStack justify="center" mt="6" mb="4">
               <Button colorPalette="blue" size="lg" onClick={() => setCurrentStep('download')}>
                 {t.continueToDownload} →
               </Button>
