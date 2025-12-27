@@ -817,71 +817,23 @@ const App = () => {
 
   const downloadPDF = async () => {
     try {
-      const exportData = {
-        ...formData,
-        companyName: sectionVisibility.billingFrom ? formData.companyName : '',
-        companyRep: sectionVisibility.billingFrom ? formData.companyRep : '',
-        companyZip: sectionVisibility.billingFrom ? formData.companyZip : '',
-        companyAddress: sectionVisibility.billingFrom ? formData.companyAddress : '',
-        companyPhone: sectionVisibility.billingFrom ? formData.companyPhone : '',
-        companyFax: sectionVisibility.billingFrom ? formData.companyFax : '',
-        companyEmail: sectionVisibility.billingFrom ? formData.companyEmail : '',
-        companyRegNumber: sectionVisibility.billingFrom ? formData.companyRegNumber : '',
-        clientName: sectionVisibility.billingTo ? formData.clientName : '',
-        clientDepartment: sectionVisibility.billingTo ? formData.clientDepartment : '',
-        clientContact: sectionVisibility.billingTo ? formData.clientContact : '',
-        clientZip: sectionVisibility.billingTo ? formData.clientZip : '',
-        clientAddress: sectionVisibility.billingTo ? formData.clientAddress : '',
-        clientPhone: sectionVisibility.billingTo ? formData.clientPhone : '',
-        clientEmail: sectionVisibility.billingTo ? formData.clientEmail : '',
-        bankName: sectionVisibility.paymentInfo ? formData.bankName : '',
-        accountType: sectionVisibility.paymentInfo ? formData.accountType : '',
-        accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
-        accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
-        notes: sectionVisibility.notes ? formData.notes : '',
-        companyLogo: sectionVisibility.images ? formData.companyLogo : null,
-        signatureImage: sectionVisibility.images ? formData.signatureImage : null,
-        watermarkImage: sectionVisibility.images ? formData.watermarkImage : null
-      };
+      // Get the preview element that's already rendered correctly
+      const previewElement = document.getElementById('invoice-preview-container');
       
-      // Generate HTML with UTF-8 encoding
-      const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template]);
+      if (!previewElement) {
+        // Fallback: if preview is not available, navigate to download step first
+        setCurrentStep('download');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const retryElement = document.getElementById('invoice-preview-container');
+        if (!retryElement) {
+          throw new Error('プレビュー要素が見つかりません。ダウンロード画面に移動してください。');
+        }
+        return downloadPDF(); // Retry after navigation
+      }
       
-      // Create a temporary iframe to render HTML properly
-      // This ensures proper rendering and encoding
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.top = '0';
-      iframe.style.left = '0';
-      iframe.style.width = pageSize === 'a4' ? '210mm' : '216mm';
-      iframe.style.height = '297mm';
-      iframe.style.border = 'none';
-      iframe.style.opacity = '0';
-      iframe.style.pointerEvents = 'none';
-      iframe.style.zIndex = '-1';
-      document.body.appendChild(iframe);
-      
-      // Wait for iframe to be ready
-      await new Promise(resolve => {
-        iframe.onload = resolve;
-        iframe.src = 'about:blank';
-      });
-      
-      // Write HTML to iframe
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      iframeDoc.open();
-      iframeDoc.write(html);
-      iframeDoc.close();
-      
-      // Wait for styles to be applied and content to render
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Force a reflow to ensure styles are applied
-      iframeDoc.body.offsetHeight;
-      
-      // Wait for images to load
-      const iframeImages = iframeDoc.querySelectorAll('img');
-      const imagePromises = Array.from(iframeImages).map(img => {
+      // Wait for images to load in the preview
+      const images = previewElement.querySelectorAll('img');
+      const imagePromises = Array.from(images).map(img => {
         if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
         return new Promise((resolve) => {
           img.onload = resolve;
@@ -893,10 +845,7 @@ const App = () => {
       await Promise.all(imagePromises);
       
       // Wait for fonts and styles to fully render
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Get the invoice container element (not just body)
-      const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Configure html2pdf options
       const opt = {
@@ -910,18 +859,8 @@ const App = () => {
           logging: false,
           letterRendering: true,
           backgroundColor: '#ffffff',
-          windowWidth: invoiceElement.scrollWidth || iframeDoc.body.scrollWidth,
-          windowHeight: invoiceElement.scrollHeight || iframeDoc.body.scrollHeight,
-          onclone: (clonedDoc) => {
-            // Ensure styles are preserved in cloned document
-            const clonedStyle = clonedDoc.querySelector('style');
-            if (!clonedStyle && iframeDoc.querySelector('style')) {
-              const originalStyle = iframeDoc.querySelector('style');
-              const newStyle = clonedDoc.createElement('style');
-              newStyle.textContent = originalStyle.textContent;
-              clonedDoc.head.appendChild(newStyle);
-            }
-          }
+          windowWidth: previewElement.scrollWidth,
+          windowHeight: previewElement.scrollHeight
         },
         jsPDF: { 
           unit: 'mm', 
@@ -931,11 +870,8 @@ const App = () => {
         }
       };
       
-      // Generate and download PDF from invoice element
-      await html2pdf().set(opt).from(invoiceElement).save();
-      
-      // Clean up
-      document.body.removeChild(iframe);
+      // Generate and download PDF from preview element
+      await html2pdf().set(opt).from(previewElement).save();
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       alert('PDFの生成に失敗しました。\nエラー: ' + error.message);
@@ -1578,6 +1514,7 @@ const App = () => {
               </Card.Header>
               <Card.Body display="flex" justifyContent="center" p="4" bg="gray.100">
                 <Box
+                  id="invoice-preview-container"
                   width={getPageDimensions().widthMM}
                   height={fitToOnePage ? getPageDimensions().heightMM : 'auto'}
                   maxH={fitToOnePage ? getPageDimensions().heightMM : 'none'}
