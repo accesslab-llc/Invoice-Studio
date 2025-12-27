@@ -22,6 +22,8 @@ import BoardSDK from '../sdk/BoardSDK';
 const defaultMappings = {
   invoiceNumber: 'manual',
   invoiceDate: 'column3',
+  dueDate: 'manual',
+  validUntil: 'manual',
   clientName: 'clientName',
   clientDepartment: 'manual',
   clientContact: 'manual',
@@ -444,6 +446,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const fieldLabels = {
     invoiceNumber: { ja: '請求書番号', en: 'Invoice Number', es: 'Número de Factura' },
     invoiceDate: { ja: '請求日', en: 'Invoice Date', es: 'Fecha de Factura' },
+    dueDate: { ja: '支払期限', en: 'Due Date', es: 'Fecha de Vencimiento' },
+    validUntil: { ja: '有効期限', en: 'Valid Until', es: 'Válido Hasta' },
     clientName: { ja: '請求先名', en: 'Client Name', es: 'Nombre del Cliente' },
     clientDepartment: { ja: '部署', en: 'Department', es: 'Departamento' },
     clientContact: { ja: '担当者', en: 'Contact Person', es: 'Persona de Contacto' },
@@ -647,6 +651,62 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   {renderCustomInput('invoiceDate', '例: column3')}
                   <Field.HelperText fontSize="xs">
                     {t.fieldMappingCurrent} {getDisplayLabel('invoiceDate')}
+                  </Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>{getFieldLabel('dueDate')}</Field.Label>
+                  <Box
+                    as="select"
+                    value={getSelectValue('dueDate')}
+                    onChange={(e) => handleSelectChange('dueDate', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
+                  >
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                            {item.label}
+                      </option>
+                        ))}
+                  </Box>
+                  {renderCustomInput('dueDate', '例: date4')}
+                  <Field.HelperText fontSize="xs">
+                    {t.fieldMappingCurrent} {getDisplayLabel('dueDate')}
+                  </Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>{getFieldLabel('validUntil')}</Field.Label>
+                  <Box
+                    as="select"
+                    value={getSelectValue('validUntil')}
+                    onChange={(e) => handleSelectChange('validUntil', e.target.value)}
+                    width="100%"
+                    px="3"
+                    py="2"
+                    fontSize="sm"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="bg"
+                    _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
+                  >
+                    <option value="">{t.fieldMappingSelectColumn}</option>
+                    {validBoardColumnsItems?.map((item) => (
+                      <option key={item.value} value={item.value}>
+                            {item.label}
+                      </option>
+                        ))}
+                  </Box>
+                  {renderCustomInput('validUntil', '例: date4')}
+                  <Field.HelperText fontSize="xs">
+                    {t.fieldMappingCurrent} {getDisplayLabel('validUntil')}
                   </Field.HelperText>
                 </Field.Root>
               </Stack>

@@ -99,6 +99,12 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       <div class="total-row final"><span>${t.total}:</span><span>${currencySymbol}${data.total.toLocaleString()}</span></div>
     </div>
 
+    ${isEstimate && data.deliveryPeriod ? `
+    <div class="delivery-info">
+      <h4>${data.deliveryType === '納期' ? t.deliveryTypeDeadline : t.deliveryTypeWorkPeriod}:</h4>
+      <p>${data.deliveryPeriod}</p>
+    </div>` : ''}
+
     ${!isEstimate && data.bankName ? `
     <div class="payment-info">
       <h4>${t.paymentInfo}</h4>
@@ -107,7 +113,7 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       <p>${t.accountHolder}: ${data.accountHolder}</p>
     </div>` : ''}
 
-    ${data.notes && data.notes.trim() ? `<div class="notes"><h4>${t.notes}</h4><p style="white-space: pre-wrap;">${data.notes}</p></div>` : ''}
+    ${data.notes && data.notes.trim() ? `<div class="notes"><h4>${isEstimate && data.notesLabel ? data.notesLabel : t.notes}</h4><p style="white-space: pre-wrap;">${data.notes}</p></div>` : ''}
   </div>
 </body>
 </html>`;
@@ -321,6 +327,22 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       padding-top: ${fitToOnePage ? Math.max(4, 6 * paddingScale) : 10}px;
       margin-top: ${fitToOnePage ? Math.max(2, 4 * paddingScale) : 6}px;
     }
+    .delivery-info {
+      margin-top: ${fitToOnePage ? Math.max(6, 12 * paddingScale) : 20}px;
+      padding: ${fitToOnePage ? Math.max(6, 10 * paddingScale) : 15}px;
+      background: #f0f9ff;
+      border: 1px solid #0ea5e9;
+      border-radius: ${fitToOnePage ? '3px' : '6px'};
+      font-size: ${11 * scale}px;
+    }
+    .delivery-info h4 {
+      margin-bottom: ${fitToOnePage ? Math.max(3, 5 * paddingScale) : 8}px;
+      color: #0ea5e9;
+      font-size: ${13 * scale}px;
+    }
+    .delivery-info p {
+      margin: ${fitToOnePage ? Math.max(1, 2 * paddingScale) : 3}px 0;
+    }
     .payment-info {
       margin-top: ${fitToOnePage ? Math.max(6, 12 * paddingScale) : 20}px;
       padding: ${fitToOnePage ? Math.max(6, 10 * paddingScale) : 15}px;
@@ -363,6 +385,8 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       table.items tbody tr:last-child td:first-child { border-bottom-left-radius: ${fitToOnePage ? '4px' : '6px'}; }
       table.items tbody tr:last-child td:last-child { border-bottom-right-radius: ${fitToOnePage ? '4px' : '6px'}; }
       .invoice-message { border-left-color: ${primaryColor}; }
+      .delivery-info { border-color: ${primaryColor}; }
+      .delivery-info h4 { color: ${primaryColor}; }
       .payment-info { border-color: ${primaryColor}; }
       .payment-info h4 { color: ${primaryColor}; }
     `;

@@ -56,6 +56,8 @@ const App = () => {
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
     invoiceDate: 'column3',
+    dueDate: 'manual',
+    validUntil: 'manual',
     clientName: 'clientName',
     clientDepartment: 'manual',
     clientContact: 'manual',
@@ -105,6 +107,9 @@ const App = () => {
     invoiceDate: new Date().toISOString().split('T')[0],
     dueDate: '',
     validUntil: '',
+    deliveryType: '納期', // '納期' or '作業期間'
+    deliveryPeriod: '',
+    notesLabel: '備考',
     companyName: '',
     companyRep: '',
     companyZip: '',
@@ -641,6 +646,9 @@ const App = () => {
     // Get mapped values using current mappings
     const mappedValues = {
       invoiceNumber: getMappedValue(selectedItem, currentMappings.invoiceNumber),
+      invoiceDate: getMappedValue(selectedItem, currentMappings.invoiceDate),
+      dueDate: getMappedValue(selectedItem, currentMappings.dueDate || 'manual'),
+      validUntil: getMappedValue(selectedItem, currentMappings.validUntil || 'manual'),
       clientName: getMappedValue(selectedItem, currentMappings.clientName),
       clientDepartment: getMappedValue(selectedItem, currentMappings.clientDepartment),
       clientContact: getMappedValue(selectedItem, currentMappings.clientContact),
@@ -672,6 +680,8 @@ const App = () => {
         ? new Date(selectedItem[currentMappings.invoiceDate]).toISOString().split('T')[0]
               : prev.invoiceDate)
         : prev.invoiceDate,
+        dueDate: mappedValues.dueDate || prev.dueDate,
+        validUntil: mappedValues.validUntil || prev.validUntil,
         discount: mappedValues.discount,
         taxAmount: mappedValues.taxAmount,
       items: invoiceItems.length > 0 ? invoiceItems : prev.items
@@ -859,6 +869,9 @@ const App = () => {
         accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
         accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
         validUntil: documentType === 'estimate' ? formData.validUntil : '',
+        deliveryType: documentType === 'estimate' ? formData.deliveryType : null,
+        deliveryPeriod: documentType === 'estimate' ? formData.deliveryPeriod : null,
+        notesLabel: documentType === 'estimate' ? formData.notesLabel : '備考',
         notes: sectionVisibility.notes ? formData.notes : null,
         companyLogo: sectionVisibility.images ? formData.companyLogo : null,
         signatureImage: sectionVisibility.images ? formData.signatureImage : null,
@@ -1295,6 +1308,35 @@ const App = () => {
                       </HStack>
                     </Field.Root>
                   )}
+                  {documentType === 'estimate' && (
+                    <Field.Root>
+                      <Field.Label>{t.deliveryPeriod}</Field.Label>
+                      <HStack gap="3">
+                        <Select.Root
+                          value={[formData.deliveryType]}
+                          onValueChange={({ value }) => setFormData({ ...formData, deliveryType: value[0] })}
+                          size="sm"
+                          width="150px"
+                        >
+                          <Select.Trigger>
+                            <Select.ValueText />
+                          </Select.Trigger>
+                          <Select.Positioner>
+                            <Select.Content>
+                              <Select.Item key="納期" item={{ value: '納期', label: t.deliveryTypeDeadline }}>{t.deliveryTypeDeadline}</Select.Item>
+                              <Select.Item key="作業期間" item={{ value: '作業期間', label: t.deliveryTypeWorkPeriod }}>{t.deliveryTypeWorkPeriod}</Select.Item>
+                            </Select.Content>
+                          </Select.Positioner>
+                        </Select.Root>
+                        <Input
+                          flex="1"
+                          value={formData.deliveryPeriod}
+                          onChange={e => setFormData({ ...formData, deliveryPeriod: e.target.value })}
+                          placeholder={formData.deliveryType === '納期' ? '例：ご発注後 2週間以内' : '例：2026年2月1日〜2月28日'}
+                        />
+                      </HStack>
+                    </Field.Root>
+                  )}
                 </Stack>
               </Card.Body>
             </Card.Root>
@@ -1650,7 +1692,18 @@ const App = () => {
             <Card.Root>
               <Card.Header>
                 <HStack justify="space-between">
-                  <Heading size="md">{t.notes}</Heading>
+                  {documentType === 'estimate' ? (
+                    <Field.Root flex="1" mr="4">
+                      <Field.Label>{t.notesLabel}</Field.Label>
+                      <Input
+                        value={formData.notesLabel}
+                        onChange={e => setFormData({ ...formData, notesLabel: e.target.value })}
+                        placeholder="例：見積条件"
+                      />
+                    </Field.Root>
+                  ) : (
+                    <Heading size="md">{t.notes}</Heading>
+                  )}
                   <Button
                     size="sm"
                     variant="ghost"
@@ -1667,7 +1720,7 @@ const App = () => {
                   <Card.Body>
                     <Textarea value={formData.notes} rows={4}
                       onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder={t.notesPlaceholder} />
+                      placeholder={documentType === 'estimate' ? '例：本見積は上記内容に基づく概算です\n・作業範囲外の対応は別途お見積りとなります\n・正式発注後に請求書を発行いたします' : t.notesPlaceholder} />
                   </Card.Body>
                 </Collapsible.Content>
               </Collapsible.Root>
@@ -1905,6 +1958,15 @@ const App = () => {
                         </Stack>
                       </HStack>
 
+                      {documentType === 'estimate' && formData.deliveryPeriod && (
+                        <Box bg="cyan.50" p="2" borderRadius="sm" borderWidth="1px" borderColor="cyan.300">
+                          <Heading size="2xs" mb="1" color="cyan.800">
+                            {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : t.deliveryTypeWorkPeriod}:
+                          </Heading>
+                          <Text fontSize="2xs" color="gray.800">{formData.deliveryPeriod}</Text>
+                        </Box>
+                      )}
+
                       {documentType === 'invoice' && formData.bankName && (
                         <Box bg="blue.50" p="2" borderRadius="sm" borderWidth="1px" borderColor="blue.300">
                           <Heading size="2xs" mb="1" color="blue.800">{t.paymentInfo}</Heading>
@@ -1918,7 +1980,9 @@ const App = () => {
 
                       {sectionVisibility.notes && formData.notes && (
                         <Box bg="yellow.50" p="2" borderRadius="sm" borderLeftWidth="2px" borderColor="yellow.600">
-                          <Heading size="2xs" mb="0.5" color="gray.900">{t.notes}</Heading>
+                          <Heading size="2xs" mb="0.5" color="gray.900">
+                            {documentType === 'estimate' && formData.notesLabel ? formData.notesLabel : t.notes}
+                          </Heading>
                           <Text fontSize="2xs" whiteSpace="pre-wrap" lineHeight="1.4" color="gray.700">{formData.notes}</Text>
                         </Box>
                       )}
