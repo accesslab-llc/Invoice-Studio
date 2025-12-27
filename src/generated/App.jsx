@@ -1916,7 +1916,7 @@ const App = () => {
                         </Box>
                       )}
 
-                      {formData.notes && (
+                      {sectionVisibility.notes && formData.notes && (
                         <Box bg="yellow.50" p="2" borderRadius="sm" borderLeftWidth="2px" borderColor="yellow.600">
                           <Heading size="2xs" mb="0.5" color="gray.900">{t.notes}</Heading>
                           <Text fontSize="2xs" whiteSpace="pre-wrap" lineHeight="1.4" color="gray.700">{formData.notes}</Text>
