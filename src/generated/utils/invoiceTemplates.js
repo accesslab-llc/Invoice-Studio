@@ -19,8 +19,8 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
   <style>${styles}</style>
 </head>
 <body>
-  ${data.watermarkImage ? `<div class="watermark"><img src="${data.watermarkImage}" alt="Watermark" /></div>` : ''}
   <div class="invoice">
+    ${data.watermarkImage ? `<div class="watermark"><img src="${data.watermarkImage}" alt="Watermark" /></div>` : ''}
     <div class="header">
       ${data.companyLogo ? `<div class="logo"><img src="${data.companyLogo}" alt="Company Logo" /></div>` : ''}
       <h1>${t.invoice}</h1>
@@ -159,19 +159,25 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       .invoice { page-break-after: avoid; }
     }
     .watermark {
-      position: fixed;
+      position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       opacity: 0.1;
-      z-index: -1;
+      z-index: 0;
       pointer-events: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .watermark img {
       max-width: ${fitToOnePage ? '350px' : '500px'};
       max-height: ${fitToOnePage ? '350px' : '500px'};
       width: auto;
       height: auto;
+      display: block;
     }
     .logo {
       text-align: center;
@@ -214,6 +220,7 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       margin: 0 auto;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     .header {
       text-align: center;
