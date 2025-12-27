@@ -859,7 +859,7 @@ const App = () => {
         accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
         accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
         validUntil: documentType === 'estimate' ? formData.validUntil : '',
-        notes: sectionVisibility.notes ? formData.notes : '',
+        notes: sectionVisibility.notes ? formData.notes : null,
         companyLogo: sectionVisibility.images ? formData.companyLogo : null,
         signatureImage: sectionVisibility.images ? formData.signatureImage : null,
         watermarkImage: sectionVisibility.images ? formData.watermarkImage : null

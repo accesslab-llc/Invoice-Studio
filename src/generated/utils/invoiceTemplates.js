@@ -107,7 +107,7 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       <p>${t.accountHolder}: ${data.accountHolder}</p>
     </div>` : ''}
 
-    ${data.notes ? `<div class="notes"><h4>${t.notes}</h4><p style="white-space: pre-wrap;">${data.notes}</p></div>` : ''}
+    ${data.notes && data.notes.trim() ? `<div class="notes"><h4>${t.notes}</h4><p style="white-space: pre-wrap;">${data.notes}</p></div>` : ''}
   </div>
 </body>
 </html>`;
