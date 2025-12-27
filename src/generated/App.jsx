@@ -6,7 +6,6 @@ import {
   Collapsible, Alert
 } from '@chakra-ui/react';
 import { FileText, Download, Settings, Eye, EyeOff, HelpCircle } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 import BoardSDK from './sdk/BoardSDK';
 import ItemSelector from './components/ItemSelector';
 import ImageUploader from './components/ImageUploader';
