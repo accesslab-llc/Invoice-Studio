@@ -654,7 +654,7 @@ const App = () => {
     console.log('[App] mappedValues:', mappedValues);
     console.log('[App] selectedItem keys:', Object.keys(selectedItem));
     console.log('[App] currentMappings:', currentMappings);
-    
+
     setFormData(prev => {
       const newFormData = {
       invoiceNumber: mappedValues.invoiceNumber || prev.invoiceNumber,
@@ -897,37 +897,37 @@ const App = () => {
             </Button>
             <HStack gap="2" align="center">
               <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.language}:</Text>
-              <Select.Root collection={languages} value={[language]} 
-                onValueChange={({ value }) => {
-                  console.log('[App] Language change:', value);
-                  if (value && value.length > 0) {
-                    setLanguage(value[0]);
-                  }
-                }} size="sm" width="200px">
+            <Select.Root collection={languages} value={[language]} 
+              onValueChange={({ value }) => {
+                console.log('[App] Language change:', value);
+                if (value && value.length > 0) {
+                  setLanguage(value[0]);
+                }
+              }} size="sm" width="200px">
+              <Select.Trigger><Select.ValueText /></Select.Trigger>
+              <Select.Positioner>
+                <Select.Content>
+                  {languages.items.map(item => (
+                    <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Select.Root>
+            </HStack>
+            <HStack gap="3" wrap="wrap">
+              <HStack gap="2" align="center">
+                <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
+              <Select.Root collection={layoutTemplates} value={[template]}
+                onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
                 <Select.Positioner>
                   <Select.Content>
-                    {languages.items.map(item => (
+                    {layoutTemplates.items.map(item => (
                       <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
                     ))}
                   </Select.Content>
                 </Select.Positioner>
               </Select.Root>
-            </HStack>
-            <HStack gap="3" wrap="wrap">
-              <HStack gap="2" align="center">
-                <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-                <Select.Root collection={layoutTemplates} value={[template]}
-                  onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
-                  <Select.Trigger><Select.ValueText /></Select.Trigger>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {layoutTemplates.items.map(item => (
-                        <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Select.Root>
               </HStack>
               <Field.Root width="auto">
                 <HStack gap="2" align="center">
@@ -951,18 +951,18 @@ const App = () => {
               </Field.Root>
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-                <Select.Root collection={currencies} value={[formData.currency]}
-                  onValueChange={({ value }) => setFormData(prev => ({ ...prev, currency: value[0] }))}
-                  size="sm" width="200px">
-                  <Select.Trigger><Select.ValueText /></Select.Trigger>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {currencies.items.map(item => (
-                        <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Select.Root>
+              <Select.Root collection={currencies} value={[formData.currency]}
+                onValueChange={({ value }) => setFormData(prev => ({ ...prev, currency: value[0] }))}
+                size="sm" width="200px">
+                <Select.Trigger><Select.ValueText /></Select.Trigger>
+                <Select.Positioner>
+                  <Select.Content>
+                    {currencies.items.map(item => (
+                      <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Select.Root>
               </HStack>
             </HStack>
           </HStack>
@@ -1009,9 +1009,9 @@ const App = () => {
           <Stack gap="6">
             <HStack justify="space-between" wrap="wrap" gap="4">
               <HStack gap="4" wrap="wrap">
-                <Button variant="outline" onClick={() => setCurrentStep('select')}>
-                  ← {t.backToSelection}
-                </Button>
+              <Button variant="outline" onClick={() => setCurrentStep('select')}>
+                ← {t.backToSelection}
+              </Button>
                 <Button onClick={() => setIsFieldMappingOpen(true)} variant="outline" colorPalette="blue">
                   <Settings size={16} /> {t.fieldMapping}
                 </Button>
@@ -1508,7 +1508,7 @@ const App = () => {
                     flexDirection="column"
                     position="relative"
                   >
-                    {formData.watermarkImage && (
+                      {formData.watermarkImage && (
                       <Box 
                         position="absolute" 
                         top="50%" 
@@ -1524,8 +1524,8 @@ const App = () => {
                         justifyContent="center"
                       >
                         <Image src={formData.watermarkImage} alt="Watermark" maxW="400px" maxH="400px" objectFit="contain" />
-                      </Box>
-                    )}
+                        </Box>
+                      )}
                     <Stack gap="3" position="relative" zIndex={1}>
 
                       <VStack
@@ -1552,46 +1552,52 @@ const App = () => {
                         </Stack>
                       </VStack>
 
-                      <SimpleGrid columns={2} gap="3">
-                        <Box>
-                          <Heading size="2xs" mb="1" pb="1" borderBottomWidth="1px" borderColor="gray.200">{t.billingTo}</Heading>
-                          <Stack gap="0" fontSize="2xs" lineHeight="1.4">
-                            <Text fontWeight="bold" fontSize="xs">{formData.clientName || '-'}</Text>
-                            {formData.clientDepartment && <Text color="gray.700">{formData.clientDepartment}</Text>}
-                            {formData.clientContact && <Text color="gray.700">{formData.clientContact} {t.sama}</Text>}
-                            {formData.clientZip && <Text color="gray.600">{formData.clientZip}</Text>}
-                            {formData.clientAddress && <Text color="gray.700">{formData.clientAddress}</Text>}
-                            {formData.clientPhone && <Text color="gray.600">{formData.clientPhone}</Text>}
-                            {formData.clientEmail && <Text color="gray.600">{formData.clientEmail}</Text>}
-                          </Stack>
-                        </Box>
-                        <Box>
-                          <Heading size="2xs" mb="1" pb="1" borderBottomWidth="1px" borderColor="gray.200">{t.billingFrom}</Heading>
-                          <HStack gap="3" align="start">
-                            <Stack gap="0" fontSize="2xs" lineHeight="1.4" flex="1">
-                              <Text fontWeight="bold" fontSize="xs">{formData.companyName || '-'}</Text>
-                              {formData.companyRep && <Text color="gray.700">{formData.companyRep}</Text>}
-                              {formData.companyZip && <Text color="gray.600">{formData.companyZip}</Text>}
-                              {formData.companyAddress && <Text color="gray.700">{formData.companyAddress}</Text>}
-                              {formData.companyPhone && <Text color="gray.600">{formData.companyPhone}</Text>}
-                              {formData.companyFax && <Text color="gray.600">{formData.companyFax}</Text>}
-                              {formData.companyEmail && <Text color="gray.600">{formData.companyEmail}</Text>}
-                              {formData.companyRegNumber && <Text fontSize="xs" color="gray.500">{t.registrationNumber}: {formData.companyRegNumber}</Text>}
-                            </Stack>
-                            {formData.signatureImage && (
-                              <Box flexShrink="0">
-                                <Image
-                                  src={formData.signatureImage}
-                                  alt="Signature"
-                                  maxW={fitToOnePage ? (formData.items.length > 12 ? "50px" : formData.items.length > 8 ? "60px" : "70px") : "100px"}
-                                  maxH={fitToOnePage ? (formData.items.length > 12 ? "25px" : formData.items.length > 8 ? "30px" : "35px") : "60px"}
-                                  objectFit="contain"
-                                />
-                              </Box>
-                            )}
-                          </HStack>
-                        </Box>
-                      </SimpleGrid>
+                      {(sectionVisibility.billingTo || sectionVisibility.billingFrom) && (
+                        <SimpleGrid columns={sectionVisibility.billingTo && sectionVisibility.billingFrom ? 2 : 1} gap="3">
+                          {sectionVisibility.billingTo && (
+                            <Box>
+                              <Heading size="2xs" mb="1" pb="1" borderBottomWidth="1px" borderColor="gray.200">{t.billingTo}</Heading>
+                              <Stack gap="0" fontSize="2xs" lineHeight="1.4">
+                                <Text fontWeight="bold" fontSize="xs">{formData.clientName || '-'}</Text>
+                                {formData.clientDepartment && <Text color="gray.700">{formData.clientDepartment}</Text>}
+                                {formData.clientContact && <Text color="gray.700">{formData.clientContact} {t.sama}</Text>}
+                                {formData.clientZip && <Text color="gray.600">{formData.clientZip}</Text>}
+                                {formData.clientAddress && <Text color="gray.700">{formData.clientAddress}</Text>}
+                                {formData.clientPhone && <Text color="gray.600">{formData.clientPhone}</Text>}
+                                {formData.clientEmail && <Text color="gray.600">{formData.clientEmail}</Text>}
+                              </Stack>
+                            </Box>
+                          )}
+                          {sectionVisibility.billingFrom && (
+                            <Box>
+                              <Heading size="2xs" mb="1" pb="1" borderBottomWidth="1px" borderColor="gray.200">{t.billingFrom}</Heading>
+                              <HStack gap="3" align="start">
+                                <Stack gap="0" fontSize="2xs" lineHeight="1.4" flex="1">
+                                  <Text fontWeight="bold" fontSize="xs">{formData.companyName || '-'}</Text>
+                                  {formData.companyRep && <Text color="gray.700">{formData.companyRep}</Text>}
+                                  {formData.companyZip && <Text color="gray.600">{formData.companyZip}</Text>}
+                                  {formData.companyAddress && <Text color="gray.700">{formData.companyAddress}</Text>}
+                                  {formData.companyPhone && <Text color="gray.600">{formData.companyPhone}</Text>}
+                                  {formData.companyFax && <Text color="gray.600">{formData.companyFax}</Text>}
+                                  {formData.companyEmail && <Text color="gray.600">{formData.companyEmail}</Text>}
+                                  {formData.companyRegNumber && <Text fontSize="xs" color="gray.500">{t.registrationNumber}: {formData.companyRegNumber}</Text>}
+                                </Stack>
+                                {formData.signatureImage && (
+                                  <Box flexShrink="0">
+                                    <Image
+                                      src={formData.signatureImage}
+                                      alt="Signature"
+                                      maxW={fitToOnePage ? (formData.items.length > 12 ? "50px" : formData.items.length > 8 ? "60px" : "70px") : "100px"}
+                                      maxH={fitToOnePage ? (formData.items.length > 12 ? "25px" : formData.items.length > 8 ? "30px" : "35px") : "60px"}
+                                      objectFit="contain"
+                                    />
+                                  </Box>
+                                )}
+                              </HStack>
+                            </Box>
+                          )}
+                        </SimpleGrid>
+                      )}
 
                       <Box bg={template === 'modern' ? 'blue.50' : 'gray.50'} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
                         <Text fontSize="2xs" fontWeight="500" color="gray.800">{t.invoiceMessage}</Text>

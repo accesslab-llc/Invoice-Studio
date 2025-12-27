@@ -296,19 +296,19 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
           </Dialog.Body>
           <Dialog.Footer>
             <HStack spacing="3" justify="flex-start" w="full">
-              <Button
-                variant="solid"
-                colorScheme="blue"
-                leftIcon={<Save size={16} />}
-                onClick={handleSaveTemplate}
-              >
-                {t.saveTemplate}
-              </Button>
-              {currentTemplateId && (
-                <Button variant="ghost" colorScheme="red" leftIcon={<Trash2 size={16} />} onClick={handleDeleteTemplate}>
-                  {t.deleteTemplate}
+                <Button
+                  variant="solid"
+                  colorScheme="blue"
+                  leftIcon={<Save size={16} />}
+                  onClick={handleSaveTemplate}
+                >
+                  {t.saveTemplate}
                 </Button>
-              )}
+                {currentTemplateId && (
+                  <Button variant="ghost" colorScheme="red" leftIcon={<Trash2 size={16} />} onClick={handleDeleteTemplate}>
+                    {t.deleteTemplate}
+                  </Button>
+                )}
             </HStack>
           </Dialog.Footer>
 

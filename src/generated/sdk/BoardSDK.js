@@ -517,7 +517,7 @@ class BoardSDK {
     } else {
       console.warn('[BoardSDK] WARNING: item.column_values is empty or undefined!');
     }
-    
+
     // Map column values
     item.column_values?.forEach(col => {
       // Find mapping key (e.g., 'clientName', 'discount', 'taxAmount') for this column ID

@@ -62,10 +62,10 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
     // 検索でフィルタリング
     if (searchTerm.trim()) {
       filtered = filtered.filter(
-        (item) =>
-          item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item) =>
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           item.group?.title?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    );
     }
 
     return filtered;

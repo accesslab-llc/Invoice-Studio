@@ -36,10 +36,12 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       </div>
     </div>
 
+    ${(data.clientName || data.clientDepartment || data.clientContact || data.clientZip || data.clientAddress || data.clientPhone || data.clientEmail) ? `
     <div class="parties">
+      ${(data.clientName || data.clientDepartment || data.clientContact || data.clientZip || data.clientAddress || data.clientPhone || data.clientEmail) ? `
       <div class="party">
         <h3>${t.billingTo}</h3>
-        <p><strong>${data.clientName}</strong></p>
+        ${data.clientName ? `<p><strong>${data.clientName}</strong></p>` : ''}
         ${data.clientDepartment ? `<p>${data.clientDepartment}</p>` : ''}
         ${data.clientContact ? `<p>${data.clientContact} ${t.sama}</p>` : ''}
         ${data.clientZip ? `<p>${data.clientZip}</p>` : ''}
@@ -47,11 +49,13 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
         ${data.clientPhone ? `<p>${data.clientPhone}</p>` : ''}
         ${data.clientEmail ? `<p>${data.clientEmail}</p>` : ''}
       </div>
+      ` : ''}
+      ${(data.companyName || data.companyRep || data.companyZip || data.companyAddress || data.companyPhone || data.companyFax || data.companyEmail || data.companyRegNumber || data.signatureImage) ? `
       <div class="party">
         <h3>${t.billingFrom}</h3>
         <div class="party-with-signature">
           <div class="party-info">
-            <p><strong>${data.companyName}</strong></p>
+            ${data.companyName ? `<p><strong>${data.companyName}</strong></p>` : ''}
             ${data.companyRep ? `<p>${data.companyRep}</p>` : ''}
             ${data.companyZip ? `<p>${data.companyZip}</p>` : ''}
             ${data.companyAddress ? `<p>${data.companyAddress}</p>` : ''}
@@ -63,7 +67,9 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
           ${data.signatureImage ? `<img src="${data.signatureImage}" alt="Signature" class="signature" />` : ''}
         </div>
       </div>
+      ` : ''}
     </div>
+    ` : ''}
 
     <div class="invoice-message">
       <p>${t.invoiceMessage}</p>
