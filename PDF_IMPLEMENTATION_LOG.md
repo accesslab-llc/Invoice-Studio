@@ -114,7 +114,9 @@ await html2pdf().set(opt).from(previewElement).save();
 1. **html2canvasのiframe制限**: iframe内のCSSスタイルを正しくキャプチャできない場合がある
 2. **Chakra UIとhtml2canvasの非互換性**: Chakra UIのCSS変数や新しいCSS関数はhtml2canvasでサポートされていない
 3. **純粋なHTML+CSSの重要性**: PDF生成には、フレームワークに依存しない純粋なHTML+CSSを使用する方が確実
-4. **段階的な問題解決**: 空白PDF → デザイン消失 → Chakra UIエラー → 最終解決と段階的に問題を解決
+4. **非同期処理の適切な管理**: ボタンの重複実行を防ぐため、フラグを使用して状態を管理し、`finally`ブロックで確実にリセットする
+5. **ページ分割の制御**: `fitToOnePage`設定を反映するため、コンテンツの高さを計算してスケールを調整する必要がある
+6. **段階的な問題解決**: 空白PDF → デザイン消失 → Chakra UIエラー → 複数の問題 → 最終解決と段階的に問題を解決
 
 ---
 
@@ -167,6 +169,81 @@ await html2pdf().set(opt).from(invoiceElement).save();
 
 ---
 
+### 6. PDF出力の複数の問題修正
+
+**問題**:
+1. PDFが2ページ構成になってしまう
+2. 日付、請求書番号、URL、ページ数がページ上下に表示される
+3. ダウンロードボタンを1回押すと2度ダウンロードされ、以降ボタンが押せない
+4. デザインがプレビューと少し違う
+
+**原因**:
+1. **2ページ構成**: `fitToOnePage`設定が反映されていない、コンテンツの高さがページサイズを超えている
+2. **日付・URL・ページ数の表示**: 生成されたHTMLに`<script>`タグが含まれており、ブラウザの印刷機能が自動的にヘッダー/フッターを追加している可能性
+3. **ダウンロードボタンの問題**: 非同期処理中にボタンが複数回クリックされる、エラー時にフラグがリセットされない
+4. **デザインの違い**: プレビューはChakra UIコンポーネント、PDFは生成されたHTMLを使用しているため、完全に一致しない可能性
+
+**対処**:
+1. **2ページ構成の修正**:
+   - `fitToOnePage`設定を反映し、コンテンツの高さを計算
+   - 1ページに収まるようにスケールを自動調整
+   - `pagebreak`オプションでページ分割を制御（`mode: 'avoid-all'`）
+
+2. **日付・URL・ページ数の表示を防止**:
+   - `onclone`コールバックで`<script>`タグを削除（印刷ダイアログを防止）
+   - `foreignObjectRendering: false`を設定
+   - 印刷関連の要素を削除
+
+3. **ダウンロードボタンの修正**:
+   - `isGeneratingPDF`フラグを追加して重複実行を防止
+   - `finally`ブロックでフラグをリセット（エラー時も確実にリセット）
+   - 生成中はボタンを無効化し、ローディング表示を追加
+   - 翻訳キーを追加（日本語・英語・スペイン語）
+
+4. **デザインの違い**:
+   - 生成されたHTMLのスタイルは正しく設定されている
+   - プレビューとPDFで使用するHTMLが異なるため、完全に一致させるのは困難
+
+**実装**:
+```javascript
+// 重複実行を防止
+const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+const downloadPDF = async () => {
+  if (isGeneratingPDF) return;
+  setIsGeneratingPDF(true);
+  
+  try {
+    // ... PDF生成処理
+    
+    // コンテンツの高さを計算してスケールを調整
+    if (fitToOnePage) {
+      const contentHeightMM = (contentHeight * 0.264583) / canvasScale;
+      if (contentHeightMM > availableHeightMM) {
+        canvasScale = (contentHeight * 0.264583) / availableHeightMM;
+      }
+    }
+    
+    // scriptタグを削除
+    onclone: (clonedDoc) => {
+      const scripts = clonedDoc.querySelectorAll('script');
+      scripts.forEach(script => script.remove());
+    }
+  } finally {
+    setIsGeneratingPDF(false);
+  }
+};
+```
+
+**結果**:
+- ✅ 2ページ構成を防止（fitToOnePage設定を反映）
+- ✅ 日付・URL・ページ数の表示を防止（scriptタグ削除）
+- ✅ ダウンロードボタンの重複実行を防止
+- ✅ エラー時もボタンが正常に動作するように改善
+- ⚠️ デザインの違いは、プレビューとPDFで使用するHTMLが異なるため、完全に一致させるのは困難
+
+---
+
 ## 現在の実装状態
 
 ✅ **動作確認済み**:
@@ -175,10 +252,13 @@ await html2pdf().set(opt).from(invoiceElement).save();
 - デザインの保持（色、レイアウト、スタイル）
 - 日本語・英語・スペイン語の表示
 - Chakra UIのCSSエラーを回避
+- 2ページ構成の防止（fitToOnePage設定対応）
+- ダウンロードボタンの重複実行防止
 
 ⚠️ **注意点**:
 - PDF生成には数秒かかる場合がある
 - HTML文字列を生成してiframeでレンダリングするため、プレビュー画面は不要
+- プレビューとPDFで使用するHTMLが異なるため、デザインが完全に一致しない可能性がある
 
 ---
 
