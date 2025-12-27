@@ -817,22 +817,73 @@ const App = () => {
 
   const downloadPDF = async () => {
     try {
-      // Get the preview element that's already rendered correctly
-      const previewElement = document.getElementById('invoice-preview-container');
+      const exportData = {
+        ...formData,
+        companyName: sectionVisibility.billingFrom ? formData.companyName : '',
+        companyRep: sectionVisibility.billingFrom ? formData.companyRep : '',
+        companyZip: sectionVisibility.billingFrom ? formData.companyZip : '',
+        companyAddress: sectionVisibility.billingFrom ? formData.companyAddress : '',
+        companyPhone: sectionVisibility.billingFrom ? formData.companyPhone : '',
+        companyFax: sectionVisibility.billingFrom ? formData.companyFax : '',
+        companyEmail: sectionVisibility.billingFrom ? formData.companyEmail : '',
+        companyRegNumber: sectionVisibility.billingFrom ? formData.companyRegNumber : '',
+        clientName: sectionVisibility.billingTo ? formData.clientName : '',
+        clientDepartment: sectionVisibility.billingTo ? formData.clientDepartment : '',
+        clientContact: sectionVisibility.billingTo ? formData.clientContact : '',
+        clientZip: sectionVisibility.billingTo ? formData.clientZip : '',
+        clientAddress: sectionVisibility.billingTo ? formData.clientAddress : '',
+        clientPhone: sectionVisibility.billingTo ? formData.clientPhone : '',
+        clientEmail: sectionVisibility.billingTo ? formData.clientEmail : '',
+        bankName: sectionVisibility.paymentInfo ? formData.bankName : '',
+        accountType: sectionVisibility.paymentInfo ? formData.accountType : '',
+        accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
+        accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
+        notes: sectionVisibility.notes ? formData.notes : '',
+        companyLogo: sectionVisibility.images ? formData.companyLogo : null,
+        signatureImage: sectionVisibility.images ? formData.signatureImage : null,
+        watermarkImage: sectionVisibility.images ? formData.watermarkImage : null
+      };
       
-      if (!previewElement) {
-        // Fallback: if preview is not available, navigate to download step first
-        setCurrentStep('download');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const retryElement = document.getElementById('invoice-preview-container');
-        if (!retryElement) {
-          throw new Error('プレビュー要素が見つかりません。ダウンロード画面に移動してください。');
-        }
-        return downloadPDF(); // Retry after navigation
-      }
+      // Generate HTML with UTF-8 encoding (this HTML has all styles embedded in <style> tag)
+      const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template]);
       
-      // Wait for images to load in the preview
-      const images = previewElement.querySelectorAll('img');
+      // Create a Blob URL from the HTML to load it in iframe
+      // This ensures proper encoding and style application
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Create an iframe to render the HTML
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.top = '0';
+      iframe.style.left = '0';
+      iframe.style.width = pageSize === 'a4' ? '210mm' : '216mm';
+      iframe.style.height = '297mm';
+      iframe.style.border = 'none';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
+      iframe.style.zIndex = '-1';
+      document.body.appendChild(iframe);
+      
+      // Load HTML from Blob URL
+      await new Promise((resolve, reject) => {
+        iframe.onload = resolve;
+        iframe.onerror = reject;
+        iframe.src = blobUrl;
+        // Timeout after 10 seconds
+        setTimeout(() => reject(new Error('iframe読み込みタイムアウト')), 10000);
+      });
+      
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      
+      // Wait for styles to be applied and content to render
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Force a reflow to ensure styles are applied
+      iframeDoc.body.offsetHeight;
+      
+      // Wait for images to load
+      const images = iframeDoc.querySelectorAll('img');
       const imagePromises = Array.from(images).map(img => {
         if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
         return new Promise((resolve) => {
@@ -845,7 +896,10 @@ const App = () => {
       await Promise.all(imagePromises);
       
       // Wait for fonts and styles to fully render
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get the invoice element from iframe
+      const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
       
       // Configure html2pdf options
       const opt = {
@@ -859,8 +913,8 @@ const App = () => {
           logging: false,
           letterRendering: true,
           backgroundColor: '#ffffff',
-          windowWidth: previewElement.scrollWidth,
-          windowHeight: previewElement.scrollHeight
+          windowWidth: invoiceElement.scrollWidth || iframeDoc.body.scrollWidth,
+          windowHeight: invoiceElement.scrollHeight || iframeDoc.body.scrollHeight
         },
         jsPDF: { 
           unit: 'mm', 
@@ -870,8 +924,12 @@ const App = () => {
         }
       };
       
-      // Generate and download PDF from preview element
-      await html2pdf().set(opt).from(previewElement).save();
+      // Generate and download PDF from iframe element
+      await html2pdf().set(opt).from(invoiceElement).save();
+      
+      // Clean up
+      URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(iframe);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       alert('PDFの生成に失敗しました。\nエラー: ' + error.message);
