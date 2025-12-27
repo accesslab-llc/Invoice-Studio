@@ -822,9 +822,18 @@ const App = () => {
       return;
     }
     
+    // Check if we're in the browser
+    if (typeof window === 'undefined') {
+      alert('PDF生成はブラウザでのみ利用可能です。');
+      return;
+    }
+    
     setIsGeneratingPDF(true);
     
     try {
+      // Dynamically import html2pdf.js (browser-only)
+      const html2pdf = (await import('html2pdf.js')).default;
+      
       const exportData = {
         ...formData,
         companyName: sectionVisibility.billingFrom ? formData.companyName : '',
