@@ -17,11 +17,6 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
   <meta charset="UTF-8">
   <title>${t.invoice} - ${data.invoiceNumber}</title>
   <style>${styles}</style>
-  <script>
-    window.onload = function() {
-      window.print();
-    };
-  </script>
 </head>
 <body>
   ${data.watermarkImage ? `<div class="watermark"><img src="${data.watermarkImage}" alt="Watermark" /></div>` : ''}

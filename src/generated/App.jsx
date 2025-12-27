@@ -815,7 +815,16 @@ const App = () => {
     }));
   };
 
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   const downloadPDF = async () => {
+    // Prevent multiple simultaneous downloads
+    if (isGeneratingPDF) {
+      return;
+    }
+    
+    setIsGeneratingPDF(true);
+    
     try {
       const exportData = {
         ...formData,
@@ -858,7 +867,8 @@ const App = () => {
       iframe.style.top = '0';
       iframe.style.left = '0';
       iframe.style.width = pageSize === 'a4' ? '210mm' : '216mm';
-      iframe.style.height = '297mm';
+      iframe.style.height = fitToOnePage ? '297mm' : 'auto';
+      iframe.style.minHeight = '297mm';
       iframe.style.border = 'none';
       iframe.style.opacity = '0';
       iframe.style.pointerEvents = 'none';
@@ -901,27 +911,75 @@ const App = () => {
       // Get the invoice element from iframe
       const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
       
+      // Get the invoice element from iframe
+      const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
+      
+      // Calculate dimensions
+      const contentWidth = invoiceElement.scrollWidth || iframeDoc.body.scrollWidth;
+      const contentHeight = invoiceElement.scrollHeight;
+      const pageWidthMM = pageSize === 'a4' ? 210 : 216; // A4: 210mm, Letter: 216mm
+      const pageHeightMM = pageSize === 'a4' ? 297 : 279; // A4: 297mm, Letter: 279mm
+      const marginMM = 20; // top + bottom margin
+      const availableHeightMM = pageHeightMM - marginMM;
+      
+      // Calculate scale if fitToOnePage is enabled
+      let canvasScale = 2;
+      if (fitToOnePage) {
+        // Convert content height from px to mm (approximate: 1px = 0.264583mm at 96dpi)
+        const contentHeightMM = (contentHeight * 0.264583) / canvasScale;
+        if (contentHeightMM > availableHeightMM) {
+          // Scale down to fit on one page
+          canvasScale = (contentHeight * 0.264583) / availableHeightMM;
+          canvasScale = Math.max(1, Math.min(canvasScale, 2)); // Limit between 1 and 2
+        }
+      }
+      
       // Configure html2pdf options
       const opt = {
         margin: [10, 10, 10, 10],
         filename: `invoice-${formData.invoiceNumber}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-          scale: 2,
+          scale: canvasScale,
           useCORS: true,
           allowTaint: true,
           logging: false,
           letterRendering: true,
           backgroundColor: '#ffffff',
-          windowWidth: invoiceElement.scrollWidth || iframeDoc.body.scrollWidth,
-          windowHeight: invoiceElement.scrollHeight || iframeDoc.body.scrollHeight
+          windowWidth: contentWidth,
+          windowHeight: contentHeight,
+          // Prevent browser print headers/footers from being captured
+          removeContainer: true,
+          // Disable foreign object rendering to avoid print headers
+          foreignObjectRendering: false,
+          onclone: (clonedDoc) => {
+            // Remove any print-related elements that might be captured
+            const printElements = clonedDoc.querySelectorAll('[class*="print"], [id*="print"]');
+            printElements.forEach(el => el.remove());
+            // Ensure body doesn't have print styles
+            clonedDoc.body.style.margin = '0';
+            clonedDoc.body.style.padding = '0';
+            // Remove any script tags that might trigger print dialogs
+            const scripts = clonedDoc.querySelectorAll('script');
+            scripts.forEach(script => script.remove());
+          }
         },
         jsPDF: { 
           unit: 'mm', 
           format: pageSize === 'a4' ? 'a4' : 'letter', 
           orientation: 'portrait',
-          compress: true
-        }
+          compress: true,
+          // Disable auto-print to prevent browser print dialog
+          putOnlyUsedFonts: true
+        },
+        pagebreak: {
+          mode: fitToOnePage ? 'avoid-all' : ['avoid-all', 'css'],
+          before: '.page-break-before',
+          after: '.page-break-after',
+          avoid: ['.invoice', '.header', '.parties', '.items', '.totals', 'table', 'tr']
+        },
+        // Disable header and footer
+        enableLinks: false
       };
       
       // Generate and download PDF from iframe element
@@ -933,6 +991,8 @@ const App = () => {
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       alert('PDFの生成に失敗しました。\nエラー: ' + error.message);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -1760,8 +1820,14 @@ const App = () => {
               </Card.Body>
               <Card.Footer>
                 <HStack justify="center" gap="4" w="full" wrap="wrap">
-                  <Button size="lg" onClick={downloadPDF} colorPalette="blue">
-                    <Download size={20} /> {t.downloadPDF}
+                  <Button 
+                    size="lg" 
+                    onClick={downloadPDF} 
+                    colorPalette="blue"
+                    disabled={isGeneratingPDF}
+                    loading={isGeneratingPDF}
+                  >
+                    <Download size={20} /> {isGeneratingPDF ? t.generatingPDF || '生成中...' : t.downloadPDF}
                   </Button>
                 </HStack>
               </Card.Footer>
