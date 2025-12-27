@@ -1308,8 +1308,20 @@ const App = () => {
                           size="sm"
                           width="150px"
                         >
-                          <Select.Trigger style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}>
-                            <Select.ValueText style={{ color: '#1a1a1a', fontWeight: '500' }} />
+                          <Select.Trigger 
+                            style={{ 
+                              color: '#1a1a1a', 
+                              backgroundColor: '#ffffff'
+                            }}
+                          >
+                            <Select.ValueText 
+                              style={{ 
+                                color: '#1a1a1a !important', 
+                                fontWeight: '500 !important'
+                              }}
+                            >
+                              {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : formData.deliveryType === '作業期間' ? t.deliveryTypeWorkPeriod : ''}
+                            </Select.ValueText>
                           </Select.Trigger>
                           <Select.Positioner>
                             <Select.Content>
