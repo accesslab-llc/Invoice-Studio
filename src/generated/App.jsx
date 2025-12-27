@@ -1306,7 +1306,9 @@ const App = () => {
                           width="150px"
                         >
                           <Select.Trigger style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}>
-                            <Select.ValueText style={{ color: '#1a1a1a', fontWeight: '500' }} />
+                            <Select.ValueText style={{ color: '#1a1a1a', fontWeight: '500' }}>
+                              {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : t.deliveryTypeWorkPeriod}
+                            </Select.ValueText>
                           </Select.Trigger>
                           <Select.Positioner>
                             <Select.Content>
@@ -1946,11 +1948,21 @@ const App = () => {
                       </HStack>
 
                       {documentType === 'estimate' && formData.deliveryPeriod && (
-                        <Box bg="cyan.50" p="2" borderRadius="sm" borderWidth="1px" borderColor="cyan.300">
-                          <Heading size="2xs" mb="1" color="cyan.800">
+                        <Box 
+                          bg={template === 'modern' ? 'cyan.50' : template === 'classic' ? 'white' : 'gray.50'}
+                          p="2" 
+                          borderRadius="sm" 
+                          borderWidth={template === 'modern' ? '1px' : '0'}
+                          borderColor={template === 'modern' ? 'cyan.300' : 'transparent'}
+                          borderLeftWidth={template === 'classic' ? '4px' : template === 'minimal' ? '3px' : '0'}
+                          borderLeftColor={template === 'classic' ? 'black' : template === 'minimal' ? 'gray.500' : 'transparent'}
+                          borderBottomWidth={template === 'classic' ? '1px' : '0'}
+                          borderBottomColor={template === 'classic' ? 'gray.200' : 'transparent'}
+                        >
+                          <Heading size="2xs" mb="1" color={template === 'modern' ? 'cyan.800' : template === 'classic' ? 'black' : 'gray.700'}>
                             {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : t.deliveryTypeWorkPeriod}:
                           </Heading>
-                          <Text fontSize="2xs" color="gray.800">{formData.deliveryPeriod}</Text>
+                          <Text fontSize="2xs" color={template === 'classic' ? 'black' : 'gray.800'}>{formData.deliveryPeriod}</Text>
                         </Box>
                       )}
 
@@ -1966,11 +1978,19 @@ const App = () => {
                       )}
 
                       {sectionVisibility.notes && formData.notes && (
-                        <Box bg="yellow.50" p="2" borderRadius="sm" borderLeftWidth="2px" borderColor="yellow.600">
-                          <Heading size="2xs" mb="0.5" color="gray.900">
+                        <Box 
+                          bg={template === 'modern' ? 'yellow.50' : template === 'classic' ? 'white' : 'gray.50'}
+                          p="2" 
+                          borderRadius="sm" 
+                          borderLeftWidth={template === 'classic' ? '4px' : '2px'} 
+                          borderColor={template === 'modern' ? 'yellow.600' : template === 'classic' ? 'black' : 'gray.400'}
+                          borderBottomWidth={template === 'classic' ? '1px' : '0'}
+                          borderBottomColor={template === 'classic' ? 'gray.200' : 'transparent'}
+                        >
+                          <Heading size="2xs" mb="0.5" color={template === 'classic' ? 'black' : 'gray.900'}>
                             {documentType === 'estimate' && formData.notesLabel ? formData.notesLabel : t.notes}
                           </Heading>
-                          <Text fontSize="2xs" whiteSpace="pre-wrap" lineHeight="1.4" color="gray.700">{formData.notes}</Text>
+                          <Text fontSize="2xs" whiteSpace="pre-wrap" lineHeight="1.4" color={template === 'classic' ? 'black' : 'gray.700'}>{formData.notes}</Text>
                         </Box>
                       )}
                     </Stack>
