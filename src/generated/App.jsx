@@ -900,6 +900,10 @@ const App = () => {
       // Force a reflow to ensure styles are applied
       iframeDoc.body.offsetHeight;
       
+      // Store the original style tag content for later use in onclone
+      const originalStyleTag = iframeDoc.querySelector('style');
+      const originalStyleContent = originalStyleTag ? originalStyleTag.textContent : '';
+      
       // Wait for images to load
       const images = iframeDoc.querySelectorAll('img');
       const imagePromises = Array.from(images).map(img => {
@@ -958,6 +962,23 @@ const App = () => {
           // Disable foreign object rendering to avoid print headers
           foreignObjectRendering: false,
           onclone: (clonedDoc) => {
+            // CRITICAL: Ensure styles are preserved in cloned document
+            // html2canvas often loses <style> tags when cloning, so we need to re-add them
+            const clonedStyle = clonedDoc.querySelector('style');
+            if (originalStyleContent && (!clonedStyle || !clonedStyle.textContent)) {
+              // Remove existing style tag if it's empty or missing content
+              if (clonedStyle) {
+                clonedStyle.remove();
+              }
+              // Create a new style tag with the original content
+              const newStyle = clonedDoc.createElement('style');
+              newStyle.textContent = originalStyleContent;
+              clonedDoc.head.appendChild(newStyle);
+            } else if (clonedStyle && originalStyleContent) {
+              // Update existing style tag with original content
+              clonedStyle.textContent = originalStyleContent;
+            }
+            
             // Remove any print-related elements that might be captured
             const printElements = clonedDoc.querySelectorAll('[class*="print"], [id*="print"]');
             printElements.forEach(el => el.remove());
