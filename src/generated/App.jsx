@@ -1232,25 +1232,25 @@ const App = () => {
                   <Settings size={16} /> {t.fieldMapping}
                 </Button>
               </HStack>
-              <Field.Root width="auto">
-                <Field.Label>{t.documentType}</Field.Label>
-                <Select.Root
-                  value={[documentType]}
-                  onValueChange={({ value }) => setDocumentType(value[0])}
+              <HStack gap="2">
+                <Text fontSize="sm" fontWeight="medium">{t.documentType}:</Text>
+                <Button
                   size="sm"
-                  width="150px"
+                  variant={documentType === 'invoice' ? 'solid' : 'outline'}
+                  colorPalette="blue"
+                  onClick={() => setDocumentType('invoice')}
                 >
-                  <Select.Trigger>
-                    <Select.ValueText />
-                  </Select.Trigger>
-                  <Select.Positioner>
-                    <Select.Content>
-                      <Select.Item key="invoice" item={{ value: 'invoice', label: t.invoice }}>{t.invoice}</Select.Item>
-                      <Select.Item key="estimate" item={{ value: 'estimate', label: t.estimate }}>{t.estimate}</Select.Item>
-                    </Select.Content>
-                  </Select.Positioner>
-                </Select.Root>
-              </Field.Root>
+                  {t.invoice}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={documentType === 'estimate' ? 'solid' : 'outline'}
+                  colorPalette="blue"
+                  onClick={() => setDocumentType('estimate')}
+                >
+                  {t.estimate}
+                </Button>
+              </HStack>
             </HStack>
 
             <Card.Root>
@@ -1672,6 +1672,13 @@ const App = () => {
                 </Collapsible.Content>
               </Collapsible.Root>
             </Card.Root>
+            
+            {/* ダウンロードへボタンをページの一番下に配置 */}
+            <HStack justify="flex-end" mt="6" mb="4">
+              <Button colorPalette="blue" size="lg" onClick={() => setCurrentStep('download')}>
+                {t.continueToDownload} →
+              </Button>
+            </HStack>
           </Stack>
         )}
 
@@ -1933,13 +1940,6 @@ const App = () => {
                 </HStack>
               </Card.Footer>
             </Card.Root>
-            
-            {/* ダウンロードへボタンをページの一番下に配置 */}
-            <HStack justify="flex-end" mt="4">
-              <Button colorPalette="blue" size="lg" onClick={() => setCurrentStep('download')}>
-                {t.continueToDownload} →
-              </Button>
-            </HStack>
           </Stack>
         )}
       </Stack>
