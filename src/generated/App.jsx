@@ -1245,8 +1245,8 @@ const App = () => {
                   </Select.Trigger>
                   <Select.Positioner>
                     <Select.Content>
-                      <Select.Item item={{ value: 'invoice', label: t.invoice }}>{t.invoice}</Select.Item>
-                      <Select.Item item={{ value: 'estimate', label: t.estimate }}>{t.estimate}</Select.Item>
+                      <Select.Item key="invoice" item={{ value: 'invoice', label: t.invoice }}>{t.invoice}</Select.Item>
+                      <Select.Item key="estimate" item={{ value: 'estimate', label: t.estimate }}>{t.estimate}</Select.Item>
                     </Select.Content>
                   </Select.Positioner>
                 </Select.Root>
@@ -1526,6 +1526,7 @@ const App = () => {
               </Collapsible.Root>
                 </>
               )}
+            </Card.Root>
 
             <Card.Root>
               <Card.Header>

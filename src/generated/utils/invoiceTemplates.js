@@ -16,7 +16,7 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8">
-  <title>${t.invoice} - ${data.invoiceNumber}</title>
+  <title>${isEstimate ? t.estimate : t.invoice} - ${data.invoiceNumber}</title>
   <style>${styles}</style>
 </head>
 <body>
