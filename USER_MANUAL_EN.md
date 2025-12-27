@@ -62,23 +62,14 @@ Please enable the following permissions in Monday.com Developer Center:
 
 ### Step 4: Download
 
-#### Download as HTML
+#### Download as PDF
 
 1. Navigate to the "Download" tab
 2. Preview the invoice appearance
-3. Click the "HTML Download" button
-4. An HTML file will be downloaded
+3. Click the "Download PDF" button
+4. A PDF file will be downloaded
 
-#### Save as PDF
-
-1. Download an HTML file using the "HTML Download" button
-2. Open the downloaded HTML file in a browser
-3. Select "Print" from the browser menu (Windows: Ctrl+P / Mac: Cmd+P)
-4. In the print dialog, change "Destination" or "Save to" to "Save as PDF"
-5. Click "Save" or "Save as PDF"
-6. A PDF file will be saved
-
-**Note**: The procedure may vary depending on the browser. You can save as PDF in all major browsers including Chrome, Firefox, Safari, and Edge.
+**Note**: PDF generation may take a few seconds. All languages (Japanese, English, Spanish, etc.) will be displayed correctly.
 
 ---
 

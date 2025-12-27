@@ -62,23 +62,14 @@ Por favor, habilite los siguientes permisos en Monday.com Developer Center:
 
 ### Paso 4: Descargar
 
-#### Descargar como HTML
+#### Descargar como PDF
 
 1. Navegue a la pestaña "Descargar"
 2. Previsualice la apariencia de la factura
-3. Haga clic en el botón "Descargar HTML"
-4. Se descargará un archivo HTML
+3. Haga clic en el botón "Descargar PDF"
+4. Se descargará un archivo PDF
 
-#### Guardar como PDF
-
-1. Descargue un archivo HTML usando el botón "Descargar HTML"
-2. Abra el archivo HTML descargado en un navegador
-3. Seleccione "Imprimir" desde el menú del navegador (Windows: Ctrl+P / Mac: Cmd+P)
-4. En el diálogo de impresión, cambie "Destino" o "Guardar en" a "Guardar como PDF"
-5. Haga clic en "Guardar" o "Guardar como PDF"
-6. Se guardará un archivo PDF
-
-**Nota**: El procedimiento puede variar según el navegador. Puede guardar como PDF en todos los navegadores principales, incluidos Chrome, Firefox, Safari y Edge.
+**Nota**: La generación de PDF puede tardar unos segundos. Todos los idiomas (japonés, inglés, español, etc.) se mostrarán correctamente.
 
 ---
 
