@@ -931,15 +931,23 @@ const App = () => {
       const marginMM = 20; // top + bottom margin
       const availableHeightMM = pageHeightMM - marginMM;
       
+      // Convert mm to px (approximate: 1mm = 3.779527559px at 96dpi)
+      const mmToPx = 3.779527559;
+      const availableHeightPx = availableHeightMM * mmToPx;
+      
       // Calculate scale if fitToOnePage is enabled
       let canvasScale = 2;
+      let finalWindowHeight = contentHeight;
+      
       if (fitToOnePage) {
-        // Convert content height from px to mm (approximate: 1px = 0.264583mm at 96dpi)
-        const contentHeightMM = (contentHeight * 0.264583) / canvasScale;
-        if (contentHeightMM > availableHeightMM) {
+        // Calculate the scale needed to fit content on one page
+        if (contentHeight > availableHeightPx) {
           // Scale down to fit on one page
           canvasScale = (contentHeight * 0.264583) / availableHeightMM;
-          canvasScale = Math.max(1, Math.min(canvasScale, 2)); // Limit between 1 and 2
+          canvasScale = Math.max(0.5, Math.min(canvasScale, 2)); // Limit between 0.5 and 2
+          
+          // Adjust windowHeight to match the scaled content
+          finalWindowHeight = Math.min(contentHeight, availableHeightPx);
         }
       }
       
@@ -956,7 +964,7 @@ const App = () => {
           letterRendering: true,
           backgroundColor: '#ffffff',
           windowWidth: contentWidth,
-          windowHeight: contentHeight,
+          windowHeight: finalWindowHeight,
           // Prevent browser print headers/footers from being captured
           removeContainer: true,
           // Disable foreign object rendering to avoid print headers
@@ -1001,7 +1009,7 @@ const App = () => {
           mode: fitToOnePage ? 'avoid-all' : ['avoid-all', 'css'],
           before: '.page-break-before',
           after: '.page-break-after',
-          avoid: ['.invoice', '.header', '.parties', '.items', '.totals', 'table', 'tr']
+          avoid: ['.invoice', '.header', '.parties', '.items', '.totals', 'table', 'tr', 'tbody', 'thead']
         },
         // Disable header and footer
         enableLinks: false
