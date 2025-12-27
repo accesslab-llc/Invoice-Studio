@@ -399,29 +399,42 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       .invoice-message { border-left-color: ${primaryColor}; }
       .delivery-info {
         background: white;
-        border: 1px solid #d1d5db;
-        border-left: 3px solid ${primaryColor};
+        border: none;
+        border-left: 4px solid #000000;
+        border-bottom: 1px solid #e5e7eb;
       }
       .delivery-info h4 {
-        color: ${primaryColor};
+        color: #000000;
         font-weight: bold;
+      }
+      .delivery-info p {
+        color: #000000;
       }
       .notes {
         background: white;
-        border-left: 3px solid ${primaryColor};
+        border: none;
+        border-left: 4px solid #000000;
+        border-bottom: 1px solid #e5e7eb;
       }
       .notes h4 {
-        color: ${primaryColor};
+        color: #000000;
         font-weight: bold;
+      }
+      .notes p {
+        color: #000000;
       }
       .payment-info {
         background: white;
-        border: 1px solid #d1d5db;
-        border-left: 3px solid ${primaryColor};
+        border: none;
+        border-left: 4px solid #000000;
+        border-bottom: 1px solid #e5e7eb;
       }
       .payment-info h4 {
-        color: ${primaryColor};
+        color: #000000;
         font-weight: bold;
+      }
+      .payment-info p {
+        color: #000000;
       }
     `;
   } else {
@@ -432,30 +445,40 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       table.items thead { background: white; border-bottom: 2px solid ${primaryColor}; }
       .invoice-message { border-left-color: ${primaryColor}; }
       .delivery-info {
-        background: white;
-        border: none;
-        border-left: 2px solid ${primaryColor};
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-left: 3px solid #6c757d;
       }
       .delivery-info h4 {
-        color: ${primaryColor};
-        font-weight: 400;
+        color: #495057;
+        font-weight: 500;
+      }
+      .delivery-info p {
+        color: #212529;
       }
       .notes {
-        background: white;
-        border-left: 2px solid ${primaryColor};
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-left: 3px solid #6c757d;
       }
       .notes h4 {
-        color: ${primaryColor};
-        font-weight: 400;
+        color: #495057;
+        font-weight: 500;
+      }
+      .notes p {
+        color: #212529;
       }
       .payment-info {
-        background: white;
-        border: none;
-        border-left: 2px solid ${primaryColor};
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-left: 3px solid #6c757d;
       }
       .payment-info h4 {
-        color: ${primaryColor};
-        font-weight: 400;
+        color: #495057;
+        font-weight: 500;
+      }
+      .payment-info p {
+        color: #212529;
       }
     `;
   }

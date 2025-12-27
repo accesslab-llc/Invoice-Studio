@@ -1295,19 +1295,6 @@ const App = () => {
                         }} />
                     </Field.Root>
                   </HStack>
-                  {documentType === 'invoice' && (
-                    <Field.Root>
-                      <Field.Label>{t.paymentTerms}</Field.Label>
-                      <HStack>
-                        <NumberInput.Root value={formData.paymentTerms}
-                          onValueChange={({ value }) => setFormData({ ...formData, paymentTerms: value })}
-                          min={0} size="sm" width="100px">
-                          <NumberInput.Input />
-                        </NumberInput.Root>
-                        <Text>{t.daysFromInvoice}</Text>
-                      </HStack>
-                    </Field.Root>
-                  )}
                   {documentType === 'estimate' && (
                     <Field.Root>
                       <Field.Label>{t.deliveryPeriod}</Field.Label>
@@ -1318,8 +1305,8 @@ const App = () => {
                           size="sm"
                           width="150px"
                         >
-                          <Select.Trigger>
-                            <Select.ValueText style={{ color: '#1a1a1a' }} />
+                          <Select.Trigger style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}>
+                            <Select.ValueText style={{ color: '#1a1a1a', fontWeight: '500' }} />
                           </Select.Trigger>
                           <Select.Positioner>
                             <Select.Content>
