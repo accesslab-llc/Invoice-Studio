@@ -847,32 +847,53 @@ const App = () => {
       // Generate HTML with UTF-8 encoding
       const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template]);
       
-      // Create a temporary container to render HTML
-      // This ensures UTF-8 encoding is properly handled
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.width = pageSize === 'a4' ? '210mm' : '216mm';
-      container.style.padding = '0';
-      container.style.margin = '0';
-      document.body.appendChild(container);
+      // Create a temporary iframe to render HTML properly
+      // This ensures proper rendering and encoding
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.top = '0';
+      iframe.style.left = '0';
+      iframe.style.width = pageSize === 'a4' ? '210mm' : '216mm';
+      iframe.style.height = '297mm';
+      iframe.style.border = 'none';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
+      iframe.style.zIndex = '-1';
+      document.body.appendChild(iframe);
       
-      // Set HTML content with explicit UTF-8 encoding
-      container.innerHTML = html;
+      // Wait for iframe to be ready
+      await new Promise(resolve => {
+        iframe.onload = resolve;
+        iframe.src = 'about:blank';
+      });
+      
+      // Write HTML to iframe
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(html);
+      iframeDoc.close();
+      
+      // Wait for iframe content to render
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Wait for images to load
-      const images = container.querySelectorAll('img');
-      const imagePromises = Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise((resolve, reject) => {
+      const iframeImages = iframeDoc.querySelectorAll('img');
+      const imagePromises = Array.from(iframeImages).map(img => {
+        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+        return new Promise((resolve) => {
           img.onload = resolve;
-          img.onerror = reject;
-          // Timeout after 5 seconds
+          img.onerror = resolve; // Continue even if image fails
           setTimeout(() => resolve(), 5000);
         });
       });
       
       await Promise.all(imagePromises);
+      
+      // Wait a bit more for rendering
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Get the body element from iframe
+      const iframeBody = iframeDoc.body;
       
       // Configure html2pdf options
       const opt = {
@@ -884,7 +905,9 @@ const App = () => {
           useCORS: true,
           logging: false,
           letterRendering: true,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          windowWidth: iframeBody.scrollWidth,
+          windowHeight: iframeBody.scrollHeight
         },
         jsPDF: { 
           unit: 'mm', 
@@ -894,11 +917,11 @@ const App = () => {
         }
       };
       
-      // Generate and download PDF
-      await html2pdf().set(opt).from(container).save();
+      // Generate and download PDF from iframe body
+      await html2pdf().set(opt).from(iframeBody).save();
       
       // Clean up
-      document.body.removeChild(container);
+      document.body.removeChild(iframe);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       alert('PDFの生成に失敗しました。\nエラー: ' + error.message);
