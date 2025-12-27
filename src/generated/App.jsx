@@ -1301,14 +1301,15 @@ const App = () => {
                       <HStack gap="3">
                         <Select.Root
                           value={[formData.deliveryType]}
-                          onValueChange={({ value }) => setFormData({ ...formData, deliveryType: value[0] })}
+                          onValueChange={({ value }) => {
+                            const newType = value[0];
+                            setFormData({ ...formData, deliveryType: newType });
+                          }}
                           size="sm"
                           width="150px"
                         >
                           <Select.Trigger style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}>
-                            <Select.ValueText style={{ color: '#1a1a1a', fontWeight: '500' }}>
-                              {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : t.deliveryTypeWorkPeriod}
-                            </Select.ValueText>
+                            <Select.ValueText style={{ color: '#1a1a1a', fontWeight: '500' }} />
                           </Select.Trigger>
                           <Select.Positioner>
                             <Select.Content>

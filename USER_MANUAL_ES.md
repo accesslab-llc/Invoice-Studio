@@ -61,7 +61,7 @@ Por favor, habilite los siguientes permisos en Monday.com Developer Center:
    - Notas/Condiciones del presupuesto
    - Configuración de imágenes (logo de la empresa, firma/sello, marca de agua de fondo)
 
-**Importante**: Los campos vacíos (información del emisor, información de facturación, información de pago, notas, etc.) se ocultan automáticamente, y en el PDF y la vista previa se muestran sin dejar líneas vacías. Los campos que no se completen no se mostrarán, por lo que no quedarán espacios vacíos innecesarios.
+**Importante**: Los campos vacíos (información del emisor, información de facturación, información de pago, notas, etc.) se ocultan automáticamente, y en el PDF y la vista previa se muestran sin dejar líneas vacías. Los campos que no se completen no se mostrarán, por lo que no quedarán espacios vacíos innecesarios. Por ejemplo, si no completa algunos campos de la información del emisor (como número de teléfono o FAX), esos campos no se mostrarán y solo se mostrarán los campos completados, sin espacios vacíos entre ellos.
 
 ### Paso 4: Descargar
 
