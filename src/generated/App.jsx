@@ -873,8 +873,11 @@ const App = () => {
       iframeDoc.write(html);
       iframeDoc.close();
       
-      // Wait for iframe content to render
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Wait for styles to be applied and content to render
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Force a reflow to ensure styles are applied
+      iframeDoc.body.offsetHeight;
       
       // Wait for images to load
       const iframeImages = iframeDoc.querySelectorAll('img');
@@ -889,11 +892,11 @@ const App = () => {
       
       await Promise.all(imagePromises);
       
-      // Wait a bit more for rendering
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Wait for fonts and styles to fully render
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Get the body element from iframe
-      const iframeBody = iframeDoc.body;
+      // Get the invoice container element (not just body)
+      const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
       
       // Configure html2pdf options
       const opt = {
@@ -903,11 +906,22 @@ const App = () => {
         html2canvas: { 
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           logging: false,
           letterRendering: true,
           backgroundColor: '#ffffff',
-          windowWidth: iframeBody.scrollWidth,
-          windowHeight: iframeBody.scrollHeight
+          windowWidth: invoiceElement.scrollWidth || iframeDoc.body.scrollWidth,
+          windowHeight: invoiceElement.scrollHeight || iframeDoc.body.scrollHeight,
+          onclone: (clonedDoc) => {
+            // Ensure styles are preserved in cloned document
+            const clonedStyle = clonedDoc.querySelector('style');
+            if (!clonedStyle && iframeDoc.querySelector('style')) {
+              const originalStyle = iframeDoc.querySelector('style');
+              const newStyle = clonedDoc.createElement('style');
+              newStyle.textContent = originalStyle.textContent;
+              clonedDoc.head.appendChild(newStyle);
+            }
+          }
         },
         jsPDF: { 
           unit: 'mm', 
@@ -917,8 +931,8 @@ const App = () => {
         }
       };
       
-      // Generate and download PDF from iframe body
-      await html2pdf().set(opt).from(iframeBody).save();
+      // Generate and download PDF from invoice element
+      await html2pdf().set(opt).from(invoiceElement).save();
       
       // Clean up
       document.body.removeChild(iframe);
