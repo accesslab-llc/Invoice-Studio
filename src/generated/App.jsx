@@ -6,6 +6,7 @@ import {
   Collapsible, Alert
 } from '@chakra-ui/react';
 import { FileText, Download, Settings, Eye, EyeOff, HelpCircle } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import BoardSDK from './sdk/BoardSDK';
 import ItemSelector from './components/ItemSelector';
 import ImageUploader from './components/ImageUploader';
@@ -814,41 +815,94 @@ const App = () => {
     }));
   };
 
-  const downloadHTML = () => {
-    const exportData = {
-      ...formData,
-      companyName: sectionVisibility.billingFrom ? formData.companyName : '',
-      companyRep: sectionVisibility.billingFrom ? formData.companyRep : '',
-      companyZip: sectionVisibility.billingFrom ? formData.companyZip : '',
-      companyAddress: sectionVisibility.billingFrom ? formData.companyAddress : '',
-      companyPhone: sectionVisibility.billingFrom ? formData.companyPhone : '',
-      companyFax: sectionVisibility.billingFrom ? formData.companyFax : '',
-      companyEmail: sectionVisibility.billingFrom ? formData.companyEmail : '',
-      companyRegNumber: sectionVisibility.billingFrom ? formData.companyRegNumber : '',
-      clientName: sectionVisibility.billingTo ? formData.clientName : '',
-      clientDepartment: sectionVisibility.billingTo ? formData.clientDepartment : '',
-      clientContact: sectionVisibility.billingTo ? formData.clientContact : '',
-      clientZip: sectionVisibility.billingTo ? formData.clientZip : '',
-      clientAddress: sectionVisibility.billingTo ? formData.clientAddress : '',
-      clientPhone: sectionVisibility.billingTo ? formData.clientPhone : '',
-      clientEmail: sectionVisibility.billingTo ? formData.clientEmail : '',
-      bankName: sectionVisibility.paymentInfo ? formData.bankName : '',
-      accountType: sectionVisibility.paymentInfo ? formData.accountType : '',
-      accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
-      accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
-      notes: sectionVisibility.notes ? formData.notes : '',
-      companyLogo: sectionVisibility.images ? formData.companyLogo : null,
-      signatureImage: sectionVisibility.images ? formData.signatureImage : null,
-      watermarkImage: sectionVisibility.images ? formData.watermarkImage : null
-    };
-    const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template]);
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `invoice-${formData.invoiceNumber}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadPDF = async () => {
+    try {
+      const exportData = {
+        ...formData,
+        companyName: sectionVisibility.billingFrom ? formData.companyName : '',
+        companyRep: sectionVisibility.billingFrom ? formData.companyRep : '',
+        companyZip: sectionVisibility.billingFrom ? formData.companyZip : '',
+        companyAddress: sectionVisibility.billingFrom ? formData.companyAddress : '',
+        companyPhone: sectionVisibility.billingFrom ? formData.companyPhone : '',
+        companyFax: sectionVisibility.billingFrom ? formData.companyFax : '',
+        companyEmail: sectionVisibility.billingFrom ? formData.companyEmail : '',
+        companyRegNumber: sectionVisibility.billingFrom ? formData.companyRegNumber : '',
+        clientName: sectionVisibility.billingTo ? formData.clientName : '',
+        clientDepartment: sectionVisibility.billingTo ? formData.clientDepartment : '',
+        clientContact: sectionVisibility.billingTo ? formData.clientContact : '',
+        clientZip: sectionVisibility.billingTo ? formData.clientZip : '',
+        clientAddress: sectionVisibility.billingTo ? formData.clientAddress : '',
+        clientPhone: sectionVisibility.billingTo ? formData.clientPhone : '',
+        clientEmail: sectionVisibility.billingTo ? formData.clientEmail : '',
+        bankName: sectionVisibility.paymentInfo ? formData.bankName : '',
+        accountType: sectionVisibility.paymentInfo ? formData.accountType : '',
+        accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
+        accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
+        notes: sectionVisibility.notes ? formData.notes : '',
+        companyLogo: sectionVisibility.images ? formData.companyLogo : null,
+        signatureImage: sectionVisibility.images ? formData.signatureImage : null,
+        watermarkImage: sectionVisibility.images ? formData.watermarkImage : null
+      };
+      
+      // Generate HTML with UTF-8 encoding
+      const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template]);
+      
+      // Create a temporary container to render HTML
+      // This ensures UTF-8 encoding is properly handled
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.width = pageSize === 'a4' ? '210mm' : '216mm';
+      container.style.padding = '0';
+      container.style.margin = '0';
+      document.body.appendChild(container);
+      
+      // Set HTML content with explicit UTF-8 encoding
+      container.innerHTML = html;
+      
+      // Wait for images to load
+      const images = container.querySelectorAll('img');
+      const imagePromises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          // Timeout after 5 seconds
+          setTimeout(() => resolve(), 5000);
+        });
+      });
+      
+      await Promise.all(imagePromises);
+      
+      // Configure html2pdf options
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `invoice-${formData.invoiceNumber}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: pageSize === 'a4' ? 'a4' : 'letter', 
+          orientation: 'portrait',
+          compress: true
+        }
+      };
+      
+      // Generate and download PDF
+      await html2pdf().set(opt).from(container).save();
+      
+      // Clean up
+      document.body.removeChild(container);
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('PDFの生成に失敗しました。\nエラー: ' + error.message);
+    }
   };
 
   const getPageDimensions = () => {
@@ -1674,8 +1728,8 @@ const App = () => {
               </Card.Body>
               <Card.Footer>
                 <HStack justify="center" gap="4" w="full" wrap="wrap">
-                  <Button size="lg" onClick={downloadHTML} colorPalette="blue">
-                    <Download size={20} /> {t.downloadHTML}
+                  <Button size="lg" onClick={downloadPDF} colorPalette="blue">
+                    <Download size={20} /> {t.downloadPDF}
                   </Button>
                 </HStack>
               </Card.Footer>
