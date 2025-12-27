@@ -397,6 +397,32 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       table.items { border: 1px solid ${primaryColor}; }
       table.items thead { border-bottom: 2px solid ${primaryColor}; }
       .invoice-message { border-left-color: ${primaryColor}; }
+      .delivery-info {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-left: 3px solid ${primaryColor};
+      }
+      .delivery-info h4 {
+        color: ${primaryColor};
+        font-weight: bold;
+      }
+      .notes {
+        background: white;
+        border-left: 3px solid ${primaryColor};
+      }
+      .notes h4 {
+        color: ${primaryColor};
+        font-weight: bold;
+      }
+      .payment-info {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-left: 3px solid ${primaryColor};
+      }
+      .payment-info h4 {
+        color: ${primaryColor};
+        font-weight: bold;
+      }
     `;
   } else {
     return base + `
@@ -405,6 +431,32 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       table.items { border-top: 1px solid ${primaryColor}; border-bottom: 1px solid ${primaryColor}; }
       table.items thead { background: white; border-bottom: 2px solid ${primaryColor}; }
       .invoice-message { border-left-color: ${primaryColor}; }
+      .delivery-info {
+        background: white;
+        border: none;
+        border-left: 2px solid ${primaryColor};
+      }
+      .delivery-info h4 {
+        color: ${primaryColor};
+        font-weight: 400;
+      }
+      .notes {
+        background: white;
+        border-left: 2px solid ${primaryColor};
+      }
+      .notes h4 {
+        color: ${primaryColor};
+        font-weight: 400;
+      }
+      .payment-info {
+        background: white;
+        border: none;
+        border-left: 2px solid ${primaryColor};
+      }
+      .payment-info h4 {
+        color: ${primaryColor};
+        font-weight: 400;
+      }
     `;
   }
 };

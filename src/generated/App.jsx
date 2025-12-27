@@ -1319,7 +1319,7 @@ const App = () => {
                           width="150px"
                         >
                           <Select.Trigger>
-                            <Select.ValueText />
+                            <Select.ValueText style={{ color: '#1a1a1a' }} />
                           </Select.Trigger>
                           <Select.Positioner>
                             <Select.Content>

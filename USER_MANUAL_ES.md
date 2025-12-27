@@ -1,6 +1,6 @@
 # InvoiceStudio - Manual de Usuario
 
-**Última actualización**: 2024
+**Última actualización**: Enero 2025
 
 ## Tabla de Contenidos
 
@@ -52,13 +52,16 @@ Por favor, habilite los siguientes permisos en Monday.com Developer Center:
 1. La información del elemento seleccionado se completará automáticamente
 2. Haga clic en el botón **Mapeo de Campos** para configurar las asignaciones entre las columnas del tablero de Monday.com y los campos de factura (recomendado para la configuración inicial)
 3. Edite la siguiente información según sea necesario:
-   - Información básica (número de factura, fecha de factura, fecha de vencimiento, etc.)
+   - Información básica (número de factura, fecha de factura, fecha de vencimiento/válido hasta, etc.)
    - Información del emisor (nombre de la empresa, representante, dirección, información de contacto, etc.)
    - Información de facturación (nombre de la empresa, departamento, persona de contacto, dirección, información de contacto, etc.)
    - Artículos de línea (nombre del artículo, cantidad, precio unitario, etc.) - obtenidos automáticamente de subelementos
-   - Información de pago (nombre del banco, información de cuenta, etc.)
-   - Notas
+   - Información de pago (nombre del banco, información de cuenta, etc.) - solo para facturas
+   - Período de entrega - solo para presupuestos
+   - Notas/Condiciones del presupuesto
    - Configuración de imágenes (logo de la empresa, firma/sello, marca de agua de fondo)
+
+**Importante**: Los campos vacíos (información del emisor, información de facturación, información de pago, notas, etc.) se ocultan automáticamente, y en el PDF y la vista previa se muestran sin dejar líneas vacías. Los campos que no se completen no se mostrarán, por lo que no quedarán espacios vacíos innecesarios.
 
 ### Paso 4: Descargar
 
@@ -89,6 +92,8 @@ La función de mapeo de campos permite mapear columnas del tablero de Monday.com
 - **Información Básica**
   - Número de Factura
   - Fecha de Factura
+  - Fecha de Vencimiento (para facturas)
+  - Válido Hasta (para presupuestos)
 
 - **Información de Facturación**
   - Nombre de Facturación
@@ -144,9 +149,17 @@ La función de plantilla permite guardar y reutilizar información del emisor e 
 
 ### Selección de Plantilla
 
-- **Moderno**: Diseño simple y refinado
-- **Clásico**: Estilo de factura tradicional
-- **Minimalista**: Diseño simple y legible
+- **Moderno**: Diseño simple y refinado. Utiliza fondos de color para secciones como período de entrega, información de pago, notas, etc.
+- **Clásico**: Estilo de factura tradicional. Fondo blanco con líneas de acento en el lado izquierdo para un diseño simple
+- **Minimalista**: Diseño simple y legible. Decoración mínima para organizar la información
+
+### Funciones de Presupuesto
+
+Al crear un presupuesto, están disponibles las siguientes funciones adicionales:
+
+- **Válido hasta**: Establecer la fecha de vencimiento del presupuesto (compatible con mapeo de campos)
+- **Período de entrega**: Seleccionar y ingresar fecha límite o período de trabajo (solo para presupuestos)
+- **Condiciones del presupuesto**: Cambiar el título de la sección de notas a "Condiciones del presupuesto", etc. (solo para presupuestos)
 
 ### Cambiar Color de Plantilla
 
@@ -162,6 +175,8 @@ La función de plantilla permite guardar y reutilizar información del emisor e 
 ### Mostrar/Ocultar Secciones
 
 Puede alternar la visualización de cada sección (emisor, facturación, información de pago, notas, configuración de imágenes).
+
+**Nota**: Si oculta una sección, su contenido no se mostrará en el PDF ni en la vista previa. Además, los campos vacíos se ocultan automáticamente, por lo que los campos que no se completen no se mostrarán.
 
 ---
 
@@ -218,5 +233,5 @@ Si su problema no se resuelve, por favor contacte al servicio de soporte de Mond
 
 ---
 
-**Última actualización**: 2024
+**Última actualización**: Enero 2025
 
