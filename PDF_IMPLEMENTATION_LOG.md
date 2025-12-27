@@ -112,8 +112,9 @@ await html2pdf().set(opt).from(previewElement).save();
 ## 学んだ教訓
 
 1. **html2canvasのiframe制限**: iframe内のCSSスタイルを正しくキャプチャできない場合がある
-2. **既存のレンダリングを活用**: 既に正しく表示されている要素を直接キャプチャする方が確実
-3. **段階的な問題解決**: 空白PDF → デザイン消失 → 最終解決と段階的に問題を解決
+2. **Chakra UIとhtml2canvasの非互換性**: Chakra UIのCSS変数や新しいCSS関数はhtml2canvasでサポートされていない
+3. **純粋なHTML+CSSの重要性**: PDF生成には、フレームワークに依存しない純粋なHTML+CSSを使用する方が確実
+4. **段階的な問題解決**: 空白PDF → デザイン消失 → Chakra UIエラー → 最終解決と段階的に問題を解決
 
 ---
 
@@ -132,6 +133,40 @@ await html2pdf().set(opt).from(previewElement).save();
 
 ---
 
+### 5. html2canvasのcolor関数エラー
+
+**問題**:
+- `Error: Attempting to parse an unsupported color function "color"`
+- プレビュー要素（Chakra UIコンポーネント）を直接キャプチャしようとした際に発生
+
+**原因**:
+- Chakra UIが使用しているCSS変数や新しいCSS関数（`color()`関数など）がhtml2canvasでサポートされていない
+- html2canvasは古いCSS仕様のみをサポートしており、新しいCSS機能をパースできない
+
+**対処**:
+- プレビュー要素の直接キャプチャを廃止
+- 生成されたHTML文字列（`generateInvoiceHTML`で生成、スタイルが`<style>`タグに含まれている）をBlob URLとしてiframeで読み込む方法に変更
+- Chakra UIのスタイルを完全に回避し、純粋なHTML+CSSでPDF生成
+
+**実装**:
+```javascript
+// HTML文字列をBlob URLとして作成
+const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+const blobUrl = URL.createObjectURL(blob);
+
+// iframeで読み込み
+iframe.src = blobUrl;
+// iframe内の要素をキャプチャ
+await html2pdf().set(opt).from(invoiceElement).save();
+```
+
+**結果**:
+- ✅ Chakra UIのCSSエラーを回避
+- ✅ 生成されたHTMLのスタイルが正しく適用される
+- ✅ PDFにデザインが正しく表示される
+
+---
+
 ## 現在の実装状態
 
 ✅ **動作確認済み**:
@@ -139,10 +174,11 @@ await html2pdf().set(opt).from(previewElement).save();
 - UTF-8エンコーディング（文字化けなし）
 - デザインの保持（色、レイアウト、スタイル）
 - 日本語・英語・スペイン語の表示
+- Chakra UIのCSSエラーを回避
 
 ⚠️ **注意点**:
 - PDF生成には数秒かかる場合がある
-- プレビュー画面が表示されている必要がある（ダウンロード画面に移動してからPDF生成）
+- HTML文字列を生成してiframeでレンダリングするため、プレビュー画面は不要
 
 ---
 
