@@ -969,7 +969,6 @@ const App = () => {
           format: pageSize === 'a4' ? 'a4' : 'letter', 
           orientation: 'portrait',
           compress: true,
-          // Disable auto-print to prevent browser print dialog
           putOnlyUsedFonts: true
         },
         pagebreak: {
