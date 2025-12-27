@@ -1232,9 +1232,25 @@ const App = () => {
                   <Settings size={16} /> {t.fieldMapping}
                 </Button>
               </HStack>
-              <Button colorPalette="blue" onClick={() => setCurrentStep('download')}>
-                {t.continueToDownload} →
-              </Button>
+              <Field.Root width="auto">
+                <Field.Label>{t.documentType}</Field.Label>
+                <Select.Root
+                  value={[documentType]}
+                  onValueChange={({ value }) => setDocumentType(value[0])}
+                  size="sm"
+                  width="150px"
+                >
+                  <Select.Trigger>
+                    <Select.ValueText />
+                  </Select.Trigger>
+                  <Select.Positioner>
+                    <Select.Content>
+                      <Select.Item item={{ value: 'invoice', label: t.invoice }}>{t.invoice}</Select.Item>
+                      <Select.Item item={{ value: 'estimate', label: t.estimate }}>{t.estimate}</Select.Item>
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+              </Field.Root>
             </HStack>
 
             <Card.Root>
@@ -1771,12 +1787,14 @@ const App = () => {
                           </Box>
                         )}
                         <Heading size="lg" color={formData.templateColors[template]} fontFamily={template === 'classic' ? 'serif' : 'inherit'} fontWeight={template === 'minimal' ? 300 : 'bold'}>
-                          {t.invoice}
+                          {documentType === 'estimate' ? t.estimate : t.invoice}
                         </Heading>
                         <Stack gap="0" fontSize="2xs" textAlign="center">
-                          <Text><strong>{t.invoiceNumber}:</strong> {formData.invoiceNumber}</Text>
-                          <Text><strong>{t.invoiceDate}:</strong> {formData.invoiceDate}</Text>
-                          {formData.dueDate && <Text><strong>{t.dueDate}:</strong> {formData.dueDate}</Text>}
+                          <Text><strong>{documentType === 'estimate' ? t.estimateNumber : t.invoiceNumber}:</strong> {formData.invoiceNumber}</Text>
+                          <Text><strong>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}:</strong> {formData.invoiceDate}</Text>
+                          {documentType === 'estimate' 
+                            ? (formData.validUntil && <Text><strong>{t.validUntil}:</strong> {formData.validUntil}</Text>)
+                            : (formData.dueDate && <Text><strong>{t.dueDate}:</strong> {formData.dueDate}</Text>)}
                         </Stack>
                       </VStack>
 
@@ -1828,7 +1846,7 @@ const App = () => {
                       )}
 
                       <Box bg={template === 'modern' ? 'blue.50' : 'gray.50'} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
-                        <Text fontSize="2xs" fontWeight="500" color="gray.800">{t.invoiceMessage}</Text>
+                        <Text fontSize="2xs" fontWeight="500" color="gray.800">{documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}</Text>
                       </Box>
 
                       <Box borderWidth={template === 'modern' ? '2px' : '1px'} borderColor={formData.templateColors[template]} borderRadius="sm" overflow="hidden">
@@ -1879,7 +1897,7 @@ const App = () => {
                         </Stack>
                       </HStack>
 
-                      {formData.bankName && (
+                      {documentType === 'invoice' && formData.bankName && (
                         <Box bg="blue.50" p="2" borderRadius="sm" borderWidth="1px" borderColor="blue.300">
                           <Heading size="2xs" mb="1" color="blue.800">{t.paymentInfo}</Heading>
                           <Stack gap="0" fontSize="2xs" color="gray.800">
