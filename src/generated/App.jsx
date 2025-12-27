@@ -919,9 +919,6 @@ const App = () => {
       // Get the invoice element from iframe
       const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
       
-      // Get the invoice element from iframe
-      const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
-      
       // Calculate dimensions
       const contentWidth = invoiceElement.scrollWidth || iframeDoc.body.scrollWidth;
       const contentHeight = invoiceElement.scrollHeight;

@@ -18,5 +18,8 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  optimizeDeps: {
+    exclude: ['html2pdf.js'], // Don't pre-bundle html2pdf.js (browser-only)
+  },
 });
 
