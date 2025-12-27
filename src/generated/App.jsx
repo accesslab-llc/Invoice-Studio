@@ -905,7 +905,7 @@ const App = () => {
       const originalStyleTag = iframeDoc.querySelector('style');
       const originalStyleContent = originalStyleTag ? originalStyleTag.textContent : '';
       
-      // Wait for images to load
+      // Wait for images to load (including watermark)
       const images = iframeDoc.querySelectorAll('img');
       const imagePromises = Array.from(images).map(img => {
         if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
@@ -917,6 +917,10 @@ const App = () => {
       });
       
       await Promise.all(imagePromises);
+      
+      // Wait for watermark to render (it has opacity and transform)
+      // html2canvas needs time to process position: absolute elements
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Wait for fonts and styles to fully render
       await new Promise(resolve => setTimeout(resolve, 500));
