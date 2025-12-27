@@ -261,13 +261,18 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
       font-size: ${12 * scale}px;
     }
     table.items th, table.items td {
-      padding: ${fitToOnePage ? Math.max(2, 5 * paddingScale) : 8}px ${fitToOnePage ? Math.max(2, 4 * paddingScale) : 6}px;
+      padding: ${fitToOnePage ? Math.max(4, 6 * paddingScale) : 8}px ${fitToOnePage ? Math.max(4, 5 * paddingScale) : 8}px;
       text-align: left;
-      line-height: 1.2;
+      line-height: 1.3;
+      border: 1px solid #e5e7eb;
     }
     table.items th {
-      font-size: ${11 * scale}px;
+      font-size: ${12 * scale}px;
       font-weight: 600;
+      text-align: left;
+    }
+    table.items td {
+      font-size: ${12 * scale}px;
     }
     table.items thead { background: #f5f5f5; }
     table.items tbody tr:nth-child(even) { background: #fafafa; }
@@ -321,8 +326,10 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     return base + `
       .header h1 { color: ${primaryColor}; font-size: 2.5em; }
       .header { border-bottom: 2px solid ${primaryColor}; }
-      table.items { border: 2px solid ${primaryColor}; }
+      table.items { border: 2px solid ${primaryColor}; border-collapse: collapse; }
       table.items thead { background: ${primaryColor}; color: white; }
+      table.items thead th { color: white; border: 1px solid ${primaryColor}; }
+      table.items tbody td { border: 1px solid #e5e7eb; }
       .invoice-message { border-left-color: ${primaryColor}; }
       .payment-info { border-color: ${primaryColor}; }
       .payment-info h4 { color: ${primaryColor}; }

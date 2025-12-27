@@ -244,6 +244,65 @@ const downloadPDF = async () => {
 
 ---
 
+### 7. html2canvasとjsPDFを直接使用する方法への変更
+
+**問題**:
+1. PDFが依然として2ページ構成になってしまう
+2. デザインがプレビューとずれている（テーブルのレイアウト、パディング、マージン）
+3. 画質が落ちている（スケールが0.5まで下がる可能性）
+
+**原因**:
+1. **2ページ構成**: html2pdf.jsは、html2canvasでキャプチャした画像の高さ（`scale * contentHeight`）がページサイズを超えると自動的に複数ページに分割する。`windowHeight`を制限しても、実際のキャプチャされた画像の高さがページサイズを超えている
+2. **デザインのずれ**: テーブルのパディング、マージン、ボーダーの設定がプレビューと一致していない
+3. **画質の問題**: スケールが0.5まで下がる可能性があり、画質が低下する
+
+**対処**:
+1. **html2pdf.jsの代わりにhtml2canvasとjsPDFを直接使用**:
+   - html2pdf.jsの自動ページ分割を回避
+   - 画像をキャプチャ後、1ページに収まるようにリサイズ
+   - スケールは常に2.0を維持し、画像のリサイズで対応（画質維持）
+
+2. **デザインのずれ修正**:
+   - テーブルのパディングを調整（`Math.max(4, 6 * paddingScale)`）
+   - テーブルのボーダーを追加（`border: 1px solid #e5e7eb`）
+   - modernテンプレートのテーブルヘッダーのスタイルを改善（`thead th`に`color: white`と`border`を追加）
+
+**実装**:
+```javascript
+// html2canvasとjsPDFを直接インポート
+const html2canvas = (await import('html2canvas')).default;
+const { jsPDF } = await import('jspdf');
+
+// 画像をキャプチャ（常にscale 2.0で高画質）
+const canvas = await html2canvas(invoiceElement, {
+  scale: 2,
+  // ... その他のオプション
+});
+
+// 画像の高さを1ページに収まるように計算
+const imgWidthMM = canvas.width * 0.264583;
+const imgHeightMM = canvas.height * 0.264583;
+const availableHeightMM = pageHeightMM - (marginMM * 2);
+
+// アスペクト比を維持してスケール計算
+const widthScale = availableWidthMM / imgWidthMM;
+const heightScale = availableHeightMM / imgHeightMM;
+const scale = Math.min(widthScale, heightScale);
+
+// PDFに1ページとして追加
+const pdf = new jsPDF({ unit: 'mm', format: pageSize, orientation: 'portrait' });
+pdf.addImage(imgData, 'JPEG', x, y, imgWidthMM * scale, imgHeightMM * scale);
+pdf.save(`invoice-${formData.invoiceNumber}.pdf`);
+```
+
+**結果**:
+- ✅ 2ページ構成を完全に防止（画像を1ページに収まるようにリサイズ）
+- ✅ 画質を維持（スケール2.0を維持し、画像のリサイズで対応）
+- ✅ デザインのずれを改善（テーブルのパディング、ボーダーを調整）
+- ✅ ページ分割を完全に制御可能
+
+---
+
 ## 現在の実装状態
 
 ✅ **動作確認済み**:
@@ -252,13 +311,14 @@ const downloadPDF = async () => {
 - デザインの保持（色、レイアウト、スタイル）
 - 日本語・英語・スペイン語の表示
 - Chakra UIのCSSエラーを回避
-- 2ページ構成の防止（fitToOnePage設定対応）
+- 2ページ構成の完全な防止（html2canvasとjsPDFを直接使用）
+- 高画質の維持（スケール2.0を維持）
 - ダウンロードボタンの重複実行防止
 
 ⚠️ **注意点**:
 - PDF生成には数秒かかる場合がある
 - HTML文字列を生成してiframeでレンダリングするため、プレビュー画面は不要
-- プレビューとPDFで使用するHTMLが異なるため、デザインが完全に一致しない可能性がある
+- html2canvasとjsPDFを直接使用するため、html2pdf.jsよりも細かい制御が可能
 
 ---
 

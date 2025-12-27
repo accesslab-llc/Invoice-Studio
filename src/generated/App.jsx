@@ -831,8 +831,9 @@ const App = () => {
     setIsGeneratingPDF(true);
     
     try {
-      // Dynamically import html2pdf.js (browser-only)
-      const html2pdf = (await import('html2pdf.js')).default;
+      // Dynamically import html2canvas and jsPDF (browser-only)
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
       
       const exportData = {
         ...formData,
@@ -923,100 +924,119 @@ const App = () => {
       // Get the invoice element from iframe
       const invoiceElement = iframeDoc.querySelector('.invoice') || iframeDoc.body;
       
-      // Calculate dimensions
-      const contentWidth = invoiceElement.scrollWidth || iframeDoc.body.scrollWidth;
-      const contentHeight = invoiceElement.scrollHeight;
-      const pageWidthMM = pageSize === 'a4' ? 210 : 216; // A4: 210mm, Letter: 216mm
-      const pageHeightMM = pageSize === 'a4' ? 297 : 279; // A4: 297mm, Letter: 279mm
-      const marginMM = 20; // top + bottom margin
-      const availableHeightMM = pageHeightMM - marginMM;
-      
-      // Convert mm to px (approximate: 1mm = 3.779527559px at 96dpi)
-      const mmToPx = 3.779527559;
-      const availableHeightPx = availableHeightMM * mmToPx;
-      
-      // Calculate scale if fitToOnePage is enabled
-      let canvasScale = 2;
-      let finalWindowHeight = contentHeight;
-      
-      if (fitToOnePage) {
-        // Calculate the scale needed to fit content on one page
-        if (contentHeight > availableHeightPx) {
-          // Scale down to fit on one page
-          canvasScale = (contentHeight * 0.264583) / availableHeightMM;
-          canvasScale = Math.max(0.5, Math.min(canvasScale, 2)); // Limit between 0.5 and 2
+      // Configure html2canvas options (always use scale 2 for quality)
+      const html2canvasOpt = {
+        scale: 2, // Always use scale 2 for high quality
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        letterRendering: true,
+        backgroundColor: '#ffffff',
+        windowWidth: invoiceElement.scrollWidth || iframeDoc.body.scrollWidth,
+        windowHeight: invoiceElement.scrollHeight,
+        removeContainer: true,
+        foreignObjectRendering: false,
+        onclone: (clonedDoc) => {
+          // CRITICAL: Ensure styles are preserved in cloned document
+          const clonedStyle = clonedDoc.querySelector('style');
+          if (originalStyleContent && (!clonedStyle || !clonedStyle.textContent)) {
+            if (clonedStyle) {
+              clonedStyle.remove();
+            }
+            const newStyle = clonedDoc.createElement('style');
+            newStyle.textContent = originalStyleContent;
+            clonedDoc.head.appendChild(newStyle);
+          } else if (clonedStyle && originalStyleContent) {
+            clonedStyle.textContent = originalStyleContent;
+          }
           
-          // Adjust windowHeight to match the scaled content
-          finalWindowHeight = Math.min(contentHeight, availableHeightPx);
+          // Remove any print-related elements
+          const printElements = clonedDoc.querySelectorAll('[class*="print"], [id*="print"]');
+          printElements.forEach(el => el.remove());
+          clonedDoc.body.style.margin = '0';
+          clonedDoc.body.style.padding = '0';
+          const scripts = clonedDoc.querySelectorAll('script');
+          scripts.forEach(script => script.remove());
+        }
+      };
+      
+      // Capture the element as canvas
+      const canvas = await html2canvas(invoiceElement, html2canvasOpt);
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      
+      // Calculate page dimensions
+      const pageWidthMM = pageSize === 'a4' ? 210 : 216;
+      const pageHeightMM = pageSize === 'a4' ? 297 : 279;
+      const marginMM = 10; // margin on all sides
+      const availableWidthMM = pageWidthMM - (marginMM * 2);
+      const availableHeightMM = pageHeightMM - (marginMM * 2);
+      
+      // Convert canvas dimensions from px to mm (1px = 0.264583mm at 96dpi with scale 2)
+      const pxToMM = 0.264583;
+      const imgWidthMM = canvas.width * pxToMM;
+      const imgHeightMM = canvas.height * pxToMM;
+      
+      // Calculate scale to fit on one page (maintain aspect ratio)
+      let scale = 1.0;
+      if (fitToOnePage) {
+        const widthScale = availableWidthMM / imgWidthMM;
+        const heightScale = availableHeightMM / imgHeightMM;
+        scale = Math.min(widthScale, heightScale);
+      } else {
+        // For multi-page, use full size but ensure it fits width
+        scale = Math.min(1.0, availableWidthMM / imgWidthMM);
+      }
+      
+      const finalWidthMM = imgWidthMM * scale;
+      const finalHeightMM = imgHeightMM * scale;
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        unit: 'mm',
+        format: pageSize === 'a4' ? 'a4' : 'letter',
+        orientation: 'portrait',
+        compress: true
+      });
+      
+      // Add image to PDF (centered if smaller than page)
+      const x = marginMM + (availableWidthMM - finalWidthMM) / 2;
+      const y = marginMM;
+      
+      // Always fit to one page if fitToOnePage is enabled
+      if (fitToOnePage) {
+        // Single page - scale to fit
+        pdf.addImage(imgData, 'JPEG', x, y, finalWidthMM, finalHeightMM);
+      } else {
+        // Multi-page: split image across pages if needed
+        if (finalHeightMM <= availableHeightMM) {
+          // Single page
+          pdf.addImage(imgData, 'JPEG', x, y, finalWidthMM, finalHeightMM);
+        } else {
+          // Multi-page: split image across pages
+          const pageCount = Math.ceil(finalHeightMM / availableHeightMM);
+          for (let i = 0; i < pageCount; i++) {
+            if (i > 0) {
+              pdf.addPage();
+            }
+            const sourceY = (i * availableHeightMM) / scale / pxToMM;
+            const sourceHeight = Math.min(availableHeightMM / scale / pxToMM, canvas.height - sourceY);
+            const displayHeight = sourceHeight * scale * pxToMM;
+            
+            // Create a temporary canvas for this page
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = sourceHeight;
+            const ctx = pageCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
+            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.98);
+            
+            pdf.addImage(pageImgData, 'JPEG', x, marginMM, finalWidthMM, displayHeight);
+          }
         }
       }
       
-      // Configure html2pdf options
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: `invoice-${formData.invoiceNumber}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: canvasScale,
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-          letterRendering: true,
-          backgroundColor: '#ffffff',
-          windowWidth: contentWidth,
-          windowHeight: finalWindowHeight,
-          // Prevent browser print headers/footers from being captured
-          removeContainer: true,
-          // Disable foreign object rendering to avoid print headers
-          foreignObjectRendering: false,
-          onclone: (clonedDoc) => {
-            // CRITICAL: Ensure styles are preserved in cloned document
-            // html2canvas often loses <style> tags when cloning, so we need to re-add them
-            const clonedStyle = clonedDoc.querySelector('style');
-            if (originalStyleContent && (!clonedStyle || !clonedStyle.textContent)) {
-              // Remove existing style tag if it's empty or missing content
-              if (clonedStyle) {
-                clonedStyle.remove();
-              }
-              // Create a new style tag with the original content
-              const newStyle = clonedDoc.createElement('style');
-              newStyle.textContent = originalStyleContent;
-              clonedDoc.head.appendChild(newStyle);
-            } else if (clonedStyle && originalStyleContent) {
-              // Update existing style tag with original content
-              clonedStyle.textContent = originalStyleContent;
-            }
-            
-            // Remove any print-related elements that might be captured
-            const printElements = clonedDoc.querySelectorAll('[class*="print"], [id*="print"]');
-            printElements.forEach(el => el.remove());
-            // Ensure body doesn't have print styles
-            clonedDoc.body.style.margin = '0';
-            clonedDoc.body.style.padding = '0';
-            // Remove any script tags that might trigger print dialogs
-            const scripts = clonedDoc.querySelectorAll('script');
-            scripts.forEach(script => script.remove());
-          }
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: pageSize === 'a4' ? 'a4' : 'letter', 
-          orientation: 'portrait',
-          compress: true,
-          putOnlyUsedFonts: true
-        },
-        pagebreak: {
-          mode: fitToOnePage ? 'avoid-all' : ['avoid-all', 'css'],
-          before: '.page-break-before',
-          after: '.page-break-after',
-          avoid: ['.invoice', '.header', '.parties', '.items', '.totals', 'table', 'tr', 'tbody', 'thead']
-        },
-        // Disable header and footer
-        enableLinks: false
-      };
-      
-      // Generate and download PDF from iframe element
-      await html2pdf().set(opt).from(invoiceElement).save();
+      // Save PDF
+      pdf.save(`invoice-${formData.invoiceNumber}.pdf`);
       
       // Clean up
       URL.revokeObjectURL(blobUrl);
