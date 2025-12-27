@@ -46,6 +46,7 @@ const App = () => {
   const [currentStep, setCurrentStep] = useState('select');
   const [pageSize, setPageSize] = useState('a4');
   const [fitToOnePage, setFitToOnePage] = useState(true);
+  const [documentType, setDocumentType] = useState('invoice'); // 'invoice' or 'estimate'
   const [isFieldMappingOpen, setIsFieldMappingOpen] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('none');
@@ -103,6 +104,7 @@ const App = () => {
     invoiceNumber: 'INV-001',
     invoiceDate: new Date().toISOString().split('T')[0],
     dueDate: '',
+    validUntil: '',
     companyName: '',
     companyRep: '',
     companyZip: '',
@@ -856,6 +858,7 @@ const App = () => {
         accountType: sectionVisibility.paymentInfo ? formData.accountType : '',
         accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
         accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
+        validUntil: documentType === 'estimate' ? formData.validUntil : '',
         notes: sectionVisibility.notes ? formData.notes : '',
         companyLogo: sectionVisibility.images ? formData.companyLogo : null,
         signatureImage: sectionVisibility.images ? formData.signatureImage : null,
@@ -863,7 +866,7 @@ const App = () => {
       };
       
       // Generate HTML with UTF-8 encoding (this HTML has all styles embedded in <style> tag)
-      const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template]);
+      const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template], documentType);
       
       // Create a Blob URL from the HTML to load it in iframe
       // This ensures proper encoding and style application
@@ -1048,7 +1051,10 @@ const App = () => {
       }
       
       // Save PDF
-      pdf.save(`invoice-${formData.invoiceNumber}.pdf`);
+      const filename = documentType === 'estimate' 
+        ? `estimate-${formData.invoiceNumber}.pdf` 
+        : `invoice-${formData.invoiceNumber}.pdf`;
+      pdf.save(filename);
       
       // Clean up
       URL.revokeObjectURL(blobUrl);
@@ -1239,32 +1245,40 @@ const App = () => {
                 <Stack gap="4">
                   <HStack gap="4">
                     <Field.Root flex="1">
-                      <Field.Label>{t.invoiceNumber}</Field.Label>
+                      <Field.Label>{documentType === 'estimate' ? t.estimateNumber : t.invoiceNumber}</Field.Label>
                       <Input value={formData.invoiceNumber}
                         onChange={e => setFormData({ ...formData, invoiceNumber: e.target.value })} />
                     </Field.Root>
                     <Field.Root flex="1">
-                      <Field.Label>{t.invoiceDate}</Field.Label>
+                      <Field.Label>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}</Field.Label>
                       <Input type="date" value={formData.invoiceDate}
                         onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} />
                     </Field.Root>
                     <Field.Root flex="1">
-                      <Field.Label>{t.dueDate}</Field.Label>
-                      <Input type="date" value={formData.dueDate}
-                        onChange={e => setFormData({ ...formData, dueDate: e.target.value })} />
+                      <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
+                      <Input type="date" value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
+                        onChange={e => {
+                          if (documentType === 'estimate') {
+                            setFormData({ ...formData, validUntil: e.target.value });
+                          } else {
+                            setFormData({ ...formData, dueDate: e.target.value });
+                          }
+                        }} />
                     </Field.Root>
                   </HStack>
-                  <Field.Root>
-                    <Field.Label>{t.paymentTerms}</Field.Label>
-                    <HStack>
-                      <NumberInput.Root value={formData.paymentTerms}
-                        onValueChange={({ value }) => setFormData({ ...formData, paymentTerms: value })}
-                        min={0} size="sm" width="100px">
-                        <NumberInput.Input />
-                      </NumberInput.Root>
-                      <Text>{t.daysFromInvoice}</Text>
-                    </HStack>
-                  </Field.Root>
+                  {documentType === 'invoice' && (
+                    <Field.Root>
+                      <Field.Label>{t.paymentTerms}</Field.Label>
+                      <HStack>
+                        <NumberInput.Root value={formData.paymentTerms}
+                          onValueChange={({ value }) => setFormData({ ...formData, paymentTerms: value })}
+                          min={0} size="sm" width="100px">
+                          <NumberInput.Input />
+                        </NumberInput.Root>
+                        <Text>{t.daysFromInvoice}</Text>
+                      </HStack>
+                    </Field.Root>
+                  )}
                 </Stack>
               </Card.Body>
             </Card.Root>
@@ -1436,6 +1450,8 @@ const App = () => {
             </SimpleGrid>
 
             <Card.Root>
+              {documentType === 'invoice' && (
+                <>
               <Card.Header>
                 <HStack justify="space-between">
                   <Heading size="md">{t.paymentInfo}</Heading>
@@ -1492,7 +1508,8 @@ const App = () => {
                   </Card.Body>
                 </Collapsible.Content>
               </Collapsible.Root>
-            </Card.Root>
+                </>
+              )}
 
             <Card.Root>
               <Card.Header>
@@ -1897,6 +1914,13 @@ const App = () => {
                 </HStack>
               </Card.Footer>
             </Card.Root>
+            
+            {/* ダウンロードへボタンをページの一番下に配置 */}
+            <HStack justify="flex-end" mt="4">
+              <Button colorPalette="blue" size="lg" onClick={() => setCurrentStep('download')}>
+                {t.continueToDownload} →
+              </Button>
+            </HStack>
           </Stack>
         )}
       </Stack>

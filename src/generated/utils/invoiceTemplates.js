@@ -1,9 +1,10 @@
 import { translations } from './translations';
 
-export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitToOnePage = true, customColor = null) => {
+export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitToOnePage = true, customColor = null, documentType = 'invoice') => {
   const t = translations[lang];
   const itemCount = data.items?.length || 0;
   const styles = getTemplateStyles(template, itemCount, pageSize, fitToOnePage, customColor);
+  const isEstimate = documentType === 'estimate';
   
   const getCurrencySymbol = (currency) => {
     const symbols = { JPY: '¥', USD: '$', EUR: '€', GBP: '£', CNY: '¥' };
@@ -23,11 +24,11 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
     ${data.watermarkImage ? `<div class="watermark"><img src="${data.watermarkImage}" alt="Watermark" /></div>` : ''}
     <div class="header">
       ${data.companyLogo ? `<div class="logo"><img src="${data.companyLogo}" alt="Company Logo" /></div>` : ''}
-      <h1>${t.invoice}</h1>
+      <h1>${isEstimate ? t.estimate : t.invoice}</h1>
       <div class="invoice-info">
-        <p><strong>${t.invoiceNumber}:</strong> ${data.invoiceNumber}</p>
-        <p><strong>${t.invoiceDate}:</strong> ${data.invoiceDate}</p>
-        ${data.dueDate ? `<p><strong>${t.dueDate}:</strong> ${data.dueDate}</p>` : ''}
+        <p><strong>${isEstimate ? t.estimateNumber : t.invoiceNumber}:</strong> ${data.invoiceNumber}</p>
+        <p><strong>${isEstimate ? t.estimateDate : t.invoiceDate}:</strong> ${data.invoiceDate}</p>
+        ${isEstimate ? (data.validUntil ? `<p><strong>${t.validUntil}:</strong> ${data.validUntil}</p>` : '') : (data.dueDate ? `<p><strong>${t.dueDate}:</strong> ${data.dueDate}</p>` : '')}
       </div>
     </div>
 
@@ -67,7 +68,7 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
     ` : ''}
 
     <div class="invoice-message">
-      <p>${t.invoiceMessage}</p>
+      <p>${isEstimate ? t.estimateMessage : t.invoiceMessage}</p>
     </div>
 
     <table class="items">
@@ -98,7 +99,7 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       <div class="total-row final"><span>${t.total}:</span><span>${currencySymbol}${data.total.toLocaleString()}</span></div>
     </div>
 
-    ${data.bankName ? `
+    ${!isEstimate && data.bankName ? `
     <div class="payment-info">
       <h4>${t.paymentInfo}</h4>
       <p>${t.bankName}: ${data.bankName}</p>
