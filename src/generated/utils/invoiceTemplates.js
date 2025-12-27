@@ -200,7 +200,11 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     body {
       font-family: Arial, sans-serif;
       font-size: ${14 * scale}px;
-      padding: ${fitToOnePage ? Math.max(10, 20 * paddingScale) : 30}px;
+      padding: ${fitToOnePage ? (
+        itemCount > 12 ? '5mm' :
+        itemCount > 8 ? '6mm' :
+        itemCount > 5 ? '7mm' : '8mm'
+      ) : '15mm'};
       color: #333;
       line-height: ${fitToOnePage ? 1.2 : 1.4};
     }
@@ -256,9 +260,13 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     }
     table.items {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       margin-bottom: ${fitToOnePage ? Math.max(8, 14 * paddingScale) : 20}px;
       font-size: ${12 * scale}px;
+      border-radius: ${fitToOnePage ? '4px' : '6px'};
+      overflow: hidden;
+      border: 2px solid transparent;
     }
     table.items th, table.items td {
       padding: ${fitToOnePage ? Math.max(4, 6 * paddingScale) : 8}px ${fitToOnePage ? Math.max(4, 5 * paddingScale) : 8}px;
@@ -276,6 +284,18 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     }
     table.items thead { background: #f5f5f5; }
     table.items tbody tr:nth-child(even) { background: #fafafa; }
+    table.items thead tr:first-child th:first-child {
+      border-top-left-radius: ${fitToOnePage ? '4px' : '6px'};
+    }
+    table.items thead tr:first-child th:last-child {
+      border-top-right-radius: ${fitToOnePage ? '4px' : '6px'};
+    }
+    table.items tbody tr:last-child td:first-child {
+      border-bottom-left-radius: ${fitToOnePage ? '4px' : '6px'};
+    }
+    table.items tbody tr:last-child td:last-child {
+      border-bottom-right-radius: ${fitToOnePage ? '4px' : '6px'};
+    }
     .totals {
       margin-left: auto;
       width: ${fitToOnePage ? '220px' : '280px'};
@@ -326,10 +346,14 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     return base + `
       .header h1 { color: ${primaryColor}; font-size: 2.5em; }
       .header { border-bottom: 2px solid ${primaryColor}; }
-      table.items { border: 2px solid ${primaryColor}; border-collapse: collapse; }
+      table.items { border: 2px solid ${primaryColor}; border-collapse: separate; border-spacing: 0; }
       table.items thead { background: ${primaryColor}; color: white; }
       table.items thead th { color: white; border: 1px solid ${primaryColor}; }
+      table.items thead tr:first-child th:first-child { border-top-left-radius: ${fitToOnePage ? '4px' : '6px'}; }
+      table.items thead tr:first-child th:last-child { border-top-right-radius: ${fitToOnePage ? '4px' : '6px'}; }
       table.items tbody td { border: 1px solid #e5e7eb; }
+      table.items tbody tr:last-child td:first-child { border-bottom-left-radius: ${fitToOnePage ? '4px' : '6px'}; }
+      table.items tbody tr:last-child td:last-child { border-bottom-right-radius: ${fitToOnePage ? '4px' : '6px'}; }
       .invoice-message { border-left-color: ${primaryColor}; }
       .payment-info { border-color: ${primaryColor}; }
       .payment-info h4 { color: ${primaryColor}; }

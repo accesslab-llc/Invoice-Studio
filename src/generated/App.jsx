@@ -965,9 +965,17 @@ const App = () => {
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       
       // Calculate page dimensions
+      // Match the padding used in preview (which matches the HTML body padding)
+      const itemCount = exportData.items?.length || 0;
+      const bodyPaddingMM = fitToOnePage ? (
+        itemCount > 12 ? 5 :
+        itemCount > 8 ? 6 :
+        itemCount > 5 ? 7 : 8
+      ) : 15;
+      
       const pageWidthMM = pageSize === 'a4' ? 210 : 216;
       const pageHeightMM = pageSize === 'a4' ? 297 : 279;
-      const marginMM = 10; // margin on all sides
+      const marginMM = bodyPaddingMM; // Use same padding as preview
       const availableWidthMM = pageWidthMM - (marginMM * 2);
       const availableHeightMM = pageHeightMM - (marginMM * 2);
       
