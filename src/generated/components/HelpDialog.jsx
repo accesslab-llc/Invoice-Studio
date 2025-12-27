@@ -36,32 +36,41 @@ const HelpDialog = ({ isOpen, onClose, language }) => {
         },
         {
           title: '基本的な使い方',
-          content: `ステップ1: データの読み込み
+          content: `ステップ1: アプリの起動とデータの読み込み
 1. Monday.comのボードでInvoiceStudioアプリを開く
-2. 「データ読み込み」ボタンをクリック
-3. ボードからアイテムが取得されます
+2. アプリが自動的にボードからアイテムを取得します
+3. データが表示されない場合は、ページをリロードしてください
 
 ステップ2: アイテムの選択
-1. アイテム一覧から請求書を作成したいアイテムを選択
-2. 検索機能でアイテムを絞り込むこともできます
+1. アイテム一覧から請求書を作成したいアイテムを選択（チェックボックスで選択）
+2. 検索機能でアイテム名やグループ名で絞り込むことができます
+3. グループフィルターで特定のグループのアイテムのみを表示できます
+4. 「請求書作成」ボタンをクリックして編集画面に進みます
 
 ステップ3: 請求書の編集
 1. 選択したアイテムの情報が自動で入力されます
-2. 必要に応じて情報を編集
+2. **フィールドマッピング**ボタンから、Monday.comボードのカラムと請求書フィールドのマッピングを設定できます（初回のみ推奨）
+3. 必要に応じて以下の情報を編集：
+   - 基本情報（請求書番号、請求日、支払期限/有効期限など）
+   - 発行元情報（会社名、代表者、住所、連絡先など）
+   - 請求先情報（会社名、部署、担当者、住所、連絡先など）
+   - 明細（品名、数量、単価など）- サブアイテムから自動取得
+   - 振込先情報（銀行名、口座情報など）- 請求書のみ
+   - 納期・提供時期 - 見積書のみ
+   - 備考/見積条件
+   - 画像設定（会社ロゴ、署名/印鑑、背景透かし）
+
+**重要**: 空欄の項目（発行元情報、請求先情報、振込先情報、備考など）は自動的に非表示になり、PDFやプレビューでは空行を作らずに詰めて表示されます。入力しなかった項目は表示されないため、不要な空欄が残ることはありません。例えば、発行元情報の一部の項目（電話番号やFAXなど）を入力しなかった場合、それらの項目は表示されず、入力した項目だけが詰めて表示されます。
 
 ステップ4: ダウンロード
 
-HTML形式でダウンロード:
+PDF形式でダウンロード:
 1. 「ダウンロード」タブに移動
 2. プレビューで請求書の見た目を確認
-3. 「HTMLダウンロード」ボタンをクリック
+3. 「PDFダウンロード」ボタンをクリック
+4. PDFファイルがダウンロードされます
 
-PDF形式で保存:
-1. 「HTMLダウンロード」ボタンでHTMLファイルをダウンロード
-2. ダウンロードしたHTMLファイルをブラウザで開く
-3. ブラウザのメニューから「印刷」を選択（Windows: Ctrl+P / Mac: Cmd+P）
-4. 印刷ダイアログで「送信先」を「PDFに保存」に変更
-5. 「保存」をクリック`
+**注意**: PDF生成には数秒かかる場合があります。日本語、英語、スペイン語など、すべての言語で正しく表示されます。`
         },
         {
           title: 'フィールドマッピング',
@@ -73,9 +82,9 @@ PDF形式で保存:
 3. 「保存」をクリック
 
 マッピング可能なフィールド:
-- 基本情報: 請求書番号、請求日
+- 基本情報: 請求書番号、請求日、支払期限（請求書の場合）、有効期限（見積書の場合）
 - 請求先情報: 請求先名、部署、担当者、郵便番号、住所、電話番号、メールアドレス
-- 金額・明細: 割引、税額、明細（サブアイテム）`
+- 金額・明細: 割引、税額、明細（サブアイテム）、サブアイテム価格、サブアイテム数量`
         },
         {
           title: 'テンプレート管理',
@@ -96,9 +105,9 @@ PDF形式で保存:
         {
           title: '請求書のカスタマイズ',
           content: `テンプレートの選択:
-- モダン: シンプルで洗練されたデザイン
-- クラシック: 伝統的な請求書スタイル
-- ミニマル: シンプルで読みやすいデザイン
+- モダン: シンプルで洗練されたデザイン。納期・提供時期、振込先情報、備考などのセクションに色付きの背景を使用
+- クラシック: 伝統的な請求書スタイル。白背景で左側にアクセントラインを使用したシンプルなデザイン
+- ミニマル: シンプルで読みやすいデザイン。最小限の装飾で情報を整理
 
 テンプレートカラーの変更:
 1. 「テンプレート色」から色を選択
@@ -107,7 +116,18 @@ PDF形式で保存:
 画像の追加:
 - 会社ロゴ: 請求書のヘッダーに表示
 - 署名/印鑑: 請求書のフッターに表示
-- 背景の透かし: 請求書の背景に表示`
+- 背景の透かし: 請求書の背景に表示
+
+見積書の機能:
+見積書を作成する場合、以下の追加機能が利用できます：
+- 有効期限: 見積書の有効期限を設定（フィールドマッピング対応）
+- 納期・提供時期: 納期または作業期間を選択して入力（見積書のみ）
+- 見積条件: 備考セクションのタイトルを「見積条件」などに変更可能（見積書のみ）
+
+セクションの表示/非表示:
+各セクション（発行元、請求先、振込先情報、備考、画像設定）の表示/非表示を切り替えられます。
+
+**注意**: セクションを非表示にした場合、そのセクションの内容はPDFやプレビューに表示されません。また、空欄の項目は自動的に非表示になるため、入力しなかった項目は表示されません。`
         },
         {
           title: 'よくある質問',
@@ -154,35 +174,41 @@ Supported Languages:
         },
         {
           title: 'Basic Usage',
-          content: `Step 1: Load Data
+          content: `Step 1: Launch App and Load Data
 1. Open the InvoiceStudio app in a Monday.com board
-2. Click the "Load Data" button
-3. Items will be retrieved from the board
+2. The app automatically retrieves items from the board
+3. If data is not displayed, please reload the page
 
 Step 2: Select Item
-1. Select an item from the item list to create an invoice
-2. You can also filter items using the search function
+1. Select an item from the item list to create an invoice (select with checkbox)
+2. You can filter items by item name or group name using the search function
+3. You can display items from specific groups using the group filter
+4. Click the "Create Invoice" button to proceed to the edit screen
 
 Step 3: Edit Invoice
 1. Information from the selected item will be automatically filled in
-2. Edit information as needed
+2. Click the **Field Mapping** button to set up mappings between Monday.com board columns and invoice fields (recommended for first-time setup)
+3. Edit the following information as needed:
+   - Basic information (invoice number, invoice date, due date/valid until, etc.)
+   - Issuer information (company name, representative, address, contact information, etc.)
+   - Billing information (company name, department, contact person, address, contact information, etc.)
+   - Line items (item name, quantity, unit price, etc.) - automatically retrieved from subitems
+   - Payment information (bank name, account information, etc.) - invoices only
+   - Delivery period - estimates only
+   - Notes/Estimate conditions
+   - Image settings (company logo, signature/seal, background watermark)
+
+**Important**: Empty fields (issuer information, billing information, payment information, notes, etc.) are automatically hidden, and in PDFs and previews, they are displayed without leaving blank lines. Fields that are not filled in will not be displayed, so there will be no unnecessary blank spaces. For example, if you do not fill in some fields of the issuer information (such as phone number or FAX), those fields will not be displayed, and only the filled-in fields will be displayed without gaps.
 
 Step 4: Download
 
-Download as HTML:
+Download as PDF:
 1. Go to the "Download" tab
 2. Preview the invoice appearance
-3. Click the "Download HTML" button
+3. Click the "Download PDF" button
+4. The PDF file will be downloaded
 
-Save as PDF:
-1. Download the HTML file using the "Download HTML" button
-2. Open the downloaded HTML file in your browser
-3. Select "Print" from the browser menu (Windows: Ctrl+P / Mac: Cmd+P)
-4. In the print dialog, change "Destination" or "Save as" to "Save as PDF"
-5. Click "Save" or "Save as PDF"
-6. The PDF file will be saved
-
-Note: The steps may vary depending on your browser. You can save as PDF in all major browsers including Chrome, Firefox, Safari, and Edge.`
+**Note**: PDF generation may take a few seconds. All languages including Japanese, English, and Spanish will be displayed correctly.`
         },
         {
           title: 'Field Mapping',
@@ -194,9 +220,9 @@ How to Set Up:
 3. Click "Save"
 
 Mappable Fields:
-- Basic Information: Invoice Number, Invoice Date
+- Basic Information: Invoice Number, Invoice Date, Due Date (for invoices), Valid Until (for estimates)
 - Billing Information: Client Name, Department, Contact Person, Postal Code, Address, Phone Number, Email Address
-- Amount & Line Items: Discount, Tax Amount, Line Items (Subitems)`
+- Amount & Line Items: Discount, Tax Amount, Line Items (Subitems), Subitem Price, Subitem Quantity`
         },
         {
           title: 'Template Management',
@@ -217,9 +243,9 @@ Applying a Template:
         {
           title: 'Invoice Customization',
           content: `Template Selection:
-- Modern: Simple and refined design
-- Classic: Traditional invoice style
-- Minimal: Simple and readable design
+- Modern: Simple and refined design. Uses colored backgrounds for sections such as delivery period, payment information, notes, etc.
+- Classic: Traditional invoice style. White background with accent lines on the left for a simple design
+- Minimal: Simple and readable design. Minimal decoration to organize information
 
 Changing Template Color:
 1. Select a color from "Template Color"
@@ -228,7 +254,18 @@ Changing Template Color:
 Adding Images:
 - Company Logo: Displayed in the invoice header
 - Signature/Seal: Displayed in the invoice footer
-- Background Watermark: Displayed in the invoice background`
+- Background Watermark: Displayed in the invoice background
+
+Estimate Features:
+When creating an estimate, the following additional features are available:
+- Valid Until: Set the expiration date of the estimate (compatible with field mapping)
+- Delivery Period: Select and enter deadline or work period (estimates only)
+- Estimate Conditions: Change the title of the notes section to "Estimate Conditions", etc. (estimates only)
+
+Show/Hide Sections:
+You can toggle the display of each section (issuer, billing, payment information, notes, image settings).
+
+**Note**: If you hide a section, its content will not be displayed in the PDF or preview. Also, empty fields are automatically hidden, so fields that are not filled in will not be displayed.`
         },
         {
           title: 'Frequently Asked Questions',
@@ -275,35 +312,41 @@ Idiomas Soportados:
         },
         {
           title: 'Uso Básico',
-          content: `Paso 1: Cargar Datos
+          content: `Paso 1: Iniciar Aplicación y Cargar Datos
 1. Abra la aplicación InvoiceStudio en un tablero de Monday.com
-2. Haga clic en el botón "Cargar Datos"
-3. Los artículos se recuperarán del tablero
+2. La aplicación recupera automáticamente los artículos del tablero
+3. Si los datos no se muestran, recargue la página
 
 Paso 2: Seleccionar Artículo
-1. Seleccione un artículo de la lista para crear una factura
-2. También puede filtrar artículos usando la función de búsqueda
+1. Seleccione un artículo de la lista para crear una factura (seleccione con casilla de verificación)
+2. Puede filtrar artículos por nombre de artículo o nombre de grupo usando la función de búsqueda
+3. Puede mostrar artículos de grupos específicos usando el filtro de grupo
+4. Haga clic en el botón "Crear Factura" para proceder a la pantalla de edición
 
 Paso 3: Editar Factura
 1. La información del artículo seleccionado se completará automáticamente
-2. Edite la información según sea necesario
+2. Haga clic en el botón **Mapeo de Campos** para configurar las asignaciones entre las columnas del tablero de Monday.com y los campos de factura (recomendado para la configuración inicial)
+3. Edite la siguiente información según sea necesario:
+   - Información básica (número de factura, fecha de factura, fecha de vencimiento/válido hasta, etc.)
+   - Información del emisor (nombre de la empresa, representante, dirección, información de contacto, etc.)
+   - Información de facturación (nombre de la empresa, departamento, persona de contacto, dirección, información de contacto, etc.)
+   - Artículos de línea (nombre del artículo, cantidad, precio unitario, etc.) - obtenidos automáticamente de subelementos
+   - Información de pago (nombre del banco, información de cuenta, etc.) - solo para facturas
+   - Período de entrega - solo para presupuestos
+   - Notas/Condiciones del presupuesto
+   - Configuración de imágenes (logo de la empresa, firma/sello, marca de agua de fondo)
+
+**Importante**: Los campos vacíos (información del emisor, información de facturación, información de pago, notas, etc.) se ocultan automáticamente, y en el PDF y la vista previa se muestran sin dejar líneas vacías. Los campos que no se completen no se mostrarán, por lo que no quedarán espacios vacíos innecesarios. Por ejemplo, si no completa algunos campos de la información del emisor (como número de teléfono o FAX), esos campos no se mostrarán y solo se mostrarán los campos completados, sin espacios vacíos entre ellos.
 
 Paso 4: Descargar
 
-Descargar como HTML:
+Descargar como PDF:
 1. Vaya a la pestaña "Descargar"
 2. Previsualice la apariencia de la factura
-3. Haga clic en el botón "Descargar HTML"
+3. Haga clic en el botón "Descargar PDF"
+4. El archivo PDF se descargará
 
-Guardar como PDF:
-1. Descargue el archivo HTML usando el botón "Descargar HTML"
-2. Abra el archivo HTML descargado en su navegador
-3. Seleccione "Imprimir" del menú del navegador (Windows: Ctrl+P / Mac: Cmd+P)
-4. En el diálogo de impresión, cambie "Destino" o "Guardar como" a "Guardar como PDF"
-5. Haga clic en "Guardar" o "Guardar como PDF"
-6. El archivo PDF se guardará
-
-Nota: Los pasos pueden variar según su navegador. Puede guardar como PDF en todos los navegadores principales, incluyendo Chrome, Firefox, Safari y Edge.`
+**Nota**: La generación de PDF puede tardar unos segundos. Todos los idiomas, incluidos japonés, inglés y español, se mostrarán correctamente.`
         },
         {
           title: 'Mapeo de Campos',
@@ -315,9 +358,9 @@ Cómo Configurar:
 3. Haga clic en "Guardar"
 
 Campos Mapeables:
-- Información Básica: Número de Factura, Fecha de Factura
+- Información Básica: Número de Factura, Fecha de Factura, Fecha de Vencimiento (para facturas), Válido Hasta (para presupuestos)
 - Información de Facturación: Nombre del Cliente, Departamento, Persona de Contacto, Código Postal, Dirección, Número de Teléfono, Dirección de Correo
-- Importe y Artículos: Descuento, Importe del Impuesto, Artículos (Subartículos)`
+- Importe y Artículos: Descuento, Importe del Impuesto, Artículos (Subartículos), Precio de Subartículo, Cantidad de Subartículo`
         },
         {
           title: 'Gestión de Plantillas',
@@ -338,9 +381,9 @@ Aplicar una Plantilla:
         {
           title: 'Personalización de Facturas',
           content: `Selección de Plantilla:
-- Moderna: Diseño simple y refinado
-- Clásica: Estilo de factura tradicional
-- Minimalista: Diseño simple y legible
+- Moderna: Diseño simple y refinado. Utiliza fondos de color para secciones como período de entrega, información de pago, notas, etc.
+- Clásica: Estilo de factura tradicional. Fondo blanco con líneas de acento en el lado izquierdo para un diseño simple
+- Minimalista: Diseño simple y legible. Decoración mínima para organizar la información
 
 Cambiar Color de Plantilla:
 1. Seleccione un color de "Color de Plantilla"
@@ -349,7 +392,18 @@ Cambiar Color de Plantilla:
 Agregar Imágenes:
 - Logo de Empresa: Mostrado en el encabezado de la factura
 - Firma/Sello: Mostrado en el pie de página de la factura
-- Marca de Agua de Fondo: Mostrado en el fondo de la factura`
+- Marca de Agua de Fondo: Mostrado en el fondo de la factura
+
+Funciones de Presupuesto:
+Al crear un presupuesto, están disponibles las siguientes funciones adicionales:
+- Válido hasta: Establecer la fecha de vencimiento del presupuesto (compatible con mapeo de campos)
+- Período de entrega: Seleccionar y ingresar fecha límite o período de trabajo (solo para presupuestos)
+- Condiciones del presupuesto: Cambiar el título de la sección de notas a "Condiciones del presupuesto", etc. (solo para presupuestos)
+
+Mostrar/Ocultar Secciones:
+Puede alternar la visualización de cada sección (emisor, facturación, información de pago, notas, configuración de imágenes).
+
+**Nota**: Si oculta una sección, su contenido no se mostrará en el PDF ni en la vista previa. Además, los campos vacíos se ocultan automáticamente, por lo que los campos que no se completen no se mostrarán.`
         },
         {
           title: 'Preguntas Frecuentes',
