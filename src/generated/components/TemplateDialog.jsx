@@ -3,341 +3,195 @@ import {
   Dialog,
   Stack,
   HStack,
+  VStack,
   Button,
   Input,
-  Textarea,
   Field,
   Text,
-  Select,
   Separator,
   CloseButton,
+  Box,
   createListCollection
 } from '@chakra-ui/react';
-import { Plus, Save, Trash2 } from 'lucide-react';
-import { TEMPLATE_FIELDS } from '../constants/templateFields';
+import { Save, Trash2, Check } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData, fieldMappings }) => {
+const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData, fieldMappings, onApply }) => {
   const t = translations[language];
 
-  const emptyData = useMemo(
-    () =>
-      TEMPLATE_FIELDS.reduce((acc, key) => {
-        acc[key] = '';
-        return acc;
-      }, {}),
-    []
-  );
-
-  const initialTemplate = useMemo(
-    () => ({
-      id: '',
-      name: '',
-      data: { ...emptyData }
-    }),
-    [emptyData]
-  );
-
   const [localTemplates, setLocalTemplates] = useState([]);
-  const [currentTemplateId, setCurrentTemplateId] = useState('');
-  const [formValues, setFormValues] = useState(initialTemplate);
-
-  const templateSelectCollection = useMemo(
-    () =>
-      createListCollection({
-        items: [
-          { label: t.newTemplate, value: '' },
-          ...localTemplates.map((tpl) => ({ label: tpl.name, value: tpl.id }))
-        ]
-      }),
-    [localTemplates, t.newTemplate]
-  );
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [newTemplateName, setNewTemplateName] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setLocalTemplates(templates || []);
-      setCurrentTemplateId('');
-      setFormValues(initialTemplate);
+      setSelectedTemplateId('');
+      setNewTemplateName('');
     }
-  }, [isOpen, templates, initialTemplate]);
+  }, [isOpen, templates]);
 
-  // Update formValues when formData changes (for template selection)
-  useEffect(() => {
-    if (isOpen && formData) {
-      const templateData = TEMPLATE_FIELDS.reduce((acc, key) => {
-        acc[key] = formData[key] || '';
-        return acc;
-      }, {});
-      setFormValues((prev) => ({
-        ...prev,
-        data: { ...prev.data, ...templateData }
-      }));
-    }
-  }, [isOpen, formData]);
-
-  const handleFieldChange = (key, value) => {
-    setFormValues((prev) => ({
-      ...prev,
-      data: {
-        ...prev.data,
-        [key]: value
-      }
-    }));
-  };
-
-  const handleSelectTemplate = (id) => {
-    if (!id) {
-      setCurrentTemplateId('');
-      setFormValues(initialTemplate);
-      return;
-    }
-    const target = localTemplates.find((tpl) => tpl.id === id);
-    if (target) {
-      setCurrentTemplateId(target.id);
-      setFormValues({
-        id: target.id,
-        name: target.name,
-        data: { ...emptyData, ...target.data }
-      });
-    }
-  };
-
-  const handleSaveTemplate = () => {
-    if (!formValues.name.trim()) {
-      alert(t.templateNameRequired);
+  const handleApplyTemplate = () => {
+    if (!selectedTemplateId) {
+      alert(t.templateSelectFirst || 'テンプレートを選択してください');
       return;
     }
 
-    // Save all formData and fieldMappings along with the template-specific data
-    const templateData = {
-      // Keep the old format for backward compatibility (company and bank info)
-      ...formValues.data,
-      // Also save all formData and fieldMappings
-      formData: formData ? JSON.parse(JSON.stringify(formData)) : null,
-      fieldMappings: fieldMappings ? JSON.parse(JSON.stringify(fieldMappings)) : null
-    };
-
-    let updatedTemplates;
-    if (currentTemplateId) {
-      updatedTemplates = localTemplates.map((tpl) =>
-        tpl.id === currentTemplateId
-            ? { ...tpl, name: formValues.name.trim(), data: templateData, formData: templateData.formData, fieldMappings: templateData.fieldMappings }
-            : tpl
-      );
-    } else {
-      const newTemplate = {
-        id: Date.now().toString(),
-        name: formValues.name.trim(),
-        data: templateData,
-        formData: templateData.formData,
-        fieldMappings: templateData.fieldMappings
-      };
-      updatedTemplates = [...localTemplates, newTemplate];
-      setCurrentTemplateId(newTemplate.id);
-      setFormValues({
-        ...newTemplate,
-        data: { ...emptyData, ...templateData }
-      });
+    const template = localTemplates.find((tpl) => tpl.id === selectedTemplateId);
+    if (template && onApply) {
+      onApply(template);
+      onClose();
     }
-
-    setLocalTemplates(updatedTemplates);
-    onSave?.(updatedTemplates);
-    alert(t.templateSaved);
   };
 
   const handleDeleteTemplate = () => {
-    if (!currentTemplateId) return;
+    if (!selectedTemplateId) {
+      alert(t.templateSelectFirst || 'テンプレートを選択してください');
+      return;
+    }
     
-    // Get template name for confirmation message
-    const templateToDelete = localTemplates.find((tpl) => tpl.id === currentTemplateId);
+    const templateToDelete = localTemplates.find((tpl) => tpl.id === selectedTemplateId);
     const templateName = templateToDelete?.name || t.deleteTemplate;
     
-    // Show confirmation dialog
     if (!confirm(`${templateName}${t.deleteTemplateConfirm || 'を削除しますか？'}`)) {
       return;
     }
     
-    const updatedTemplates = localTemplates.filter((tpl) => tpl.id !== currentTemplateId);
+    const updatedTemplates = localTemplates.filter((tpl) => tpl.id !== selectedTemplateId);
     setLocalTemplates(updatedTemplates);
-    setCurrentTemplateId('');
-    setFormValues(initialTemplate);
+    setSelectedTemplateId('');
     onSave?.(updatedTemplates);
     alert(t.templateDeleted || 'テンプレートを削除しました。');
   };
 
-  const renderCompanyFields = () => (
-    <Stack gap="3">
-      <Field.Root>
-        <Field.Label>{t.companyName}</Field.Label>
-        <Input
-          value={formValues.data.companyName}
-          onChange={(e) => handleFieldChange('companyName', e.target.value)}
-        />
-      </Field.Root>
-      <Field.Root>
-        <Field.Label>{t.representative}</Field.Label>
-        <Input
-          value={formValues.data.companyRep}
-          onChange={(e) => handleFieldChange('companyRep', e.target.value)}
-        />
-      </Field.Root>
-      <Field.Root>
-        <Field.Label>{t.postalCode}</Field.Label>
-        <Input
-          value={formValues.data.companyZip}
-          onChange={(e) => handleFieldChange('companyZip', e.target.value)}
-        />
-      </Field.Root>
-      <Field.Root>
-        <Field.Label>{t.address}</Field.Label>
-        <Textarea
-          value={formValues.data.companyAddress}
-          onChange={(e) => handleFieldChange('companyAddress', e.target.value)}
-          rows={2}
-        />
-      </Field.Root>
-      <HStack gap="3">
-        <Field.Root flex="1">
-          <Field.Label>{t.phone}</Field.Label>
-          <Input
-            value={formValues.data.companyPhone}
-            onChange={(e) => handleFieldChange('companyPhone', e.target.value)}
-          />
-        </Field.Root>
-        <Field.Root flex="1">
-          <Field.Label>{t.fax}</Field.Label>
-          <Input
-            value={formValues.data.companyFax}
-            onChange={(e) => handleFieldChange('companyFax', e.target.value)}
-          />
-        </Field.Root>
-      </HStack>
-      <Field.Root>
-        <Field.Label>{t.email}</Field.Label>
-        <Input
-          value={formValues.data.companyEmail}
-          onChange={(e) => handleFieldChange('companyEmail', e.target.value)}
-        />
-      </Field.Root>
-      <Field.Root>
-        <Field.Label>{t.registrationNumber}</Field.Label>
-        <Input
-          value={formValues.data.companyRegNumber}
-          onChange={(e) => handleFieldChange('companyRegNumber', e.target.value)}
-        />
-      </Field.Root>
-    </Stack>
-  );
+  const handleSaveTemplate = () => {
+    if (!newTemplateName.trim()) {
+      alert(t.templateNameRequired || 'テンプレート名を入力してください');
+      return;
+    }
 
-  const renderPaymentFields = () => (
-    <Stack gap="3" mt="4">
-      <Field.Root>
-        <Field.Label>{t.bankName}</Field.Label>
-        <Input
-          value={formValues.data.bankName}
-          onChange={(e) => handleFieldChange('bankName', e.target.value)}
-        />
-      </Field.Root>
-      <HStack gap="3">
-        <Field.Root flex="1">
-          <Field.Label>{t.accountType}</Field.Label>
-          <Input
-            value={formValues.data.accountType}
-            onChange={(e) => handleFieldChange('accountType', e.target.value)}
-          />
-        </Field.Root>
-        <Field.Root flex="1">
-          <Field.Label>{t.accountNumber}</Field.Label>
-          <Input
-            value={formValues.data.accountNumber}
-            onChange={(e) => handleFieldChange('accountNumber', e.target.value)}
-          />
-        </Field.Root>
-      </HStack>
-      <Field.Root>
-        <Field.Label>{t.accountHolder}</Field.Label>
-        <Input
-          value={formValues.data.accountHolder}
-          onChange={(e) => handleFieldChange('accountHolder', e.target.value)}
-        />
-      </Field.Root>
-    </Stack>
+    // Save all formData and fieldMappings
+    const newTemplate = {
+      id: Date.now().toString(),
+      name: newTemplateName.trim(),
+      data: {}, // Keep for backward compatibility
+      formData: formData ? JSON.parse(JSON.stringify(formData)) : null,
+      fieldMappings: fieldMappings ? JSON.parse(JSON.stringify(fieldMappings)) : null
+    };
+
+    const updatedTemplates = [...localTemplates, newTemplate];
+    setLocalTemplates(updatedTemplates);
+    setNewTemplateName('');
+    onSave?.(updatedTemplates);
+    alert(t.templateSaved || 'テンプレートを保存しました。');
+  };
+
+  const templateCollection = useMemo(
+    () =>
+      createListCollection({
+        items: localTemplates.map((tpl) => ({ label: tpl.name, value: tpl.id }))
+      }),
+    [localTemplates]
   );
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="xl">
+    <Dialog.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="lg">
       <Dialog.Backdrop />
       <Dialog.Positioner>
         <Dialog.Content>
           <Dialog.Header>
             <Dialog.Title>{t.manageTemplates}</Dialog.Title>
-            <Dialog.Description>{t.templateDescription}</Dialog.Description>
+            <Dialog.Description>{t.templateDescription || 'テンプレートを管理します。選択して適用・削除、または新規保存ができます。'}</Dialog.Description>
           </Dialog.Header>
           <Dialog.Body>
             <Stack spacing="6">
+              {/* Template List */}
               <Field.Root>
-                <Field.Label>{t.templateSelectLabel}</Field.Label>
-                <HStack>
-                  <Select.Root
-                    collection={templateSelectCollection}
-                    value={currentTemplateId ? [currentTemplateId] : ['']}
-                    onValueChange={({ value }) => handleSelectTemplate(value[0] || '')}
+                <Field.Label>{t.templateList || 'テンプレート一覧'}</Field.Label>
+                {localTemplates.length === 0 ? (
+                  <Box p="4" borderWidth="1px" borderRadius="md" borderColor="gray.200" bg="gray.50">
+                    <Text color="gray.500" textAlign="center">{t.noTemplates || '保存されたテンプレートはありません'}</Text>
+                  </Box>
+                ) : (
+                  <Stack gap="2">
+                    {localTemplates.map((tpl) => (
+                      <Box
+                        key={tpl.id}
+                        p="3"
+                        borderWidth="1px"
+                        borderRadius="md"
+                        borderColor={selectedTemplateId === tpl.id ? 'blue.500' : 'gray.200'}
+                        bg={selectedTemplateId === tpl.id ? 'blue.50' : 'white'}
+                        cursor="pointer"
+                        onClick={() => setSelectedTemplateId(tpl.id)}
+                        _hover={{ borderColor: 'blue.300', bg: 'blue.50' }}
+                      >
+                        <Text fontWeight={selectedTemplateId === tpl.id ? 'semibold' : 'normal'}>
+                          {tpl.name}
+                        </Text>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Field.Root>
+
+              {/* Actions for selected template */}
+              {selectedTemplateId && (
+                <HStack gap="2">
+                  <Button
+                    variant="solid"
+                    colorPalette="blue"
+                    leftIcon={<Check size={16} />}
+                    onClick={handleApplyTemplate}
+                    flex="1"
                   >
-                    <Select.Trigger>
-                      <Select.ValueText placeholder={t.selectTemplatePlaceholder} />
-                    </Select.Trigger>
-                    <Select.Positioner>
-                      <Select.Content>
-                        {templateSelectCollection.items.map((item) => (
-                          <Select.Item key={item.value} item={item}>
-                            {item.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Positioner>
-                  </Select.Root>
-                  <Button leftIcon={<Plus size={16} />} onClick={() => handleSelectTemplate('')}>
-                    {t.newTemplate}
+                    {t.applyTemplate || '適用'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    colorPalette="red"
+                    leftIcon={<Trash2 size={16} />}
+                    onClick={handleDeleteTemplate}
+                  >
+                    {t.deleteTemplate}
                   </Button>
                 </HStack>
-              </Field.Root>
-
-              <Field.Root>
-                <Field.Label>{t.templateName}</Field.Label>
-                <Input
-                  value={formValues.name}
-                  onChange={(e) => setFormValues((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder={t.templateNamePlaceholder}
-                />
-              </Field.Root>
+              )}
 
               <Separator />
 
-              <Text fontWeight="semibold">{t.billingFrom}</Text>
-              {renderCompanyFields()}
-
-              <Separator />
-
-              <Text fontWeight="semibold">{t.paymentInfo}</Text>
-              {renderPaymentFields()}
+              {/* Save new template */}
+              <VStack gap="3" align="stretch">
+                <Text fontWeight="semibold">{t.saveNewTemplate || '新規テンプレートを保存'}</Text>
+                <Field.Root>
+                  <Field.Label>{t.templateName}</Field.Label>
+                  <HStack>
+                    <Input
+                      value={newTemplateName}
+                      onChange={(e) => setNewTemplateName(e.target.value)}
+                      placeholder={t.templateNamePlaceholder || 'テンプレート名を入力'}
+                      flex="1"
+                    />
+                    <Button
+                      variant="solid"
+                      colorPalette="green"
+                      leftIcon={<Save size={16} />}
+                      onClick={handleSaveTemplate}
+                    >
+                      {t.saveTemplate}
+                    </Button>
+                  </HStack>
+                </Field.Root>
+                <Text fontSize="xs" color="gray.600">
+                  {t.templateSaveDescription || '現在の請求書の内容、発行元情報、マッピング設定、画像まで全て保存されます。'}
+                </Text>
+              </VStack>
             </Stack>
           </Dialog.Body>
           <Dialog.Footer>
-            <HStack spacing="3" justify="flex-start" w="full">
-                <Button
-                  variant="solid"
-                  colorScheme="blue"
-                  leftIcon={<Save size={16} />}
-                  onClick={handleSaveTemplate}
-                >
-                  {t.saveTemplate}
-                </Button>
-                {currentTemplateId && (
-                  <Button variant="ghost" colorScheme="red" leftIcon={<Trash2 size={16} />} onClick={handleDeleteTemplate}>
-                    {t.deleteTemplate}
-                  </Button>
-                )}
-            </HStack>
+            <Button variant="outline" onClick={onClose}>
+              {t.close || '閉じる'}
+            </Button>
           </Dialog.Footer>
 
           <Dialog.CloseTrigger asChild>
@@ -350,5 +204,3 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData
 }
 
 export default TemplateDialog;
-
-

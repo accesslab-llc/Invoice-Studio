@@ -163,15 +163,6 @@ const App = () => {
     ]
   });
 
-  const templateCollection = createListCollection({
-    items: [
-      { label: t.noTemplate, value: 'none' },
-      ...templates.map((tpl) => ({
-        label: tpl.name,
-        value: tpl.id
-      }))
-    ]
-  });
 
   const currencies = createListCollection({
     items: [
@@ -803,42 +794,30 @@ const App = () => {
     }
   };
 
-  const handleTemplateSelect = (value) => {
-    const selectedValue = value === 'none' || !value ? 'none' : value;
-    setSelectedTemplateId(selectedValue);
+  const handleTemplateApply = (template) => {
+    if (!template) return;
 
-    if (selectedValue === 'none') {
+    // Restore all formData if saved in template
+    if (template.formData) {
+      setFormData(template.formData);
+    } else {
+      // Fallback to old format (only company and bank info)
       setFormData((prev) => ({
         ...prev,
-        ...TEMPLATE_FIELDS.reduce((acc, key) => {
-          acc[key] = '';
-          return acc;
-        }, {})
+        ...template.data
       }));
-      return;
+    }
+    
+    // Restore fieldMappings if saved in template
+    if (template.fieldMappings) {
+      setFieldMappings(template.fieldMappings);
+      localStorage.setItem('invoiceFieldMappings', JSON.stringify(template.fieldMappings));
+      // Refetch board data with restored mappings
+      fetchBoardData(template.fieldMappings);
     }
 
-    const template = templates.find((tpl) => tpl.id === selectedValue);
-    if (template) {
-      // Restore all formData if saved in template
-      if (template.formData) {
-        setFormData(template.formData);
-      } else {
-        // Fallback to old format (only company and bank info)
-        setFormData((prev) => ({
-          ...prev,
-          ...template.data
-        }));
-      }
-      
-      // Restore fieldMappings if saved in template
-      if (template.fieldMappings) {
-        setFieldMappings(template.fieldMappings);
-        localStorage.setItem('invoiceFieldMappings', JSON.stringify(template.fieldMappings));
-        // Refetch board data with restored mappings
-        fetchBoardData(template.fieldMappings);
-      }
-    }
+    // Set selected template ID
+    setSelectedTemplateId(template.id);
   };
 
   const calculateTotals = () => {
@@ -1397,35 +1376,6 @@ const App = () => {
               </Card.Body>
             </Card.Root>
 
-            <Card.Root>
-              <Card.Body>
-                <Stack gap="3">
-                  <Field.Root>
-                    <Field.Label>{t.templateSelectLabel}</Field.Label>
-                    <Select.Root
-                      collection={templateCollection}
-                      value={[selectedTemplateId]}
-                      onValueChange={({ value }) => handleTemplateSelect(value[0])}
-                      size="sm"
-                      width="300px"
-                    >
-                      <Select.Trigger>
-                        <Select.ValueText />
-                      </Select.Trigger>
-                      <Select.Positioner>
-                        <Select.Content>
-                          {templateCollection.items.map((item) => (
-                            <Select.Item key={item.value} item={item}>
-                              {item.label}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Positioner>
-                    </Select.Root>
-                  </Field.Root>
-                </Stack>
-              </Card.Body>
-            </Card.Root>
 
             <SimpleGrid columns={{ base: 1, lg: 2 }} gap="6">
               <Card.Root>
@@ -2283,6 +2233,7 @@ const App = () => {
         language={language}
         formData={formData}
         fieldMappings={fieldMappings}
+        onApply={handleTemplateApply}
       />
     </Container>
   );
