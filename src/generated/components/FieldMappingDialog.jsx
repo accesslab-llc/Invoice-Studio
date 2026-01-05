@@ -486,8 +486,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     discount: { ja: '割引', en: 'Discount', es: 'Descuento' },
     taxAmount: { ja: '税額', en: 'Tax Amount', es: 'Importe del Impuesto' },
     items: { ja: '明細', en: 'Line Items', es: 'Artículos' },
-    subitemPrice: { ja: 'サブアイテム価格カラム', en: 'Subitem Price Column', es: 'Columna de Precio de Subartículo' },
-    subitemQuantity: { ja: 'サブアイテム数量カラム', en: 'Subitem Quantity Column', es: 'Columna de Cantidad de Subartículo' }
+    subitemPrice: { ja: '価格カラム', en: 'Price Column', es: 'Columna de Precio' },
+    subitemQuantity: { ja: '数量カラム', en: 'Quantity Column', es: 'Columna de Cantidad' }
   };
 
   const getFieldLabel = (fieldKey) => {
@@ -1081,18 +1081,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       ))}
                       {(() => {
                         const subitemLabelPattern = `[${t.subitemLabel || 'Subitem'}]`;
-                        const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes(subitemLabelPattern));
-                        console.log('[FieldMappingDialog] subitemPrice - subitemItems:', subitemItems);
+                        console.log('[FieldMappingDialog] subitemPrice - showing all columns');
                         return validBoardColumnsItems?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item:', item);
                             return null;
                           }
-                          // Only show subitem columns for subitemPrice field
-                          const isSubitemColumn = item.label && item.label.includes(subitemLabelPattern);
-                          if (!isSubitemColumn) {
-                            return null; // Don't show non-subitem columns
-                          }
+                          // Show all columns (both item and subitem columns) for subitemPrice field
                           return (
                             <option key={item.value} value={item.value}>
                               {item.label}
@@ -1130,19 +1125,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                           </option>
                         ))}
                         {(() => {
-                          const subitemLabelPattern = `[${t.subitemLabel || 'Subitem'}]`;
-                          const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes(subitemLabelPattern));
-                          console.log('[FieldMappingDialog] subitemQuantity - subitemItems:', subitemItems);
+                          console.log('[FieldMappingDialog] subitemQuantity - showing all columns');
                           return validBoardColumnsItems?.map((item) => {
                             if (!item || !item.value) {
                               console.error('[FieldMappingDialog] Invalid item:', item);
                               return null;
                             }
-                            // Show subitem columns for subitemQuantity field
-                            const isSubitemColumn = item.label && item.label.includes(subitemLabelPattern);
-                            if (!isSubitemColumn) {
-                              return null; // Don't show non-subitem columns
-                            }
+                            // Show all columns (both item and subitem columns) for subitemQuantity field
                             return (
                               <option key={item.value} value={item.value}>
                                 {item.label}

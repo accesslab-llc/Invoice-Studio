@@ -115,7 +115,7 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData
                 ) : (
                   <Stack gap="2">
                     {localTemplates.map((tpl) => (
-                      <Box
+                      <HStack
                         key={tpl.id}
                         p="3"
                         borderWidth="1px"
@@ -125,38 +125,45 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData
                         cursor="pointer"
                         onClick={() => setSelectedTemplateId(tpl.id)}
                         _hover={{ borderColor: 'blue.300', bg: 'blue.50' }}
+                        justify="space-between"
+                        gap="2"
                       >
-                        <Text fontWeight={selectedTemplateId === tpl.id ? 'semibold' : 'normal'}>
+                        <Text fontWeight={selectedTemplateId === tpl.id ? 'semibold' : 'normal'} flex="1">
                           {tpl.name}
                         </Text>
-                      </Box>
+                        {selectedTemplateId === tpl.id && (
+                          <HStack gap="2">
+                            <Button
+                              variant="solid"
+                              colorPalette="blue"
+                              leftIcon={<Check size={16} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApplyTemplate();
+                              }}
+                              size="sm"
+                            >
+                              {t.applyTemplate || '適用'}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              colorPalette="red"
+                              leftIcon={<Trash2 size={16} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTemplate();
+                              }}
+                              size="sm"
+                            >
+                              {t.deleteTemplate}
+                            </Button>
+                          </HStack>
+                        )}
+                      </HStack>
                     ))}
                   </Stack>
                 )}
               </Field.Root>
-
-              {/* Actions for selected template */}
-              {selectedTemplateId && (
-                <HStack gap="2">
-                  <Button
-                    variant="solid"
-                    colorPalette="blue"
-                    leftIcon={<Check size={16} />}
-                    onClick={handleApplyTemplate}
-                    flex="1"
-                  >
-                    {t.applyTemplate || '適用'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    colorPalette="red"
-                    leftIcon={<Trash2 size={16} />}
-                    onClick={handleDeleteTemplate}
-                  >
-                    {t.deleteTemplate}
-                  </Button>
-                </HStack>
-              )}
 
               <Separator />
 
