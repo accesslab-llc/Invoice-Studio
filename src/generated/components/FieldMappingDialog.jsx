@@ -509,6 +509,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     // Use mappingValue if it exists and is not empty, otherwise use defaultValue
     const actual = (mappingValue && mappingValue !== '') ? mappingValue : defaultValue;
     if (!actual || actual === '') return 'custom';
+    
+    // Special values that should always be recognized (not in boardColumnsItems)
+    const specialValues = ['manual', 'none', 'name', 'clientName', 'column1', 'column2', 'column3', 'discount', 'taxAmount', 'column11', 'column21', 'subitems', 'custom'];
+    if (specialValues.includes(actual)) {
+      return actual;
+    }
+    
     // Check if the value exists in boardColumnsItems
     if (!boardColumnsItems || !Array.isArray(boardColumnsItems)) {
       console.error('[FieldMappingDialog] boardColumnsItems is invalid:', boardColumnsItems);
@@ -1066,9 +1073,16 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                     >
                       <option value="">{t.fieldMappingSelectColumn}</option>
+                      {/* Show base options first */}
+                      {getBaseColumnItems().filter(item => ['manual', 'none'].includes(item.value)).map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
                       {(() => {
                         const subitemLabelPattern = `[${t.subitemLabel || 'Subitem'}]`;
                         const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes(subitemLabelPattern));
+                        console.log('[FieldMappingDialog] subitemPrice - subitemItems:', subitemItems);
                         return validBoardColumnsItems?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item:', item);
@@ -1109,19 +1123,25 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                         _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                       >
                         <option value="">{t.fieldMappingSelectColumn}</option>
+                        {/* Show base options first */}
+                        {getBaseColumnItems().filter(item => ['manual', 'none'].includes(item.value)).map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
                         {(() => {
                           const subitemLabelPattern = `[${t.subitemLabel || 'Subitem'}]`;
                           const subitemItems = validBoardColumnsItems?.filter(item => item.label && item.label.includes(subitemLabelPattern));
+                          console.log('[FieldMappingDialog] subitemQuantity - subitemItems:', subitemItems);
                           return validBoardColumnsItems?.map((item) => {
                             if (!item || !item.value) {
                               console.error('[FieldMappingDialog] Invalid item:', item);
                               return null;
                             }
-                            // Show subitem columns and 'manual' option for subitemQuantity field
+                            // Show subitem columns for subitemQuantity field
                             const isSubitemColumn = item.label && item.label.includes(subitemLabelPattern);
-                            const isManual = item.value === 'manual';
-                            if (!isSubitemColumn && !isManual) {
-                              return null; // Don't show non-subitem columns except 'manual'
+                            if (!isSubitemColumn) {
+                              return null; // Don't show non-subitem columns
                             }
                             return (
                               <option key={item.value} value={item.value}>
