@@ -699,22 +699,29 @@ const App = () => {
     console.log('[App] currentMappings:', currentMappings);
 
     setFormData(prev => {
+      // Handle 'none' mapping: if mapping is 'none', use empty string, otherwise use mapped value or previous value
+      const getFieldValue = (mappedValue, mapping, prevValue, allowEmpty = false) => {
+        if (mapping === 'none') return ''; // 'none' means not required, so return empty string
+        if (mapping === 'manual') return prevValue; // 'manual' means keep previous value
+        return mappedValue || (allowEmpty ? '' : prevValue);
+      };
+      
       const newFormData = {
-      invoiceNumber: mappedValues.invoiceNumber || prev.invoiceNumber,
-      clientName: mappedValues.clientName || '',
-      clientDepartment: mappedValues.clientDepartment || '',
-      clientContact: mappedValues.clientContact || '',
-        clientZip: mappedValues.clientZip || '',
-        clientAddress: mappedValues.clientAddress || '',
-        clientPhone: mappedValues.clientPhone || '',
-        clientEmail: mappedValues.clientEmail || '',
-        invoiceDate: currentMappings.invoiceDate !== 'manual' && currentMappings.invoiceDate
+      invoiceNumber: getFieldValue(mappedValues.invoiceNumber, currentMappings.invoiceNumber, prev.invoiceNumber, true),
+      clientName: getFieldValue(mappedValues.clientName, currentMappings.clientName, prev.clientName, true),
+      clientDepartment: getFieldValue(mappedValues.clientDepartment, currentMappings.clientDepartment, prev.clientDepartment, true),
+      clientContact: getFieldValue(mappedValues.clientContact, currentMappings.clientContact, prev.clientContact, true),
+        clientZip: getFieldValue(mappedValues.clientZip, currentMappings.clientZip, prev.clientZip, true),
+        clientAddress: getFieldValue(mappedValues.clientAddress, currentMappings.clientAddress, prev.clientAddress, true),
+        clientPhone: getFieldValue(mappedValues.clientPhone, currentMappings.clientPhone, prev.clientPhone, true),
+        clientEmail: getFieldValue(mappedValues.clientEmail, currentMappings.clientEmail, prev.clientEmail, true),
+        invoiceDate: currentMappings.invoiceDate !== 'manual' && currentMappings.invoiceDate && currentMappings.invoiceDate !== 'none'
           ? (selectedItem[currentMappings.invoiceDate] 
         ? new Date(selectedItem[currentMappings.invoiceDate]).toISOString().split('T')[0]
               : prev.invoiceDate)
-        : prev.invoiceDate,
-        dueDate: mappedValues.dueDate || prev.dueDate,
-        validUntil: mappedValues.validUntil || prev.validUntil,
+        : currentMappings.invoiceDate === 'none' ? '' : prev.invoiceDate,
+        dueDate: getFieldValue(mappedValues.dueDate, currentMappings.dueDate || 'manual', prev.dueDate, true),
+        validUntil: getFieldValue(mappedValues.validUntil, currentMappings.validUntil || 'manual', prev.validUntil, true),
         discount: mappedValues.discount !== null && mappedValues.discount !== undefined ? mappedValues.discount : prev.discount,
         taxAmount: mappedValues.taxAmount !== null && mappedValues.taxAmount !== undefined ? mappedValues.taxAmount : prev.taxAmount,
       items: invoiceItems.length > 0 ? invoiceItems : prev.items
@@ -1848,24 +1855,42 @@ const App = () => {
                     flexDirection="column"
                     position="relative"
                   >
-                      {formData.watermarkImage && (
-                      <Box 
-                        position="absolute" 
-                        top="50%" 
-                        left="50%" 
-                        transform="translate(-50%, -50%)" 
-                        opacity="0.1" 
-                        zIndex={0}
-                        pointerEvents="none"
-                        width="100%"
-                        height="100%"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Image src={formData.watermarkImage} alt="Watermark" maxW="400px" maxH="400px" objectFit="contain" />
-                        </Box>
-                      )}
+                      {formData.watermarkImage && (() => {
+                        const settings = formData.imageSettings?.watermarkImage || { width: '400px', height: '400px', x: 0, y: 0, rotation: 0, repeat: false, opacity: 0.1 };
+                        const watermarkStyle = {
+                          position: 'absolute',
+                          top: settings.y !== 0 ? `${settings.y}px` : '50%',
+                          left: settings.x !== 0 ? `${settings.x}px` : '50%',
+                          transform: settings.x === 0 && settings.y === 0 
+                            ? `translate(-50%, -50%) rotate(${settings.rotation}deg)`
+                            : `translate(${settings.x === 0 ? '-50%' : '0'}, ${settings.y === 0 ? '-50%' : '0'}) rotate(${settings.rotation}deg)`,
+                          opacity: settings.opacity || 0.1,
+                          zIndex: 0,
+                          pointerEvents: 'none',
+                          width: settings.repeat ? '100%' : 'auto',
+                          height: settings.repeat ? '100%' : 'auto',
+                          backgroundImage: settings.repeat ? `url(${formData.watermarkImage})` : 'none',
+                          backgroundRepeat: settings.repeat ? 'repeat' : 'no-repeat',
+                          backgroundSize: settings.repeat ? 'contain' : 'auto',
+                          display: settings.repeat ? 'block' : 'flex',
+                          alignItems: settings.repeat ? 'stretch' : 'center',
+                          justifyContent: settings.repeat ? 'stretch' : 'center',
+                        };
+                        return (
+                          <Box style={watermarkStyle}>
+                            {!settings.repeat && (
+                              <Image 
+                                src={formData.watermarkImage} 
+                                alt="Watermark" 
+                                width={settings.width}
+                                height={settings.height}
+                                objectFit="contain"
+                                style={{ transform: `rotate(${settings.rotation}deg)` }}
+                              />
+                            )}
+                          </Box>
+                        );
+                      })()}
                     <Stack gap="3" position="relative" zIndex={1}>
 
                       <VStack
@@ -1877,11 +1902,20 @@ const App = () => {
                         borderBottomStyle={template === 'classic' ? 'double' : 'solid'}
                         borderColor={formData.templateColors[template]}
                       >
-                        {formData.companyLogo && (
-                          <Box mb="2">
-                            <Image src={formData.companyLogo} alt="Company Logo" maxW="250px" maxH="60px" objectFit="contain" />
-                          </Box>
-                        )}
+                        {formData.companyLogo && (() => {
+                          const settings = formData.imageSettings?.companyLogo || { width: '250px', height: '60px', x: 0, y: 0, rotation: 0, repeat: false };
+                          return (
+                            <Box mb="2" style={{ transform: `translate(${settings.x}px, ${settings.y}px) rotate(${settings.rotation}deg)` }}>
+                              <Image 
+                                src={formData.companyLogo} 
+                                alt="Company Logo" 
+                                width={settings.width}
+                                height={settings.height}
+                                objectFit="contain"
+                              />
+                            </Box>
+                          );
+                        })()}
                         <Heading size="lg" color={formData.templateColors[template]} fontFamily={template === 'classic' ? 'serif' : 'inherit'} fontWeight={template === 'minimal' ? 300 : 'bold'}>
                           {documentType === 'estimate' ? t.estimate : t.invoice}
                         </Heading>
