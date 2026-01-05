@@ -97,6 +97,11 @@ const App = () => {
     companyLogo: null,
     signatureImage: null,
     watermarkImage: null,
+    // Image settings for preview adjustment
+    imageSettings: {
+      companyLogo: { width: '250px', height: '60px', x: 0, y: 0, rotation: 0, repeat: false },
+      watermarkImage: { width: '400px', height: '400px', x: 0, y: 0, rotation: 0, repeat: false, opacity: 0.1 }
+    },
     templateColors: {
       modern: '#2563eb',
       classic: '#1a1a1a',
@@ -189,6 +194,34 @@ const App = () => {
     return symbols[currency] || '¥';
   };
 
+  // Format date according to language setting
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Return as-is if invalid date
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      if (language === 'ja') {
+        // Japanese: YYYY年MM月DD日
+        return `${year}年${month}月${day}日`;
+      } else if (language === 'en') {
+        // English: MM/DD/YYYY
+        return `${month}/${day}/${year}`;
+      } else if (language === 'es') {
+        // Spanish: DD/MM/YYYY
+        return `${day}/${month}/${year}`;
+      }
+      // Default: YYYY-MM-DD
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('invoiceFieldMappings');
     if (saved) {
@@ -255,7 +288,7 @@ const App = () => {
           // Direct column ID - update the mapping
           updatedColumnMappings[key] = value;
           console.log('[App] Updated columnMappings:', key, '->', value);
-        } else if (value && value !== 'manual' && value !== 'subitems' && value !== 'name' && value !== 'custom') {
+        } else if (value && value !== 'manual' && value !== 'none' && value !== 'subitems' && value !== 'name' && value !== 'custom') {
           // It's a mapping key (like 'column11'), keep existing mapping if it exists
           if (!updatedColumnMappings[key]) {
             // If no existing mapping, try to use the value as is (might be a column ID we don't recognize)
@@ -271,7 +304,7 @@ const App = () => {
       // Resolve mapping keys (like 'clientName', 'discount', 'taxAmount') to actual column IDs
       const columnIds = [];
       Object.values(mappings).forEach(mapping => {
-        if (mapping && mapping !== 'manual' && mapping !== 'subitems' && mapping !== 'name' && mapping !== 'custom') {
+        if (mapping && mapping !== 'manual' && mapping !== 'none' && mapping !== 'subitems' && mapping !== 'name' && mapping !== 'custom') {
           // First, try to resolve mapping key to actual column ID using columnMappings
           let resolvedColumnId = mapping;
           if (board.columnMappings && board.columnMappings[mapping]) {
@@ -308,7 +341,7 @@ const App = () => {
       // Add subitem price and quantity columns if mapped
       const subitemColumnIds = [];
       const addSubitemColumn = (mapping) => {
-        if (!mapping || mapping === 'manual' || mapping === 'custom') return;
+        if (!mapping || mapping === 'manual' || mapping === 'none' || mapping === 'custom') return;
         // Check if it's a direct column ID (starts with numeric_, text_, etc.)
         if (mapping.startsWith('numeric_') || mapping.startsWith('text_') ||
             mapping.startsWith('date_') || mapping.startsWith('board_relation_') ||
@@ -399,8 +432,8 @@ const App = () => {
   };
 
   const getMappedValue = (item, mapping) => {
-    if (mapping === 'manual' || !mapping) {
-      console.log('[App] getMappedValue: mapping is manual or empty:', mapping);
+    if (mapping === 'manual' || mapping === 'none' || !mapping) {
+      console.log('[App] getMappedValue: mapping is manual, none, or empty:', mapping);
       return '';
     }
     if (mapping === 'subitems') return item.subitems;
@@ -553,7 +586,7 @@ const App = () => {
     if (currentMappings.items === 'subitems' && selectedItem.subitems) {
       // Helper function to resolve column ID from mapping
       const resolveColumnId = (mapping) => {
-        if (!mapping || mapping === 'custom' || mapping === 'manual') return null;
+        if (!mapping || mapping === 'custom' || mapping === 'manual' || mapping === 'none') return null;
         // Check if it's a direct column ID
         if (mapping.startsWith('numeric_') || mapping.startsWith('text_') ||
             mapping.startsWith('date_') || mapping.startsWith('board_relation_') ||
@@ -636,11 +669,11 @@ const App = () => {
 
     // Helper function to get numeric value
     const getNumericMappedValue = (item, mapping) => {
-      if (mapping === 'manual' || !mapping) return 0;
+      if (mapping === 'manual' || !mapping || mapping === 'none') return null; // Return null to preserve previous value
       const value = getMappedValue(item, mapping);
-      if (value === '' || value === null || value === undefined) return 0;
+      if (value === '' || value === null || value === undefined) return null; // Return null to preserve previous value
       const num = typeof value === 'number' ? value : parseFloat(value);
-      return Number.isFinite(num) ? num : 0;
+      return Number.isFinite(num) ? num : null; // Return null if not a valid number
     };
 
     // Get mapped values using current mappings
@@ -682,8 +715,8 @@ const App = () => {
         : prev.invoiceDate,
         dueDate: mappedValues.dueDate || prev.dueDate,
         validUntil: mappedValues.validUntil || prev.validUntil,
-        discount: mappedValues.discount,
-        taxAmount: mappedValues.taxAmount,
+        discount: mappedValues.discount !== null && mappedValues.discount !== undefined ? mappedValues.discount : prev.discount,
+        taxAmount: mappedValues.taxAmount !== null && mappedValues.taxAmount !== undefined ? mappedValues.taxAmount : prev.taxAmount,
       items: invoiceItems.length > 0 ? invoiceItems : prev.items
       };
       
@@ -1854,10 +1887,10 @@ const App = () => {
                         </Heading>
                         <Stack gap="0" fontSize="2xs" textAlign="center">
                           <Text><strong>{documentType === 'estimate' ? t.estimateNumber : t.invoiceNumber}:</strong> {formData.invoiceNumber}</Text>
-                          <Text><strong>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}:</strong> {formData.invoiceDate}</Text>
+                          <Text><strong>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}:</strong> {formatDate(formData.invoiceDate)}</Text>
                           {documentType === 'estimate' 
-                            ? (formData.validUntil && <Text><strong>{t.validUntil}:</strong> {formData.validUntil}</Text>)
-                            : (formData.dueDate && <Text><strong>{t.dueDate}:</strong> {formData.dueDate}</Text>)}
+                            ? (formData.validUntil && <Text><strong>{t.validUntil}:</strong> {formatDate(formData.validUntil)}</Text>)
+                            : (formData.dueDate && <Text><strong>{t.dueDate}:</strong> {formatDate(formData.dueDate)}</Text>)}
                         </Stack>
                       </VStack>
 

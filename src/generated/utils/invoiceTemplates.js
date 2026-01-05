@@ -12,6 +12,34 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
   };
   const currencySymbol = getCurrencySymbol(data.currency);
   
+  // Format date according to language setting
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Return as-is if invalid date
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      if (lang === 'ja') {
+        // Japanese: YYYY年MM月DD日
+        return `${year}年${month}月${day}日`;
+      } else if (lang === 'en') {
+        // English: MM/DD/YYYY
+        return `${month}/${day}/${year}`;
+      } else if (lang === 'es') {
+        // Spanish: DD/MM/YYYY
+        return `${day}/${month}/${year}`;
+      }
+      // Default: YYYY-MM-DD
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      return dateString;
+    }
+  };
+  
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -27,8 +55,8 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       <h1>${isEstimate ? t.estimate : t.invoice}</h1>
       <div class="invoice-info">
         <p><strong>${isEstimate ? t.estimateNumber : t.invoiceNumber}:</strong> ${data.invoiceNumber}</p>
-        <p><strong>${isEstimate ? t.estimateDate : t.invoiceDate}:</strong> ${data.invoiceDate}</p>
-        ${isEstimate ? (data.validUntil ? `<p><strong>${t.validUntil}:</strong> ${data.validUntil}</p>` : '') : (data.dueDate ? `<p><strong>${t.dueDate}:</strong> ${data.dueDate}</p>` : '')}
+        <p><strong>${isEstimate ? t.estimateDate : t.invoiceDate}:</strong> ${formatDate(data.invoiceDate)}</p>
+        ${isEstimate ? (data.validUntil ? `<p><strong>${t.validUntil}:</strong> ${formatDate(data.validUntil)}</p>` : '') : (data.dueDate ? `<p><strong>${t.dueDate}:</strong> ${formatDate(data.dueDate)}</p>` : '')}
       </div>
     </div>
 

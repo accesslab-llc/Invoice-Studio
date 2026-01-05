@@ -41,6 +41,7 @@ const defaultMappings = {
 // Base column items (always available - includes commonly used columns)
 const baseColumnItems = [
   { label: '手動入力 (Manual Input)', value: 'manual' },
+  { label: '必要なし (Not Required)', value: 'none' },
   { label: 'Name - アイテム名', value: 'name' },
   { label: 'Client Name - 請求先名', value: 'clientName' },
   { label: 'Column1 - ユーザー', value: 'column1' },
@@ -283,10 +284,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         console.log('[FieldMappingDialog] Final subitemColumns count:', subitemColumns.length);
         
         // Filter base columns to only include those that exist in the actual board
-        // Also include special values like 'manual', 'name', 'subitems', 'custom'
+        // Also include special values like 'manual', 'none', 'name', 'subitems', 'custom'
         const validBaseColumns = baseColumnItems.filter(item => {
           // Always include special values
-          if (['manual', 'name', 'subitems', 'custom'].includes(item.value)) {
+          if (['manual', 'none', 'name', 'subitems', 'custom'].includes(item.value)) {
             return true;
           }
           // For mapped columns (like 'clientName', 'column1', etc.), check if they exist in actual columns
@@ -497,6 +498,8 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     const defaultValue = defaultMappings[fieldKey];
     const actual = mappingValue && mappingValue.length > 0 ? mappingValue : defaultValue;
     if (!actual) return '未設定';
+    if (actual === 'none') return t.fieldMappingNotRequired || '必要なし (Not Required)';
+    if (actual === 'manual') return t.fieldMappingManualInput || '手動入力 (Manual Input)';
     if (isCustomValue(actual)) return actual;
     const column = boardColumnsItems.find((i) => i.value === actual);
     return column ? column.label : actual;
