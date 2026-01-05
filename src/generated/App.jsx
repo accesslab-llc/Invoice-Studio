@@ -100,7 +100,7 @@ const App = () => {
     // Image settings for preview adjustment
     imageSettings: {
       companyLogo: { width: '250px', height: '60px', x: 0, y: 0, rotation: 0, repeat: false },
-      watermarkImage: { width: '400px', height: '400px', x: 0, y: 0, rotation: 0, repeat: false, opacity: 0.1 }
+      watermarkImage: { size: 'medium', position: 'center', width: '400px', height: '400px', x: 0, y: 0, rotation: 0, repeat: false, opacity: 0.1 }
     },
     templateColors: {
       modern: '#2563eb',
@@ -1643,12 +1643,133 @@ const App = () => {
                         onChange={(base64) => setFormData({ ...formData, signatureImage: base64 })}
                         aspectRatio="2/1"
                       />
-                      <ImageUploader
-                        label={t.watermark}
-                        value={formData.watermarkImage}
-                        onChange={(base64) => setFormData({ ...formData, watermarkImage: base64 })}
-                        aspectRatio="1/1"
-                      />
+                      <VStack gap="4" align="stretch">
+                        <ImageUploader
+                          label={t.watermark}
+                          value={formData.watermarkImage}
+                          onChange={(base64) => setFormData({ ...formData, watermarkImage: base64 })}
+                          aspectRatio="1/1"
+                        />
+                        {formData.watermarkImage && (
+                          <Stack gap="3">
+                            <Field.Root>
+                              <Field.Label>{t.watermarkSize}</Field.Label>
+                              <HStack gap="2">
+                                <Button
+                                  size="sm"
+                                  variant={formData.imageSettings?.watermarkImage?.size === 'small' ? 'solid' : 'outline'}
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    imageSettings: {
+                                      ...prev.imageSettings,
+                                      watermarkImage: {
+                                        ...prev.imageSettings.watermarkImage,
+                                        size: 'small',
+                                        width: '200px',
+                                        height: '200px'
+                                      }
+                                    }
+                                  }))}
+                                >
+                                  {t.watermarkSizeSmall}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={formData.imageSettings?.watermarkImage?.size === 'medium' || !formData.imageSettings?.watermarkImage?.size ? 'solid' : 'outline'}
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    imageSettings: {
+                                      ...prev.imageSettings,
+                                      watermarkImage: {
+                                        ...prev.imageSettings.watermarkImage,
+                                        size: 'medium',
+                                        width: '400px',
+                                        height: '400px'
+                                      }
+                                    }
+                                  }))}
+                                >
+                                  {t.watermarkSizeMedium}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={formData.imageSettings?.watermarkImage?.size === 'large' ? 'solid' : 'outline'}
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    imageSettings: {
+                                      ...prev.imageSettings,
+                                      watermarkImage: {
+                                        ...prev.imageSettings.watermarkImage,
+                                        size: 'large',
+                                        width: '600px',
+                                        height: '600px'
+                                      }
+                                    }
+                                  }))}
+                                >
+                                  {t.watermarkSizeLarge}
+                                </Button>
+                              </HStack>
+                            </Field.Root>
+                            <Field.Root>
+                              <Field.Label>{t.watermarkPosition}</Field.Label>
+                              <HStack gap="2">
+                                <Button
+                                  size="sm"
+                                  variant={formData.imageSettings?.watermarkImage?.position === 'top' ? 'solid' : 'outline'}
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    imageSettings: {
+                                      ...prev.imageSettings,
+                                      watermarkImage: {
+                                        ...prev.imageSettings.watermarkImage,
+                                        position: 'top',
+                                        y: -40 // 上に配置（top: 10%相当）
+                                      }
+                                    }
+                                  }))}
+                                >
+                                  {t.watermarkPositionTop}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={formData.imageSettings?.watermarkImage?.position === 'bottom' ? 'solid' : 'outline'}
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    imageSettings: {
+                                      ...prev.imageSettings,
+                                      watermarkImage: {
+                                        ...prev.imageSettings.watermarkImage,
+                                        position: 'bottom',
+                                        y: 40 // 下に配置（bottom: 10%相当）
+                                      }
+                                    }
+                                  }))}
+                                >
+                                  {t.watermarkPositionBottom}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={formData.imageSettings?.watermarkImage?.position === 'center' || !formData.imageSettings?.watermarkImage?.position ? 'solid' : 'outline'}
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    imageSettings: {
+                                      ...prev.imageSettings,
+                                      watermarkImage: {
+                                        ...prev.imageSettings.watermarkImage,
+                                        position: 'center',
+                                        y: 0 // 中央に配置
+                                      }
+                                    }
+                                  }))}
+                                >
+                                  {t.watermarkPositionCenter}
+                                </Button>
+                              </HStack>
+                            </Field.Root>
+                          </Stack>
+                        )}
+                      </VStack>
                     </SimpleGrid>
                   </Card.Body>
                 </Collapsible.Content>
@@ -1856,38 +1977,44 @@ const App = () => {
                     position="relative"
                   >
                       {formData.watermarkImage && (() => {
-                        const settings = formData.imageSettings?.watermarkImage || { width: '400px', height: '400px', x: 0, y: 0, rotation: 0, repeat: false, opacity: 0.1 };
+                        const settings = formData.imageSettings?.watermarkImage || { size: 'medium', position: 'center', width: '400px', height: '400px', x: 0, y: 0, rotation: 0, repeat: false, opacity: 0.1 };
+                        
+                        // Calculate position based on position setting
+                        let topValue = '50%';
+                        let transformValue = 'translate(-50%, -50%)';
+                        if (settings.position === 'top') {
+                          topValue = '10%';
+                          transformValue = 'translate(-50%, 0)';
+                        } else if (settings.position === 'bottom') {
+                          topValue = '90%';
+                          transformValue = 'translate(-50%, -100%)';
+                        } else {
+                          // center (default)
+                          topValue = '50%';
+                          transformValue = 'translate(-50%, -50%)';
+                        }
+                        
                         const watermarkStyle = {
                           position: 'absolute',
-                          top: settings.y !== 0 ? `${settings.y}px` : '50%',
-                          left: settings.x !== 0 ? `${settings.x}px` : '50%',
-                          transform: settings.x === 0 && settings.y === 0 
-                            ? `translate(-50%, -50%) rotate(${settings.rotation}deg)`
-                            : `translate(${settings.x === 0 ? '-50%' : '0'}, ${settings.y === 0 ? '-50%' : '0'}) rotate(${settings.rotation}deg)`,
+                          top: topValue,
+                          left: '50%',
+                          transform: `${transformValue} rotate(${settings.rotation || 0}deg)`,
                           opacity: settings.opacity || 0.1,
                           zIndex: 0,
                           pointerEvents: 'none',
-                          width: settings.repeat ? '100%' : 'auto',
-                          height: settings.repeat ? '100%' : 'auto',
-                          backgroundImage: settings.repeat ? `url(${formData.watermarkImage})` : 'none',
-                          backgroundRepeat: settings.repeat ? 'repeat' : 'no-repeat',
-                          backgroundSize: settings.repeat ? 'contain' : 'auto',
-                          display: settings.repeat ? 'block' : 'flex',
-                          alignItems: settings.repeat ? 'stretch' : 'center',
-                          justifyContent: settings.repeat ? 'stretch' : 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         };
                         return (
                           <Box style={watermarkStyle}>
-                            {!settings.repeat && (
-                              <Image 
-                                src={formData.watermarkImage} 
-                                alt="Watermark" 
-                                width={settings.width}
-                                height={settings.height}
-                                objectFit="contain"
-                                style={{ transform: `rotate(${settings.rotation}deg)` }}
-                              />
-                            )}
+                            <Image 
+                              src={formData.watermarkImage} 
+                              alt="Watermark" 
+                              width={settings.width || '400px'}
+                              height={settings.height || '400px'}
+                              objectFit="contain"
+                            />
                           </Box>
                         );
                       })()}
