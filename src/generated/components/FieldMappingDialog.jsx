@@ -52,18 +52,23 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const getBaseColumnItems = () => [
     { label: t.fieldMappingManualInput, value: 'manual' },
     { label: t.fieldMappingNotRequired, value: 'none' },
-    { label: `Name - ${t.fieldMappingItemName}`, value: 'name' },
-    { label: `Client Name - ${t.fieldMappingClientName}`, value: 'clientName' },
-    { label: `Column1 - ${t.fieldMappingUser}`, value: 'column1' },
-    { label: `Column2 - ${t.fieldMappingStatus}`, value: 'column2' },
-    { label: `Column3 - ${t.fieldMappingInvoiceDate}`, value: 'column3' },
-    { label: `Discount - ${t.fieldMappingDiscount}`, value: 'discount' },
-    { label: `Tax Amount - ${t.fieldMappingTaxAmount}`, value: 'taxAmount' },
-    { label: `Column11 - ${t.fieldMappingNumeric1}`, value: 'column11' },
-    { label: `Column21 - ${t.fieldMappingNumeric2}`, value: 'column21' },
-    { label: `Subitems - ${t.fieldMappingSubitems}`, value: 'subitems' },
+    { label: language === 'ja' ? t.fieldMappingItemName : `${t.fieldMappingName} - ${t.fieldMappingItemName}`, value: 'name' },
+    { label: language === 'ja' ? t.fieldMappingClientName : `Client Name - ${t.fieldMappingClientName}`, value: 'clientName' },
+    { label: language === 'ja' ? `${t.fieldMappingColumn1} - ${t.fieldMappingUser}` : `${t.fieldMappingColumn1} - ${t.fieldMappingUser}`, value: 'column1' },
+    { label: language === 'ja' ? `${t.fieldMappingColumn2} - ${t.fieldMappingStatus}` : `${t.fieldMappingColumn2} - ${t.fieldMappingStatus}`, value: 'column2' },
+    { label: language === 'ja' ? `${t.fieldMappingColumn3} - ${t.fieldMappingInvoiceDate}` : `${t.fieldMappingColumn3} - ${t.fieldMappingInvoiceDate}`, value: 'column3' },
+    { label: language === 'ja' ? t.fieldMappingDiscount : `Discount - ${t.fieldMappingDiscount}`, value: 'discount' },
+    { label: language === 'ja' ? t.fieldMappingTaxAmount : `Tax Amount - ${t.fieldMappingTaxAmount}`, value: 'taxAmount' },
+    { label: language === 'ja' ? `${t.fieldMappingColumn11} - ${t.fieldMappingNumeric1}` : `${t.fieldMappingColumn11} - ${t.fieldMappingNumeric1}`, value: 'column11' },
+    { label: language === 'ja' ? `${t.fieldMappingColumn21} - ${t.fieldMappingNumeric2}` : `${t.fieldMappingColumn21} - ${t.fieldMappingNumeric2}`, value: 'column21' },
     { label: t.fieldMappingCustomColumn, value: 'custom' }
   ];
+  
+  // Get subitems option for items field only
+  const getSubitemsOption = () => ({
+    label: language === 'ja' ? t.fieldMappingSubitems : `Subitems - ${t.fieldMappingSubitems}`,
+    value: 'subitems'
+  });
   
   const [boardColumnsItems, setBoardColumnsItems] = useState(getBaseColumnItems());
   
@@ -289,11 +294,12 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         console.log('[FieldMappingDialog] Final subitemColumns count:', subitemColumns.length);
         
         // Filter base columns to only include those that exist in the actual board
-        // Also include special values like 'manual', 'none', 'name', 'subitems', 'custom'
+        // Also include special values like 'manual', 'none', 'name', 'custom'
+        // Note: 'subitems' is not included in base columns, but will be added to items field specifically
         const baseColumnItems = getBaseColumnItems();
         const validBaseColumns = baseColumnItems.filter(item => {
-          // Always include special values
-          if (['manual', 'none', 'name', 'subitems', 'custom'].includes(item.value)) {
+          // Always include special values (except 'subitems' which is handled separately)
+          if (['manual', 'none', 'name', 'custom'].includes(item.value)) {
             return true;
           }
           // For mapped columns (like 'clientName', 'column1', etc.), check if they exist in actual columns
@@ -1026,6 +1032,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     _focus={{ outline: "2px solid", outlineColor: "blue.500", outlineOffset: "2px" }}
                   >
                     <option value="">{t.fieldMappingSelectColumn}</option>
+                    {/* Add subitems option specifically for items field */}
+                    <option key="subitems" value="subitems">
+                      {getSubitemsOption().label}
+                    </option>
                     {validBoardColumnsItems?.map((item) => (
                       <option key={item.value} value={item.value}>
                             {item.label}
