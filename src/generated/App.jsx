@@ -820,10 +820,24 @@ const App = () => {
 
     const template = templates.find((tpl) => tpl.id === selectedValue);
     if (template) {
-      setFormData((prev) => ({
-        ...prev,
-        ...template.data
-      }));
+      // Restore all formData if saved in template
+      if (template.formData) {
+        setFormData(template.formData);
+      } else {
+        // Fallback to old format (only company and bank info)
+        setFormData((prev) => ({
+          ...prev,
+          ...template.data
+        }));
+      }
+      
+      // Restore fieldMappings if saved in template
+      if (template.fieldMappings) {
+        setFieldMappings(template.fieldMappings);
+        localStorage.setItem('invoiceFieldMappings', JSON.stringify(template.fieldMappings));
+        // Refetch board data with restored mappings
+        fetchBoardData(template.fieldMappings);
+      }
     }
   };
 
@@ -1912,7 +1926,7 @@ const App = () => {
                                 watermarkImage: {
                                   ...prev.imageSettings.watermarkImage,
                                   position: 'top',
-                                  y: -40
+                                  y: 0
                                 }
                               }
                             }))}
@@ -1948,7 +1962,7 @@ const App = () => {
                                 watermarkImage: {
                                   ...prev.imageSettings.watermarkImage,
                                   position: 'bottom',
-                                  y: 40
+                                  y: 0
                                 }
                               }
                             }))}
@@ -1992,15 +2006,27 @@ const App = () => {
                         let topValue = '50%';
                         let transformValue = 'translate(-50%, -50%)';
                         if (settings.position === 'top') {
-                          topValue = '10%';
+                          topValue = '5%';
                           transformValue = 'translate(-50%, 0)';
                         } else if (settings.position === 'bottom') {
-                          topValue = '90%';
+                          topValue = '95%';
                           transformValue = 'translate(-50%, -100%)';
                         } else {
                           // center (default)
                           topValue = '50%';
                           transformValue = 'translate(-50%, -50%)';
+                        }
+                        
+                        // Apply manual y offset if set
+                        if (settings.y !== undefined && settings.y !== 0) {
+                          const yOffset = settings.y;
+                          if (settings.position === 'top') {
+                            topValue = `calc(5% + ${yOffset}px)`;
+                          } else if (settings.position === 'bottom') {
+                            topValue = `calc(95% + ${yOffset}px)`;
+                          } else {
+                            topValue = `calc(50% + ${yOffset}px)`;
+                          }
                         }
                         
                         const watermarkStyle = {
@@ -2056,8 +2082,12 @@ const App = () => {
                           {documentType === 'estimate' ? t.estimate : t.invoice}
                         </Heading>
                         <Stack gap="0" fontSize="2xs" textAlign="center">
-                          <Text><strong>{documentType === 'estimate' ? t.estimateNumber : t.invoiceNumber}:</strong> {formData.invoiceNumber}</Text>
-                          <Text><strong>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}:</strong> {formatDate(formData.invoiceDate)}</Text>
+                          {formData.invoiceNumber && (
+                            <Text><strong>{documentType === 'estimate' ? t.estimateNumber : t.invoiceNumber}:</strong> {formData.invoiceNumber}</Text>
+                          )}
+                          {formData.invoiceDate && (
+                            <Text><strong>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}:</strong> {formatDate(formData.invoiceDate)}</Text>
+                          )}
                           {documentType === 'estimate' 
                             ? (formData.validUntil && <Text><strong>{t.validUntil}:</strong> {formatDate(formData.validUntil)}</Text>)
                             : (formData.dueDate && <Text><strong>{t.dueDate}:</strong> {formatDate(formData.dueDate)}</Text>)}
@@ -2066,11 +2096,11 @@ const App = () => {
 
                       {(sectionVisibility.billingTo || sectionVisibility.billingFrom) && (
                         <SimpleGrid columns={sectionVisibility.billingTo && sectionVisibility.billingFrom ? 2 : 1} gap="3">
-                          {sectionVisibility.billingTo && (
+                          {sectionVisibility.billingTo && (formData.clientName || formData.clientDepartment || formData.clientContact || formData.clientZip || formData.clientAddress || formData.clientPhone || formData.clientEmail) && (
                             <Box>
                               <Heading size="2xs" mb="1" pb="1" borderBottomWidth="1px" borderColor="gray.200">{t.billingTo}</Heading>
                               <Stack gap="0" fontSize="2xs" lineHeight="1.4">
-                                <Text fontWeight="bold" fontSize="xs">{formData.clientName || '-'}</Text>
+                                {formData.clientName && <Text fontWeight="bold" fontSize="xs">{formData.clientName}</Text>}
                                 {formData.clientDepartment && <Text color="gray.700">{formData.clientDepartment}</Text>}
                                 {formData.clientContact && <Text color="gray.700">{formData.clientContact} {t.sama}</Text>}
                                 {formData.clientZip && <Text color="gray.600">{formData.clientZip}</Text>}
@@ -2080,12 +2110,12 @@ const App = () => {
                               </Stack>
                             </Box>
                           )}
-                          {sectionVisibility.billingFrom && (
+                          {sectionVisibility.billingFrom && (formData.companyName || formData.companyRep || formData.companyZip || formData.companyAddress || formData.companyPhone || formData.companyFax || formData.companyEmail || formData.companyRegNumber || formData.signatureImage) && (
                             <Box>
                               <Heading size="2xs" mb="1" pb="1" borderBottomWidth="1px" borderColor="gray.200">{t.billingFrom}</Heading>
                               <HStack gap="3" align="start">
                                 <Stack gap="0" fontSize="2xs" lineHeight="1.4" flex="1">
-                                  <Text fontWeight="bold" fontSize="xs">{formData.companyName || '-'}</Text>
+                                  {formData.companyName && <Text fontWeight="bold" fontSize="xs">{formData.companyName}</Text>}
                                   {formData.companyRep && <Text color="gray.700">{formData.companyRep}</Text>}
                                   {formData.companyZip && <Text color="gray.600">{formData.companyZip}</Text>}
                                   {formData.companyAddress && <Text color="gray.700">{formData.companyAddress}</Text>}
@@ -2251,6 +2281,8 @@ const App = () => {
         templates={templates}
         onSave={handleTemplatesSave}
         language={language}
+        formData={formData}
+        fieldMappings={fieldMappings}
       />
     </Container>
   );

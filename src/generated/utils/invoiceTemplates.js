@@ -54,8 +54,8 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       ${data.companyLogo ? `<div class="logo"><img src="${data.companyLogo}" alt="Company Logo" /></div>` : ''}
       <h1>${isEstimate ? t.estimate : t.invoice}</h1>
       <div class="invoice-info">
-        <p><strong>${isEstimate ? t.estimateNumber : t.invoiceNumber}:</strong> ${data.invoiceNumber}</p>
-        <p><strong>${isEstimate ? t.estimateDate : t.invoiceDate}:</strong> ${formatDate(data.invoiceDate)}</p>
+        ${data.invoiceNumber ? `<p><strong>${isEstimate ? t.estimateNumber : t.invoiceNumber}:</strong> ${data.invoiceNumber}</p>` : ''}
+        ${data.invoiceDate ? `<p><strong>${isEstimate ? t.estimateDate : t.invoiceDate}:</strong> ${formatDate(data.invoiceDate)}</p>` : ''}
         ${isEstimate ? (data.validUntil ? `<p><strong>${t.validUntil}:</strong> ${formatDate(data.validUntil)}</p>` : '') : (data.dueDate ? `<p><strong>${t.dueDate}:</strong> ${formatDate(data.dueDate)}</p>` : '')}
       </div>
     </div>

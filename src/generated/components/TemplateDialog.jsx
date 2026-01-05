@@ -17,7 +17,7 @@ import { Plus, Save, Trash2 } from 'lucide-react';
 import { TEMPLATE_FIELDS } from '../constants/templateFields';
 import { translations } from '../utils/translations';
 
-const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
+const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData, fieldMappings }) => {
   const t = translations[language];
 
   const emptyData = useMemo(
@@ -61,6 +61,20 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
     }
   }, [isOpen, templates, initialTemplate]);
 
+  // Update formValues when formData changes (for template selection)
+  useEffect(() => {
+    if (isOpen && formData) {
+      const templateData = TEMPLATE_FIELDS.reduce((acc, key) => {
+        acc[key] = formData[key] || '';
+        return acc;
+      }, {});
+      setFormValues((prev) => ({
+        ...prev,
+        data: { ...prev.data, ...templateData }
+      }));
+    }
+  }, [isOpen, formData]);
+
   const handleFieldChange = (key, value) => {
     setFormValues((prev) => ({
       ...prev,
@@ -94,22 +108,36 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language }) => {
       return;
     }
 
+    // Save all formData and fieldMappings along with the template-specific data
+    const templateData = {
+      // Keep the old format for backward compatibility (company and bank info)
+      ...formValues.data,
+      // Also save all formData and fieldMappings
+      formData: formData ? JSON.parse(JSON.stringify(formData)) : null,
+      fieldMappings: fieldMappings ? JSON.parse(JSON.stringify(fieldMappings)) : null
+    };
+
     let updatedTemplates;
     if (currentTemplateId) {
       updatedTemplates = localTemplates.map((tpl) =>
         tpl.id === currentTemplateId
-            ? { ...tpl, name: formValues.name.trim(), data: formValues.data }
+            ? { ...tpl, name: formValues.name.trim(), data: templateData, formData: templateData.formData, fieldMappings: templateData.fieldMappings }
             : tpl
       );
     } else {
       const newTemplate = {
         id: Date.now().toString(),
         name: formValues.name.trim(),
-        data: formValues.data
+        data: templateData,
+        formData: templateData.formData,
+        fieldMappings: templateData.fieldMappings
       };
       updatedTemplates = [...localTemplates, newTemplate];
       setCurrentTemplateId(newTemplate.id);
-      setFormValues(newTemplate);
+      setFormValues({
+        ...newTemplate,
+        data: { ...emptyData, ...templateData }
+      });
     }
 
     setLocalTemplates(updatedTemplates);
