@@ -1643,133 +1643,12 @@ const App = () => {
                         onChange={(base64) => setFormData({ ...formData, signatureImage: base64 })}
                         aspectRatio="2/1"
                       />
-                      <VStack gap="4" align="stretch">
-                        <ImageUploader
-                          label={t.watermark}
-                          value={formData.watermarkImage}
-                          onChange={(base64) => setFormData({ ...formData, watermarkImage: base64 })}
-                          aspectRatio="1/1"
-                        />
-                        {formData.watermarkImage && (
-                          <Stack gap="3">
-                            <Field.Root>
-                              <Field.Label>{t.watermarkSize}</Field.Label>
-                              <HStack gap="2">
-                                <Button
-                                  size="sm"
-                                  variant={formData.imageSettings?.watermarkImage?.size === 'small' ? 'solid' : 'outline'}
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    imageSettings: {
-                                      ...prev.imageSettings,
-                                      watermarkImage: {
-                                        ...prev.imageSettings.watermarkImage,
-                                        size: 'small',
-                                        width: '200px',
-                                        height: '200px'
-                                      }
-                                    }
-                                  }))}
-                                >
-                                  {t.watermarkSizeSmall}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={formData.imageSettings?.watermarkImage?.size === 'medium' || !formData.imageSettings?.watermarkImage?.size ? 'solid' : 'outline'}
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    imageSettings: {
-                                      ...prev.imageSettings,
-                                      watermarkImage: {
-                                        ...prev.imageSettings.watermarkImage,
-                                        size: 'medium',
-                                        width: '400px',
-                                        height: '400px'
-                                      }
-                                    }
-                                  }))}
-                                >
-                                  {t.watermarkSizeMedium}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={formData.imageSettings?.watermarkImage?.size === 'large' ? 'solid' : 'outline'}
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    imageSettings: {
-                                      ...prev.imageSettings,
-                                      watermarkImage: {
-                                        ...prev.imageSettings.watermarkImage,
-                                        size: 'large',
-                                        width: '600px',
-                                        height: '600px'
-                                      }
-                                    }
-                                  }))}
-                                >
-                                  {t.watermarkSizeLarge}
-                                </Button>
-                              </HStack>
-                            </Field.Root>
-                            <Field.Root>
-                              <Field.Label>{t.watermarkPosition}</Field.Label>
-                              <HStack gap="2">
-                                <Button
-                                  size="sm"
-                                  variant={formData.imageSettings?.watermarkImage?.position === 'top' ? 'solid' : 'outline'}
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    imageSettings: {
-                                      ...prev.imageSettings,
-                                      watermarkImage: {
-                                        ...prev.imageSettings.watermarkImage,
-                                        position: 'top',
-                                        y: -40 // 上に配置（top: 10%相当）
-                                      }
-                                    }
-                                  }))}
-                                >
-                                  {t.watermarkPositionTop}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={formData.imageSettings?.watermarkImage?.position === 'bottom' ? 'solid' : 'outline'}
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    imageSettings: {
-                                      ...prev.imageSettings,
-                                      watermarkImage: {
-                                        ...prev.imageSettings.watermarkImage,
-                                        position: 'bottom',
-                                        y: 40 // 下に配置（bottom: 10%相当）
-                                      }
-                                    }
-                                  }))}
-                                >
-                                  {t.watermarkPositionBottom}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={formData.imageSettings?.watermarkImage?.position === 'center' || !formData.imageSettings?.watermarkImage?.position ? 'solid' : 'outline'}
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    imageSettings: {
-                                      ...prev.imageSettings,
-                                      watermarkImage: {
-                                        ...prev.imageSettings.watermarkImage,
-                                        position: 'center',
-                                        y: 0 // 中央に配置
-                                      }
-                                    }
-                                  }))}
-                                >
-                                  {t.watermarkPositionCenter}
-                                </Button>
-                              </HStack>
-                            </Field.Root>
-                          </Stack>
-                        )}
-                      </VStack>
+                      <ImageUploader
+                        label={t.watermark}
+                        value={formData.watermarkImage}
+                        onChange={(base64) => setFormData({ ...formData, watermarkImage: base64 })}
+                        aspectRatio="1/1"
+                      />
                     </SimpleGrid>
                   </Card.Body>
                 </Collapsible.Content>
@@ -1951,6 +1830,136 @@ const App = () => {
                     {fitToOnePage ? t.fitToOnePage : t.multiPage}
                   </Badge>
                 </HStack>
+                {formData.watermarkImage && (
+                  <Stack gap="3" mt="4" p="4" bg="blue.50" borderRadius="md" borderWidth="1px" borderColor="blue.200">
+                    <Text fontSize="sm" fontWeight="medium" color="blue.900">
+                      {t.watermark} {t.watermarkSize}・{t.watermarkPosition}
+                    </Text>
+                    <HStack gap="4" wrap="wrap">
+                      <Field.Root>
+                        <Field.Label fontSize="xs">{t.watermarkSize}</Field.Label>
+                        <HStack gap="2">
+                          <Button
+                            size="sm"
+                            variant={formData.imageSettings?.watermarkImage?.size === 'small' ? 'solid' : 'outline'}
+                            colorPalette="blue"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              imageSettings: {
+                                ...prev.imageSettings,
+                                watermarkImage: {
+                                  ...prev.imageSettings.watermarkImage,
+                                  size: 'small',
+                                  width: '200px',
+                                  height: '200px'
+                                }
+                              }
+                            }))}
+                          >
+                            {t.watermarkSizeSmall}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={formData.imageSettings?.watermarkImage?.size === 'medium' || !formData.imageSettings?.watermarkImage?.size ? 'solid' : 'outline'}
+                            colorPalette="blue"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              imageSettings: {
+                                ...prev.imageSettings,
+                                watermarkImage: {
+                                  ...prev.imageSettings.watermarkImage,
+                                  size: 'medium',
+                                  width: '400px',
+                                  height: '400px'
+                                }
+                              }
+                            }))}
+                          >
+                            {t.watermarkSizeMedium}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={formData.imageSettings?.watermarkImage?.size === 'large' ? 'solid' : 'outline'}
+                            colorPalette="blue"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              imageSettings: {
+                                ...prev.imageSettings,
+                                watermarkImage: {
+                                  ...prev.imageSettings.watermarkImage,
+                                  size: 'large',
+                                  width: '600px',
+                                  height: '600px'
+                                }
+                              }
+                            }))}
+                          >
+                            {t.watermarkSizeLarge}
+                          </Button>
+                        </HStack>
+                      </Field.Root>
+                      <Field.Root>
+                        <Field.Label fontSize="xs">{t.watermarkPosition}</Field.Label>
+                        <HStack gap="2">
+                          <Button
+                            size="sm"
+                            variant={formData.imageSettings?.watermarkImage?.position === 'top' ? 'solid' : 'outline'}
+                            colorPalette="blue"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              imageSettings: {
+                                ...prev.imageSettings,
+                                watermarkImage: {
+                                  ...prev.imageSettings.watermarkImage,
+                                  position: 'top',
+                                  y: -40
+                                }
+                              }
+                            }))}
+                          >
+                            {t.watermarkPositionTop}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={formData.imageSettings?.watermarkImage?.position === 'center' || !formData.imageSettings?.watermarkImage?.position ? 'solid' : 'outline'}
+                            colorPalette="blue"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              imageSettings: {
+                                ...prev.imageSettings,
+                                watermarkImage: {
+                                  ...prev.imageSettings.watermarkImage,
+                                  position: 'center',
+                                  y: 0
+                                }
+                              }
+                            }))}
+                          >
+                            {t.watermarkPositionCenter}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={formData.imageSettings?.watermarkImage?.position === 'bottom' ? 'solid' : 'outline'}
+                            colorPalette="blue"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              imageSettings: {
+                                ...prev.imageSettings,
+                                watermarkImage: {
+                                  ...prev.imageSettings.watermarkImage,
+                                  position: 'bottom',
+                                  y: 40
+                                }
+                              }
+                            }))}
+                          >
+                            {t.watermarkPositionBottom}
+                          </Button>
+                        </HStack>
+                      </Field.Root>
+                    </HStack>
+                  </Stack>
+                )}
               </Card.Header>
               <Card.Body display="flex" justifyContent="center" p="4" bg="gray.100">
                 <Box
