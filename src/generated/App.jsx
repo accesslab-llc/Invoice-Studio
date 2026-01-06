@@ -801,12 +801,28 @@ const App = () => {
 
     // Restore all formData if saved in template
     if (template.formData) {
-      setFormData(template.formData);
+      // Merge templateColors to ensure templateColors is preserved
+      const mergedFormData = {
+        ...template.formData,
+        templateColors: {
+          modern: '#2563eb',
+          classic: '#1a1a1a',
+          minimal: '#666666',
+          ...(template.formData.templateColors || {})
+        }
+      };
+      setFormData(mergedFormData);
     } else {
       // Fallback to old format (only company and bank info)
       setFormData((prev) => ({
         ...prev,
-        ...template.data
+        ...template.data,
+        // Preserve templateColors
+        templateColors: prev.templateColors || {
+          modern: '#2563eb',
+          classic: '#1a1a1a',
+          minimal: '#666666'
+        }
       }));
     }
     
@@ -1208,13 +1224,16 @@ const App = () => {
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
                     type="color"
-                    value={formData.templateColors[template] || '#2563eb'}
+                    value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
                     onChange={(e) => {
                       const newColor = e.target.value;
                       setFormData(prev => ({
                         ...prev,
                         templateColors: {
-                          ...prev.templateColors,
+                          modern: '#2563eb',
+                          classic: '#1a1a1a',
+                          minimal: '#666666',
+                          ...(prev.templateColors || {}),
                           [template]: newColor
                         }
                       }));
