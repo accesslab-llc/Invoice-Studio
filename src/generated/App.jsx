@@ -1390,19 +1390,33 @@ const App = () => {
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}</Field.Label>
-                      <Input type="date" value={formData.invoiceDate}
-                        onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} />
+                      <Input 
+                        type="date" 
+                        value={formData.invoiceDate}
+                        onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
+                        lang={language}
+                      />
+                      <Field.HelperText fontSize="xs" color="gray.500">
+                        {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
+                      </Field.HelperText>
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
-                      <Input type="date" value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
+                      <Input 
+                        type="date" 
+                        value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
                         onChange={e => {
                           if (documentType === 'estimate') {
                             setFormData({ ...formData, validUntil: e.target.value });
                           } else {
                             setFormData({ ...formData, dueDate: e.target.value });
                           }
-                        }} />
+                        }}
+                        lang={language}
+                      />
+                      <Field.HelperText fontSize="xs" color="gray.500">
+                        {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
+                      </Field.HelperText>
                     </Field.Root>
                   </HStack>
                   {documentType === 'estimate' && (
@@ -1475,8 +1489,8 @@ const App = () => {
                     />
                     <Field.HelperText fontSize="xs" color="gray.500">
                       {documentType === 'estimate' 
-                        ? '空欄の場合は「下記の通りお見積もり申し上げます」が表示されます'
-                        : '空欄の場合は「下記の通りご請求申し上げます」が表示されます'}
+                        ? (t.estimateMessageHelperText || '空欄の場合は「下記の通りお見積もり申し上げます」が表示されます')
+                        : (t.messageHelperText || '空欄の場合は「下記の通りご請求申し上げます」が表示されます')}
                     </Field.HelperText>
                   </Field.Root>
                 </Stack>
