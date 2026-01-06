@@ -1,9 +1,9 @@
 import { translations } from './translations';
 
-export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitToOnePage = true, customColor = null, documentType = 'invoice') => {
+export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitToOnePage = true, customColor = null, documentType = 'invoice', messageBackgroundColor = null, notesBackgroundColor = null) => {
   const t = translations[lang];
   const itemCount = data.items?.length || 0;
-  const styles = getTemplateStyles(template, itemCount, pageSize, fitToOnePage, customColor);
+  const styles = getTemplateStyles(template, itemCount, pageSize, fitToOnePage, customColor, messageBackgroundColor, notesBackgroundColor);
   const isEstimate = documentType === 'estimate';
   
   const getCurrencySymbol = (currency) => {
@@ -147,7 +147,7 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
 </html>`;
 };
 
-const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePage = true, customColor = null) => {
+const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePage = true, customColor = null, messageBackgroundColor = null, notesBackgroundColor = null) => {
   // Get template color
   const getTemplateColor = () => {
     if (customColor) return customColor;
@@ -295,7 +295,7 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     .invoice-message {
       margin: ${fitToOnePage ? Math.max(5, 8 * paddingScale) : 12}px 0;
       padding: ${fitToOnePage ? Math.max(4, 7 * paddingScale) : 10}px;
-      background: #f8f9fa;
+      background: ${messageBackgroundColor || '#f8f9fa'};
       border-left: ${fitToOnePage ? '2px' : '3px'} solid #2563eb;
       font-weight: 500;
       font-size: ${12 * scale}px;
@@ -390,7 +390,7 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
     .notes {
       margin-top: ${fitToOnePage ? Math.max(6, 10 * paddingScale) : 15}px;
       padding: ${fitToOnePage ? Math.max(6, 10 * paddingScale) : 15}px;
-      background: #fff9e6;
+      background: ${notesBackgroundColor || '#fff9e6'};
       border-left: ${fitToOnePage ? '2px' : '3px'} solid #f59e0b;
       font-size: ${11 * scale}px;
     }
@@ -439,7 +439,7 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
         color: #000000;
       }
       .notes {
-        background: white;
+        background: ${notesBackgroundColor || 'white'};
         border: none;
         border-left: 4px solid #000000;
         border-bottom: 1px solid #e5e7eb;
@@ -485,7 +485,7 @@ const getTemplateStyles = (template, itemCount = 0, pageSize = 'a4', fitToOnePag
         color: #212529;
       }
       .notes {
-        background: #f8f9fa;
+        background: ${notesBackgroundColor || '#f8f9fa'};
         border: 1px solid #e9ecef;
         border-left: 3px solid #6c757d;
       }

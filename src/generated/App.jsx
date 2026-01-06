@@ -107,6 +107,8 @@ const App = () => {
       classic: '#1a1a1a',
       minimal: '#666666'
     },
+    messageBackgroundColor: '#f8f9fa', // 「下記の通りご請求申し上げます」の背景色
+    notesBackgroundColor: '#fff9e6', // 「備考」の背景色
     currency: 'JPY',
     invoiceNumber: 'INV-001',
     invoiceDate: new Date().toISOString().split('T')[0],
@@ -912,7 +914,17 @@ const App = () => {
       };
       
       // Generate HTML with UTF-8 encoding (this HTML has all styles embedded in <style> tag)
-      const html = generateInvoiceHTML(exportData, language, template, pageSize, fitToOnePage, formData.templateColors[template], documentType);
+      const html = generateInvoiceHTML(
+        exportData, 
+        language, 
+        template, 
+        pageSize, 
+        fitToOnePage, 
+        formData.templateColors[template], 
+        documentType,
+        formData.messageBackgroundColor,
+        formData.notesBackgroundColor
+      );
       
       // Create a Blob URL from the HTML to load it in iframe
       // This ensures proper encoding and style application
@@ -1196,13 +1208,50 @@ const App = () => {
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
                     type="color"
-                    value={formData.templateColors[template]}
+                    value={formData.templateColors[template] || '#2563eb'}
+                    onChange={(e) => {
+                      const newColor = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        templateColors: {
+                          ...prev.templateColors,
+                          [template]: newColor
+                        }
+                      }));
+                    }}
+                    width="60px"
+                    height="32px"
+                    p="1"
+                    cursor="pointer"
+                  />
+                </HStack>
+              </Field.Root>
+              <Field.Root width="auto">
+                <HStack gap="2" align="center">
+                  <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.messageBackgroundColor || 'メッセージ背景色'}:</Text>
+                  <Input
+                    type="color"
+                    value={formData.messageBackgroundColor || '#f8f9fa'}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
-                      templateColors: {
-                        ...prev.templateColors,
-                        [template]: e.target.value
-                      }
+                      messageBackgroundColor: e.target.value
+                    }))}
+                    width="60px"
+                    height="32px"
+                    p="1"
+                    cursor="pointer"
+                  />
+                </HStack>
+              </Field.Root>
+              <Field.Root width="auto">
+                <HStack gap="2" align="center">
+                  <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.notesBackgroundColor || '備考背景色'}:</Text>
+                  <Input
+                    type="color"
+                    value={formData.notesBackgroundColor || '#fff9e6'}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      notesBackgroundColor: e.target.value
                     }))}
                     width="60px"
                     height="32px"
@@ -2091,7 +2140,7 @@ const App = () => {
                         </SimpleGrid>
                       )}
 
-                      <Box bg={template === 'modern' ? 'blue.50' : 'gray.50'} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
+                      <Box bg={formData.messageBackgroundColor || (template === 'modern' ? 'blue.50' : 'gray.50')} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
                         <Text fontSize="2xs" fontWeight="500" color="gray.800">{documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}</Text>
                       </Box>
 
@@ -2175,7 +2224,7 @@ const App = () => {
 
                       {sectionVisibility.notes && formData.notes && (
                         <Box 
-                          bg={template === 'modern' ? 'yellow.50' : template === 'classic' ? 'white' : 'gray.50'}
+                          bg={formData.notesBackgroundColor || (template === 'modern' ? 'yellow.50' : template === 'classic' ? 'white' : 'gray.50')}
                           p="2" 
                           borderRadius="sm" 
                           borderLeftWidth={template === 'classic' ? '4px' : '2px'} 
