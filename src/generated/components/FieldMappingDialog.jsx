@@ -1081,10 +1081,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       ))}
                       {(() => {
                         const subitemLabelPattern = `[${t.subitemLabel || 'Subitem'}]`;
+                        const baseOptionValues = ['manual', 'none'];
                         console.log('[FieldMappingDialog] subitemPrice - showing all columns');
                         return validBoardColumnsItems?.map((item) => {
                           if (!item || !item.value) {
                             console.error('[FieldMappingDialog] Invalid item:', item);
+                            return null;
+                          }
+                          // Exclude base options (manual, none) to avoid duplicates
+                          if (baseOptionValues.includes(item.value)) {
                             return null;
                           }
                           // Show all columns (both item and subitem columns) for subitemPrice field
@@ -1125,10 +1130,15 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                           </option>
                         ))}
                         {(() => {
+                          const baseOptionValues = ['manual', 'none'];
                           console.log('[FieldMappingDialog] subitemQuantity - showing all columns');
                           return validBoardColumnsItems?.map((item) => {
                             if (!item || !item.value) {
                               console.error('[FieldMappingDialog] Invalid item:', item);
+                              return null;
+                            }
+                            // Exclude base options (manual, none) to avoid duplicates
+                            if (baseOptionValues.includes(item.value)) {
                               return null;
                             }
                             // Show all columns (both item and subitem columns) for subitemQuantity field
