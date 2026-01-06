@@ -95,9 +95,11 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
     </div>
     ` : ''}
 
+    ${data.invoiceMessage !== null ? `
     <div class="invoice-message">
-      <p>${isEstimate ? t.estimateMessage : t.invoiceMessage}</p>
+      <p>${isEstimate ? (data.estimateMessage || t.estimateMessage) : (data.invoiceMessage || t.invoiceMessage)}</p>
     </div>
+    ` : ''}
 
     <table class="items">
       <thead>

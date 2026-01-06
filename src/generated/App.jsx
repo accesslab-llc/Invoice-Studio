@@ -83,7 +83,8 @@ const App = () => {
     billingTo: true,
     paymentInfo: true,
     notes: true,
-    images: true
+    images: true,
+    invoiceMessage: true
   });
 
   const toggleSection = (section) => {
@@ -109,6 +110,8 @@ const App = () => {
     },
     messageBackgroundColor: '#f8f9fa', // 「下記の通りご請求申し上げます」の背景色
     notesBackgroundColor: '#fff9e6', // 「備考」の背景色
+    invoiceMessage: '', // 請求書メッセージ（空欄の場合は翻訳から取得）
+    estimateMessage: '', // 見積書メッセージ（空欄の場合は翻訳から取得）
     currency: 'JPY',
     invoiceNumber: 'INV-001',
     invoiceDate: new Date().toISOString().split('T')[0],
@@ -801,7 +804,7 @@ const App = () => {
 
     // Restore all formData if saved in template
     if (template.formData) {
-      // Merge templateColors to ensure templateColors is preserved
+      // Merge templateColors and background colors to ensure they are preserved
       const mergedFormData = {
         ...template.formData,
         templateColors: {
@@ -809,7 +812,9 @@ const App = () => {
           classic: '#1a1a1a',
           minimal: '#666666',
           ...(template.formData.templateColors || {})
-        }
+        },
+        messageBackgroundColor: template.formData.messageBackgroundColor || '#f8f9fa',
+        notesBackgroundColor: template.formData.notesBackgroundColor || '#fff9e6'
       };
       setFormData(mergedFormData);
     } else {
@@ -817,12 +822,14 @@ const App = () => {
       setFormData((prev) => ({
         ...prev,
         ...template.data,
-        // Preserve templateColors
+        // Preserve templateColors and background colors
         templateColors: prev.templateColors || {
           modern: '#2563eb',
           classic: '#1a1a1a',
           minimal: '#666666'
-        }
+        },
+        messageBackgroundColor: prev.messageBackgroundColor || '#f8f9fa',
+        notesBackgroundColor: prev.notesBackgroundColor || '#fff9e6'
       }));
     }
     
@@ -924,6 +931,8 @@ const App = () => {
         deliveryPeriod: documentType === 'estimate' ? formData.deliveryPeriod : null,
         notesLabel: documentType === 'estimate' ? formData.notesLabel : '備考',
         notes: sectionVisibility.notes ? formData.notes : null,
+        invoiceMessage: sectionVisibility.invoiceMessage ? (documentType === 'estimate' ? formData.estimateMessage : formData.invoiceMessage) : null,
+        estimateMessage: sectionVisibility.invoiceMessage ? (documentType === 'estimate' ? formData.estimateMessage : null) : null,
         companyLogo: sectionVisibility.images ? formData.companyLogo : null,
         signatureImage: sectionVisibility.images ? formData.signatureImage : null,
         watermarkImage: sectionVisibility.images ? formData.watermarkImage : null
@@ -1440,6 +1449,36 @@ const App = () => {
                       </HStack>
                     </Field.Root>
                   )}
+                  <Field.Root>
+                    <HStack justify="space-between" mb="2">
+                      <Field.Label>{documentType === 'estimate' ? (t.estimateMessage || '見積メッセージ') : (t.invoiceMessage || '請求メッセージ')}</Field.Label>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => toggleSection('invoiceMessage')}
+                        colorPalette={sectionVisibility.invoiceMessage ? 'blue' : 'gray'}
+                      >
+                        {sectionVisibility.invoiceMessage ? <Eye size={16} /> : <EyeOff size={16} />}
+                        {sectionVisibility.invoiceMessage ? t.visible : t.hidden}
+                      </Button>
+                    </HStack>
+                    <Input
+                      value={documentType === 'estimate' ? (formData.estimateMessage || '') : (formData.invoiceMessage || '')}
+                      onChange={e => {
+                        if (documentType === 'estimate') {
+                          setFormData({ ...formData, estimateMessage: e.target.value });
+                        } else {
+                          setFormData({ ...formData, invoiceMessage: e.target.value });
+                        }
+                      }}
+                      placeholder={documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}
+                    />
+                    <Field.HelperText fontSize="xs" color="gray.500">
+                      {documentType === 'estimate' 
+                        ? '空欄の場合は「下記の通りお見積もり申し上げます」が表示されます'
+                        : '空欄の場合は「下記の通りご請求申し上げます」が表示されます'}
+                    </Field.HelperText>
+                  </Field.Root>
                 </Stack>
               </Card.Body>
             </Card.Root>
@@ -2159,9 +2198,15 @@ const App = () => {
                         </SimpleGrid>
                       )}
 
-                      <Box bg={formData.messageBackgroundColor || (template === 'modern' ? 'blue.50' : 'gray.50')} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
-                        <Text fontSize="2xs" fontWeight="500" color="gray.800">{documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}</Text>
-                      </Box>
+                      {sectionVisibility.invoiceMessage && (
+                        <Box bg={formData.messageBackgroundColor || (template === 'modern' ? 'blue.50' : 'gray.50')} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
+                          <Text fontSize="2xs" fontWeight="500" color="gray.800">
+                            {documentType === 'estimate' 
+                              ? (formData.estimateMessage || t.estimateMessage)
+                              : (formData.invoiceMessage || t.invoiceMessage)}
+                          </Text>
+                        </Box>
+                      )}
 
                       <Box borderWidth={template === 'modern' ? '2px' : '1px'} borderColor={formData.templateColors[template]} borderRadius="sm" overflow="hidden">
                         <Table.Root size="sm" variant="outline">
