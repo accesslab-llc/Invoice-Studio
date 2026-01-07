@@ -181,7 +181,7 @@ const App = () => {
     console.log('[DEBUG] currencyItems:', currencyItems);
     console.log('[DEBUG] formData.templateColors:', formData.templateColors);
     console.log('[DEBUG] template:', template);
-  }, [language, layoutTemplateItems, currencyItems, formData.templateColors, template]);
+  }, [language, layoutTemplateItems, currencyItems]);
 
   const getCurrencySymbol = (currency) => {
     const symbols = {
@@ -1279,7 +1279,6 @@ const App = () => {
                     height="32px"
                     p="1"
                     cursor="pointer"
-                    style={{ pointerEvents: 'auto', zIndex: 1 }}
                   />
                 </HStack>
               </Field.Root>
