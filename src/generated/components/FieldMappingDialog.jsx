@@ -49,7 +49,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   const board = new BoardSDK();
   
   // Generate base column items dynamically based on language
-  const getBaseColumnItems = () => [
+  const baseColumnItems = useMemo(() => [
     { label: t.fieldMappingManualInput, value: 'manual' },
     { label: t.fieldMappingNotRequired, value: 'none' },
     { label: language === 'ja' ? t.fieldMappingItemName : `${t.fieldMappingName} - ${t.fieldMappingItemName}`, value: 'name' },
@@ -62,7 +62,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     { label: language === 'ja' ? `${t.fieldMappingColumn11} - ${t.fieldMappingNumeric1}` : `${t.fieldMappingColumn11} - ${t.fieldMappingNumeric1}`, value: 'column11' },
     { label: language === 'ja' ? `${t.fieldMappingColumn21} - ${t.fieldMappingNumeric2}` : `${t.fieldMappingColumn21} - ${t.fieldMappingNumeric2}`, value: 'column21' },
     { label: t.fieldMappingCustomColumn, value: 'custom' }
-  ];
+  ], [language, t]);
   
   // Get subitems option for items field only
   const getSubitemsOption = () => ({
@@ -70,7 +70,32 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     value: 'subitems'
   });
   
-  const [boardColumnsItems, setBoardColumnsItems] = useState(getBaseColumnItems());
+  const [boardColumnsItems, setBoardColumnsItems] = useState(baseColumnItems);
+  
+  // Update base column items when language changes
+  useEffect(() => {
+    // Only update if we haven't loaded board columns yet (i.e., still using base items)
+    // If board columns are already loaded, we'll merge base items with existing dynamic columns
+    setBoardColumnsItems(prev => {
+      // Check if we have dynamic columns (columns from board)
+      const hasDynamicColumns = prev.some(item => 
+        item.value && 
+        !['manual', 'none', 'name', 'clientName', 'column1', 'column2', 'column3', 'discount', 'taxAmount', 'column11', 'column21', 'custom'].includes(item.value)
+      );
+      
+      if (!hasDynamicColumns) {
+        // No dynamic columns yet, just use base items
+        return baseColumnItems;
+      } else {
+        // We have dynamic columns, merge base items with existing dynamic columns
+        const dynamicColumns = prev.filter(item => 
+          item.value && 
+          !['manual', 'none', 'name', 'clientName', 'column1', 'column2', 'column3', 'discount', 'taxAmount', 'column11', 'column21', 'custom'].includes(item.value)
+        );
+        return [...baseColumnItems, ...dynamicColumns];
+      }
+    });
+  }, [baseColumnItems]);
   
   // Use items prop directly instead of collection to avoid a.options is not iterable error
   // This is a different approach from App.jsx, but necessary for dynamic data
@@ -85,7 +110,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
       subitemItems: filtered.filter(item => item.label && item.label.includes(subitemLabelPattern)).map(item => ({ value: item.value, label: item.label }))
     });
     return filtered;
-  }, [boardColumnsItems, language]);
+  }, [boardColumnsItems, language, subitemLabelPattern]);
 
   // Note: We don't use key prop to force remount like App.jsx
   // The collection object is stabilized with useMemo, so Select components should handle updates correctly
@@ -296,7 +321,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
         // Filter base columns to only include those that exist in the actual board
         // Also include special values like 'manual', 'none', 'name', 'custom'
         // Note: 'subitems' is not included in base columns, but will be added to items field specifically
-        const baseColumnItems = getBaseColumnItems();
         const validBaseColumns = baseColumnItems.filter(item => {
           // Always include special values (except 'subitems' which is handled separately)
           if (['manual', 'none', 'name', 'custom'].includes(item.value)) {
@@ -377,7 +401,6 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
       } catch (error) {
         console.error('FieldMappingDialog: Failed to fetch columns:', error);
         // Fallback to base columns only
-        const baseColumnItems = getBaseColumnItems();
         const validBaseItems = baseColumnItems.filter(item => item && item.value && item.label);
         console.log('[FieldMappingDialog] Fallback items:', validBaseItems);
         setBoardColumnsItems(validBaseItems);
@@ -392,14 +415,13 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   // Update base columns when language changes
   useEffect(() => {
     if (isOpen) {
-      const baseItems = getBaseColumnItems();
       // Only update if boardColumnsItems is still the initial base items (not yet loaded from board)
-      if (boardColumnsItems.length === baseItems.length && 
-          boardColumnsItems.every((item, idx) => item.value === baseItems[idx]?.value)) {
-        setBoardColumnsItems(baseItems);
+      if (boardColumnsItems.length === baseColumnItems.length && 
+          boardColumnsItems.every((item, idx) => item.value === baseColumnItems[idx]?.value)) {
+        setBoardColumnsItems(baseColumnItems);
       }
     }
-  }, [language, isOpen]);
+  }, [language, isOpen, baseColumnItems, boardColumnsItems]);
 
   // Track if we've initialized to prevent re-initialization on initialMappings changes
   const [isInitialized, setIsInitialized] = useState(false);
@@ -1074,7 +1096,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     >
                       <option value="">{t.fieldMappingSelectColumn}</option>
                       {/* Show base options first */}
-                      {getBaseColumnItems().filter(item => ['manual', 'none'].includes(item.value)).map((item) => (
+                      {baseColumnItems.filter(item => ['manual', 'none'].includes(item.value)).map((item) => (
                         <option key={item.value} value={item.value}>
                           {item.label}
                         </option>
@@ -1124,7 +1146,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                       >
                         <option value="">{t.fieldMappingSelectColumn}</option>
                         {/* Show base options first */}
-                        {getBaseColumnItems().filter(item => ['manual', 'none'].includes(item.value)).map((item) => (
+                        {baseColumnItems.filter(item => ['manual', 'none'].includes(item.value)).map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>

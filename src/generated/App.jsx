@@ -1215,7 +1215,7 @@ const App = () => {
             <HStack gap="3" wrap="wrap">
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-              <Select.Root collection={layoutTemplates} value={[template]}
+              <Select.Root key={`template-${language}`} collection={layoutTemplates} value={[template]}
                 onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
                 <Select.Positioner>
@@ -1231,6 +1231,7 @@ const App = () => {
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
+                    key={`template-color-${language}-${template}`}
                     type="color"
                     value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
                     onChange={(e) => {
@@ -1289,7 +1290,7 @@ const App = () => {
               </Field.Root>
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-              <Select.Root collection={currencies} value={[formData.currency]}
+              <Select.Root key={`currency-${language}`} collection={currencies} value={[formData.currency]}
                 onValueChange={({ value }) => setFormData(prev => ({ ...prev, currency: value[0] }))}
                 size="sm" width="200px">
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
