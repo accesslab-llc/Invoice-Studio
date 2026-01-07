@@ -160,23 +160,19 @@ const App = () => {
     ]
   });
 
-  const layoutTemplates = useMemo(() => createListCollection({
-    items: [
-      { label: t.templateModern, value: 'modern' },
-      { label: t.templateClassic, value: 'classic' },
-      { label: t.templateMinimal, value: 'minimal' }
-    ]
-  }), [language]);
+  const layoutTemplateItems = useMemo(() => [
+    { label: t.templateModern, value: 'modern' },
+    { label: t.templateClassic, value: 'classic' },
+    { label: t.templateMinimal, value: 'minimal' }
+  ], [t.templateModern, t.templateClassic, t.templateMinimal]);
 
-  const currencies = useMemo(() => createListCollection({
-    items: [
-      { label: t.currencyJPY, value: 'JPY' },
-      { label: t.currencyUSD, value: 'USD' },
-      { label: t.currencyEUR, value: 'EUR' },
-      { label: t.currencyGBP, value: 'GBP' },
-      { label: t.currencyCNY, value: 'CNY' }
-    ]
-  }), [language]);
+  const currencyItems = useMemo(() => [
+    { label: t.currencyJPY, value: 'JPY' },
+    { label: t.currencyUSD, value: 'USD' },
+    { label: t.currencyEUR, value: 'EUR' },
+    { label: t.currencyGBP, value: 'GBP' },
+    { label: t.currencyCNY, value: 'CNY' }
+  ], [t.currencyJPY, t.currencyUSD, t.currencyEUR, t.currencyGBP, t.currencyCNY]);
 
   const getCurrencySymbol = (currency) => {
     const symbols = {
@@ -1215,13 +1211,17 @@ const App = () => {
             <HStack gap="3" wrap="wrap">
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-              <Select.Root key={`template-${language}`} collection={layoutTemplates} value={[template]}
-                onValueChange={({ value }) => setTemplate(value[0])} size="sm" width="300px">
+              <Select.Root items={layoutTemplateItems} value={[template]}
+                onValueChange={({ value }) => {
+                  if (value && value.length > 0) {
+                    setTemplate(value[0]);
+                  }
+                }} size="sm" width="300px">
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
                 <Select.Positioner>
                   <Select.Content>
-                    {layoutTemplates.items.map(item => (
-                      <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                    {layoutTemplateItems.map(item => (
+                      <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
                     ))}
                   </Select.Content>
                 </Select.Positioner>
@@ -1231,7 +1231,6 @@ const App = () => {
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
-                    key={`template-color-${language}-${template}`}
                     type="color"
                     value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
                     onChange={(e) => {
@@ -1290,14 +1289,18 @@ const App = () => {
               </Field.Root>
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-              <Select.Root key={`currency-${language}`} collection={currencies} value={[formData.currency]}
-                onValueChange={({ value }) => setFormData(prev => ({ ...prev, currency: value[0] }))}
+              <Select.Root items={currencyItems} value={[formData.currency]}
+                onValueChange={({ value }) => {
+                  if (value && value.length > 0) {
+                    setFormData(prev => ({ ...prev, currency: value[0] }));
+                  }
+                }}
                 size="sm" width="200px">
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
                 <Select.Positioner>
                   <Select.Content>
-                    {currencies.items.map(item => (
-                      <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                    {currencyItems.map(item => (
+                      <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
                     ))}
                   </Select.Content>
                 </Select.Positioner>
