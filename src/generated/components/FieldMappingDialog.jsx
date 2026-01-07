@@ -465,7 +465,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     }
     
     setIsInitialized(true);
-  }, [isOpen]); // Only depend on isOpen, not initialMappings
+  }, [isOpen, initialMappings]); // Add initialMappings to dependencies to update when language changes
   
   // Debug: Log boardColumnsItems whenever it changes
   useEffect(() => {
@@ -651,6 +651,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceNumber')}</Field.Label>
                   <Box
+                    key={`select-invoiceNumber-${language}`}
                     as="select"
                     value={getSelectValue('invoiceNumber')}
                     onChange={(e) => {
@@ -688,6 +689,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('invoiceDate')}</Field.Label>
                   <Box
+                    key={`select-invoiceDate-${language}`}
                     as="select"
                     value={getSelectValue('invoiceDate')}
                     onChange={(e) => handleSelectChange('invoiceDate', e.target.value)}
@@ -716,6 +718,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('dueDate')}</Field.Label>
                   <Box
+                    key={`select-dueDate-${language}`}
                     as="select"
                     value={getSelectValue('dueDate')}
                     onChange={(e) => handleSelectChange('dueDate', e.target.value)}
@@ -744,6 +747,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('validUntil')}</Field.Label>
                   <Box
+                    key={`select-validUntil-${language}`}
                     as="select"
                     value={getSelectValue('validUntil')}
                     onChange={(e) => handleSelectChange('validUntil', e.target.value)}
@@ -778,6 +782,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientName')}</Field.Label>
                   <Box
+                    key={`select-clientName-${language}`}
                     as="select"
                     value={getSelectValue('clientName')}
                     onChange={(e) => handleSelectChange('clientName', e.target.value)}
@@ -806,6 +811,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientDepartment')}</Field.Label>
                   <Box
+                    key={`select-clientDepartment-${language}`}
                     as="select"
                     value={getSelectValue('clientDepartment')}
                     onChange={(e) => handleSelectChange('clientDepartment', e.target.value)}
@@ -834,6 +840,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientContact')}</Field.Label>
                   <Box
+                    key={`select-clientContact-${language}`}
                     as="select"
                     value={getSelectValue('clientContact')}
                     onChange={(e) => handleSelectChange('clientContact', e.target.value)}
@@ -862,6 +869,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientZip')}</Field.Label>
                   <Box
+                    key={`select-clientZip-${language}`}
                     as="select"
                     value={getSelectValue('clientZip')}
                     onChange={(e) => handleSelectChange('clientZip', e.target.value)}
@@ -890,6 +898,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientAddress')}</Field.Label>
                   <Box
+                    key={`select-clientAddress-${language}`}
                     as="select"
                     value={getSelectValue('clientAddress')}
                     onChange={(e) => handleSelectChange('clientAddress', e.target.value)}
@@ -924,6 +933,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientPhone')}</Field.Label>
                   <Box
+                    key={`select-clientPhone-${language}`}
                     as="select"
                     value={getSelectValue('clientPhone')}
                     onChange={(e) => handleSelectChange('clientPhone', e.target.value)}
@@ -952,6 +962,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('clientEmail')}</Field.Label>
                   <Box
+                    key={`select-clientEmail-${language}`}
                     as="select"
                     value={getSelectValue('clientEmail')}
                     onChange={(e) => handleSelectChange('clientEmail', e.target.value)}
@@ -992,6 +1003,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('discount')}</Field.Label>
                   <Box
+                    key={`select-discount-${language}`}
                     as="select"
                     value={getSelectValue('discount')}
                     onChange={(e) => handleSelectChange('discount', e.target.value)}
@@ -1020,6 +1032,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('taxAmount')}</Field.Label>
                   <Box
+                    key={`select-taxAmount-${language}`}
                     as="select"
                     value={getSelectValue('taxAmount')}
                     onChange={(e) => handleSelectChange('taxAmount', e.target.value)}
@@ -1048,6 +1061,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                 <Field.Root>
                   <Field.Label>{getFieldLabel('items')}</Field.Label>
                   <Box
+                    key={`select-items-${language}`}
                     as="select"
                     value={getSelectValue('items')}
                     onChange={(e) => handleSelectChange('items', e.target.value)}
@@ -1082,6 +1096,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                   <Field.Root>
                     <Field.Label>{getFieldLabel('subitemPrice')}</Field.Label>
                     <Box
+                      key={`select-subitemPrice-${language}`}
                       as="select"
                       value={getSelectValue('subitemPrice')}
                       onChange={(e) => handleSelectChange('subitemPrice', e.target.value)}
@@ -1132,6 +1147,7 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     <Field.Root>
                       <Field.Label>{getFieldLabel('subitemQuantity')}</Field.Label>
                       <Box
+                        key={`select-subitemQuantity-${language}`}
                         as="select"
                         value={getSelectValue('subitemQuantity')}
                         onChange={(e) => handleSelectChange('subitemQuantity', e.target.value)}
