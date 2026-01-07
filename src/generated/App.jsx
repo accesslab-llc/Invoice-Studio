@@ -814,19 +814,26 @@ const App = () => {
 
     // Restore all formData if saved in template
     if (template.formData) {
-      // Merge templateColors and background colors to ensure they are preserved
-      const mergedFormData = {
+      // Merge with current formData to preserve fields not in template (like bank info, items, etc.)
+      setFormData((prev) => ({
+        ...prev,
         ...template.formData,
+        // Preserve important fields that should not be overwritten
+        items: prev.items,
+        subtotal: prev.subtotal,
+        taxAmount: prev.taxAmount,
+        discount: prev.discount,
+        total: prev.total,
+        // Preserve templateColors and background colors
         templateColors: {
           modern: '#2563eb',
           classic: '#1a1a1a',
           minimal: '#666666',
-          ...(template.formData.templateColors || {})
+          ...(template.formData.templateColors || prev.templateColors || {})
         },
-        messageBackgroundColor: template.formData.messageBackgroundColor || '#f8f9fa',
-        notesBackgroundColor: template.formData.notesBackgroundColor || '#fff9e6'
-      };
-      setFormData(mergedFormData);
+        messageBackgroundColor: template.formData.messageBackgroundColor || prev.messageBackgroundColor || '#f8f9fa',
+        notesBackgroundColor: template.formData.notesBackgroundColor || prev.notesBackgroundColor || '#fff9e6'
+      }));
     } else {
       // Fallback to old format (only company and bank info)
       setFormData((prev) => ({
@@ -1205,7 +1212,7 @@ const App = () => {
             </Button>
             <HStack gap="2" align="center">
               <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.language}:</Text>
-            <Select.Root key={`language-select-${language}`} collection={languages} value={[language]} 
+            <Select.Root key={`language-select-${language}-${currentStep}`} collection={languages} value={[language]} 
               onValueChange={({ value }) => {
                 console.log('[App] Language change:', value);
                 if (value && value.length > 0) {
@@ -1225,7 +1232,7 @@ const App = () => {
             <HStack gap="3" wrap="wrap">
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-              <Select.Root key={`template-select-${language}-${template}`} collection={layoutTemplateItems} value={[template]}
+              <Select.Root key={`template-select-${language}-${template}-${currentStep}`} collection={layoutTemplateItems} value={[template]}
                 onValueChange={({ value }) => {
                   if (value && value.length > 0) {
                     setTemplate(value[0]);
@@ -1245,7 +1252,7 @@ const App = () => {
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
-                    key={`template-color-input-${language}-${template}`}
+                    key={`template-color-input-${language}-${template}-${currentStep}`}
                     type="color"
                     value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
                     onChange={(e) => {
@@ -1268,11 +1275,11 @@ const App = () => {
                   />
                 </HStack>
               </Field.Root>
-              <Field.Root width="auto" key={`message-bg-color-field-${language}`}>
+              <Field.Root width="auto" key={`message-bg-color-field-${language}-${currentStep}`}>
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.messageBackgroundColor || 'メッセージ背景色'}:</Text>
                   <Input
-                    key={`message-bg-color-input-${language}`}
+                    key={`message-bg-color-input-${language}-${currentStep}`}
                     type="color"
                     value={formData.messageBackgroundColor || '#f8f9fa'}
                     onChange={(e) => setFormData(prev => ({
@@ -1286,11 +1293,11 @@ const App = () => {
                   />
                 </HStack>
               </Field.Root>
-              <Field.Root width="auto" key={`notes-bg-color-field-${language}`}>
+              <Field.Root width="auto" key={`notes-bg-color-field-${language}-${currentStep}`}>
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.notesBackgroundColor || '備考背景色'}:</Text>
                   <Input
-                    key={`notes-bg-color-input-${language}`}
+                    key={`notes-bg-color-input-${language}-${currentStep}`}
                     type="color"
                     value={formData.notesBackgroundColor || '#fff9e6'}
                     onChange={(e) => setFormData(prev => ({
@@ -1306,7 +1313,7 @@ const App = () => {
               </Field.Root>
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-              <Select.Root key={`currency-select-${language}`} collection={currencyItems} value={[formData.currency]}
+              <Select.Root key={`currency-select-${language}-${currentStep}`} collection={currencyItems} value={[formData.currency]}
                 onValueChange={({ value }) => {
                   if (value && value.length > 0) {
                     setFormData(prev => ({ ...prev, currency: value[0] }));
