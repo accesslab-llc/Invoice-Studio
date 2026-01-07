@@ -1829,7 +1829,7 @@ const App = () => {
                       <Input
                         value={formData.notesLabel}
                         onChange={e => setFormData({ ...formData, notesLabel: e.target.value })}
-                        placeholder="例：見積条件"
+                        placeholder={t.notesLabelPlaceholder}
                       />
                     </Field.Root>
                   ) : (
@@ -1851,7 +1851,7 @@ const App = () => {
                   <Card.Body>
                     <Textarea value={formData.notes} rows={4}
                       onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder={documentType === 'estimate' ? '例：本見積は上記内容に基づく概算です\n・作業範囲外の対応は別途お見積りとなります\n・正式発注後に請求書を発行いたします' : t.notesPlaceholder} />
+                      placeholder={documentType === 'estimate' ? t.notesPlaceholderEstimate : t.notesPlaceholder} />
                   </Card.Body>
                 </Collapsible.Content>
               </Collapsible.Root>
