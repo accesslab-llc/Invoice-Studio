@@ -212,17 +212,30 @@ useEffect(() => {
   - これにより、`Select.ValueText`が正しく表示されるようになる
 - **根本原因**: `items`プロパティを使用していたため、`Select.ValueText`が選択値を正しく表示できなかった
 - **参考**: `languages`は既に`createListCollection`で作成されており、正常に動作していた
+- **結果**: 成功（テンプレートと通貨の選択値が正しく表示されるようになった）
+
+### 修正11: MessageBackgroundColorと同じシンプルな実装に統一
+- **日時**: 2024年（修正11）
+- **内容**: 
+  - テンプレートカラーとNotes Background ColorのInputを、MessageBackgroundColorと同じシンプルな実装に統一
+  - `position: relative`、`zIndex`、`display: block`、`style`プロパティをすべて削除
+  - HStackからも`position: relative`と`zIndex`を削除
+  - デバッグログ（`onClick`、`onFocus`、`console.log`）を削除
+  - `key`プロパティは残す（言語変更時の再マウントのため）
+- **根本原因**: 修正9で追加した`position: relative`と`zIndex`が、かえって問題を引き起こしていた
+- **参考**: MessageBackgroundColorは正常に動作しており、シンプルな実装だった
 - **結果**: テスト待ち
 
 ### 視覚的位置ずれの問題について
 - **症状**: テンプレートカラーのInputで、視覚的に見えている場所と実際にクリックできる場所がずれている
 - **原因の仮説**: 
-  1. Selectの`Positioner`が開いている状態でInputの上に重なっている
+  1. `position: relative`と`zIndex`を追加したことで、かえって問題が発生した
   2. `type="color"`のInputの内部構造がブラウザによって異なる
   3. Chakra UIのInputコンポーネントのラッパーがクリック可能領域をずらしている
-- **対策**: 
-  - `position: relative`と`zIndex`を設定して、Inputが他の要素の上に表示されるようにする
-  - `display: block`を設定して、クリック可能領域を正しく配置する
+- **対策（修正11で実施）**: 
+  - MessageBackgroundColorと同じシンプルな実装に統一
+  - `position: relative`、`zIndex`、`display: block`、`style`をすべて削除
+  - これにより、正常に動作するMessageBackgroundColorと同じ動作になる
 
 ## 報告すべき情報
 
