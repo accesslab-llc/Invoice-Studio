@@ -517,10 +517,10 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
   };
 
   const columnExists = (value) => {
-    if (!boardColumnsItems || !Array.isArray(boardColumnsItems)) {
+    if (!validBoardColumnsItems || !Array.isArray(validBoardColumnsItems)) {
       return false;
     }
-    return !!value && boardColumnsItems.some(item => item && item.value === value && value !== 'custom');
+    return !!value && validBoardColumnsItems.some(item => item && item.value === value && value !== 'custom');
   };
 
   const isCustomValue = (value) => value && !columnExists(value);
@@ -532,20 +532,20 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     const actual = (mappingValue && mappingValue !== '') ? mappingValue : defaultValue;
     if (!actual || actual === '') return 'custom';
     
-    // Special values that should always be recognized (not in boardColumnsItems)
+    // Special values that should always be recognized (not in validBoardColumnsItems)
     const specialValues = ['manual', 'none', 'name', 'clientName', 'column1', 'column2', 'column3', 'discount', 'taxAmount', 'column11', 'column21', 'subitems', 'custom'];
     if (specialValues.includes(actual)) {
       return actual;
     }
     
-    // Check if the value exists in boardColumnsItems
-    if (!boardColumnsItems || !Array.isArray(boardColumnsItems)) {
-      console.error('[FieldMappingDialog] boardColumnsItems is invalid:', boardColumnsItems);
+    // Check if the value exists in validBoardColumnsItems (use memoized version)
+    if (!validBoardColumnsItems || !Array.isArray(validBoardColumnsItems)) {
+      console.error('[FieldMappingDialog] validBoardColumnsItems is invalid:', validBoardColumnsItems);
       return 'custom';
     }
-    const exists = boardColumnsItems.some(item => item && item.value === actual);
+    const exists = validBoardColumnsItems.some(item => item && item.value === actual);
     const result = exists ? actual : 'custom';
-    console.log(`[FieldMappingDialog] getSelectValue(${fieldKey}):`, { mappingValue, defaultValue, actual, exists, result, boardColumnsItemsCount: boardColumnsItems.length });
+    console.log(`[FieldMappingDialog] getSelectValue(${fieldKey}):`, { mappingValue, defaultValue, actual, exists, result, validBoardColumnsItemsCount: validBoardColumnsItems.length });
     return result;
   };
 
@@ -557,21 +557,21 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     if (actual === 'none') return t.fieldMappingNotRequired || '必要なし (Not Required)';
     if (actual === 'manual') return t.fieldMappingManualInput || '手動入力 (Manual Input)';
     if (isCustomValue(actual)) return actual;
-    const column = boardColumnsItems.find((i) => i.value === actual);
+    const column = validBoardColumnsItems.find((i) => i.value === actual);
     return column ? column.label : actual;
   };
 
   const handleSelectChange = (fieldKey, selected) => {
     console.log('[FieldMappingDialog] handleSelectChange:', fieldKey, selected);
-    console.log('[FieldMappingDialog] Current boardColumnsItems before update:', boardColumnsItems);
+    console.log('[FieldMappingDialog] Current validBoardColumnsItems before update:', validBoardColumnsItems);
     
     setMappings((prev) => {
       let updatedMappings;
       if (selected === 'custom') {
         const current = prev[fieldKey];
-        // If current value is a custom value (not in boardColumnsItems), keep it, otherwise clear
-        // Use a safe check to avoid accessing boardColumnsItems during state update
-        const isCustom = current && (!boardColumnsItems || !Array.isArray(boardColumnsItems) || !boardColumnsItems.some(item => item && item.value === current));
+        // If current value is a custom value (not in validBoardColumnsItems), keep it, otherwise clear
+        // Use a safe check to avoid accessing validBoardColumnsItems during state update
+        const isCustom = current && (!validBoardColumnsItems || !Array.isArray(validBoardColumnsItems) || !validBoardColumnsItems.some(item => item && item.value === current));
         updatedMappings = {
           ...prev,
           [fieldKey]: isCustom ? current : ''
