@@ -1,6 +1,6 @@
 # InvoiceStudio Privacy Policy
 
-**Last Updated**: 2024
+**Last Updated**: January 2026
 
 ## 1. Introduction
 
@@ -33,8 +33,15 @@ The App stores only the following data in the user's browser `localStorage`:
 - **Field Mapping Settings** (`invoiceFieldMappings`)
   - Mapping settings between Monday.com board columns and invoice items
 - **Template Information** (`invoiceTemplates`)
+  - All invoice fields (basic information, issuer information, billing information, line items, amounts, etc.)
   - Company information (company name, address, phone number, etc.)
   - Bank account information (bank name, account number, account holder, etc.)
+  - Field mapping settings (mapping between Monday.com board columns and invoice items)
+  - Image data (company logo, signature/seal, background watermark) ※Saved in Base64 format
+  - Image settings (size, position, opacity, etc.)
+  - Template color settings
+  - Currency settings
+  - All other invoice settings
 
 This data is stored only in the user's browser and is not sent to our servers.
 

@@ -1458,7 +1458,7 @@ const App = () => {
                           flex="1"
                           value={formData.deliveryPeriod}
                           onChange={e => setFormData({ ...formData, deliveryPeriod: e.target.value })}
-                          placeholder={formData.deliveryType === '納期' ? '例：ご発注後 2週間以内' : '例：2026年2月1日〜2月28日'}
+                          placeholder={formData.deliveryType === '納期' ? t.deliveryPeriodPlaceholderDeadline : t.deliveryPeriodPlaceholderWorkPeriod}
                         />
                       </HStack>
                     </Field.Root>

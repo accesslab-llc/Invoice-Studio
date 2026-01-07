@@ -1,6 +1,6 @@
 # InvoiceStudio Política de Privacidad
 
-**Última actualización**: 2024
+**Última actualización**: Enero 2026
 
 ## 1. Introducción
 
@@ -33,8 +33,15 @@ La Aplicación almacena solo los siguientes datos en el `localStorage` del naveg
 - **Configuración de Mapeo de Campos** (`invoiceFieldMappings`)
   - Configuración de mapeo entre columnas del tablero de Monday.com e ítems de factura
 - **Información de Plantilla** (`invoiceTemplates`)
+  - Todos los campos de la factura (información básica, información del emisor, información de facturación, artículos de línea, montos, etc.)
   - Información de la empresa (nombre de la empresa, dirección, número de teléfono, etc.)
   - Información de cuenta bancaria (nombre del banco, número de cuenta, titular de la cuenta, etc.)
+  - Configuración de mapeo de campos (mapeo entre columnas del tablero de Monday.com e ítems de factura)
+  - Datos de imagen (logo de la empresa, firma/sello, marca de agua de fondo) ※Guardado en formato Base64
+  - Configuración de imagen (tamaño, posición, opacidad, etc.)
+  - Configuración de color de plantilla
+  - Configuración de moneda
+  - Todas las demás configuraciones de factura
 
 Estos datos se almacenan solo en el navegador del usuario y no se envían a nuestros servidores.
 
