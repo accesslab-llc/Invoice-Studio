@@ -1237,7 +1237,7 @@ const App = () => {
               </Select.Root>
               </HStack>
               <Field.Root width="auto" key={`template-color-field-${language}-${template}`}>
-                <HStack gap="2" align="center">
+                <HStack gap="2" align="center" position="relative" zIndex={1}>
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
                     key={`template-color-input-${language}-${template}`}
@@ -1279,6 +1279,10 @@ const App = () => {
                     height="32px"
                     p="1"
                     cursor="pointer"
+                    position="relative"
+                    zIndex={2}
+                    display="block"
+                    style={{ position: 'relative', zIndex: 2, display: 'block' }}
                   />
                 </HStack>
               </Field.Root>
@@ -1301,20 +1305,33 @@ const App = () => {
                 </HStack>
               </Field.Root>
               <Field.Root width="auto" key={`notes-bg-color-field-${language}`}>
-                <HStack gap="2" align="center">
+                <HStack gap="2" align="center" position="relative" zIndex={1}>
                   <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.notesBackgroundColor || '備考背景色'}:</Text>
                   <Input
                     key={`notes-bg-color-input-${language}`}
                     type="color"
                     value={formData.notesBackgroundColor || '#fff9e6'}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      notesBackgroundColor: e.target.value
-                    }))}
+                    onClick={(e) => {
+                      console.log('[DEBUG] Notes background color Input onClick triggered');
+                    }}
+                    onFocus={(e) => {
+                      console.log('[DEBUG] Notes background color Input onFocus triggered');
+                    }}
+                    onChange={(e) => {
+                      console.log('[DEBUG] Notes background color Input onChange triggered');
+                      setFormData(prev => ({
+                        ...prev,
+                        notesBackgroundColor: e.target.value
+                      }));
+                    }}
                     width="60px"
                     height="32px"
                     p="1"
                     cursor="pointer"
+                    position="relative"
+                    zIndex={2}
+                    display="block"
+                    style={{ position: 'relative', zIndex: 2, display: 'block' }}
                   />
                 </HStack>
               </Field.Root>
