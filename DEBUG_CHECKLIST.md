@@ -194,13 +194,24 @@ useEffect(() => {
 ## 最新の修正内容（2024年）
 
 ### 修正9: z-indexとpositionの調整による視覚的位置ずれの修正
-- **日時**: 最新の修正
+- **日時**: 2024年（修正9）
 - **内容**: 
   - テンプレートカラーのInputに`position: relative`、`zIndex: 2`、`display: block`を追加
   - Notes Background ColorのInputにも同様の設定を追加
   - HStackにも`position: relative`と`zIndex: 1`を追加
   - これにより、Selectの`Positioner`が開いている状態でもInputが正しくクリックできるようになる
 - **根本原因**: Selectの`Positioner`が開いている状態でInputの上に重なっている可能性
+- **結果**: 部分的に改善したが、まだ問題が残る
+
+### 修正10: Selectコンポーネントのcollectionプロパティ使用による選択値表示の修正
+- **日時**: 2024年（修正10）
+- **内容**: 
+  - `layoutTemplateItems`と`currencyItems`を`createListCollection`で作成するように変更
+  - `Select.Root`で`items`プロパティの代わりに`collection`プロパティを使用
+  - `Select.Content`内で`layoutTemplateItems.items`と`currencyItems.items`を使用
+  - これにより、`Select.ValueText`が正しく表示されるようになる
+- **根本原因**: `items`プロパティを使用していたため、`Select.ValueText`が選択値を正しく表示できなかった
+- **参考**: `languages`は既に`createListCollection`で作成されており、正常に動作していた
 - **結果**: テスト待ち
 
 ### 視覚的位置ずれの問題について

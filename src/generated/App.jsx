@@ -160,28 +160,35 @@ const App = () => {
     ]
   });
 
-  const layoutTemplateItems = useMemo(() => [
-    { label: t.templateModern, value: 'modern' },
-    { label: t.templateClassic, value: 'classic' },
-    { label: t.templateMinimal, value: 'minimal' }
-  ], [t.templateModern, t.templateClassic, t.templateMinimal]);
+  const layoutTemplateItems = useMemo(() => createListCollection({
+    items: [
+      { label: t.templateModern, value: 'modern' },
+      { label: t.templateClassic, value: 'classic' },
+      { label: t.templateMinimal, value: 'minimal' }
+    ]
+  }), [t.templateModern, t.templateClassic, t.templateMinimal]);
 
-  const currencyItems = useMemo(() => [
-    { label: t.currencyJPY, value: 'JPY' },
-    { label: t.currencyUSD, value: 'USD' },
-    { label: t.currencyEUR, value: 'EUR' },
-    { label: t.currencyGBP, value: 'GBP' },
-    { label: t.currencyCNY, value: 'CNY' }
-  ], [t.currencyJPY, t.currencyUSD, t.currencyEUR, t.currencyGBP, t.currencyCNY]);
+  const currencyItems = useMemo(() => createListCollection({
+    items: [
+      { label: t.currencyJPY, value: 'JPY' },
+      { label: t.currencyUSD, value: 'USD' },
+      { label: t.currencyEUR, value: 'EUR' },
+      { label: t.currencyGBP, value: 'GBP' },
+      { label: t.currencyCNY, value: 'CNY' }
+    ]
+  }), [t.currencyJPY, t.currencyUSD, t.currencyEUR, t.currencyGBP, t.currencyCNY]);
 
   // Debug: Log when language changes
   useEffect(() => {
     console.log('[DEBUG] Language changed to:', language);
     console.log('[DEBUG] layoutTemplateItems:', layoutTemplateItems);
+    console.log('[DEBUG] layoutTemplateItems.items:', layoutTemplateItems?.items);
     console.log('[DEBUG] currencyItems:', currencyItems);
+    console.log('[DEBUG] currencyItems.items:', currencyItems?.items);
     console.log('[DEBUG] formData.templateColors:', formData.templateColors);
     console.log('[DEBUG] template:', template);
-  }, [language, layoutTemplateItems, currencyItems]);
+    console.log('[DEBUG] formData.currency:', formData.currency);
+  }, [language, layoutTemplateItems, currencyItems, template, formData.currency]);
 
   const getCurrencySymbol = (currency) => {
     const symbols = {
@@ -1220,7 +1227,7 @@ const App = () => {
             <HStack gap="3" wrap="wrap">
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-              <Select.Root items={layoutTemplateItems} value={[template]}
+              <Select.Root collection={layoutTemplateItems} value={[template]}
                 onValueChange={({ value }) => {
                   if (value && value.length > 0) {
                     setTemplate(value[0]);
@@ -1229,7 +1236,7 @@ const App = () => {
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
                 <Select.Positioner>
                   <Select.Content>
-                    {layoutTemplateItems.map(item => (
+                    {layoutTemplateItems.items.map(item => (
                       <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
                     ))}
                   </Select.Content>
@@ -1337,7 +1344,7 @@ const App = () => {
               </Field.Root>
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-              <Select.Root items={currencyItems} value={[formData.currency]}
+              <Select.Root collection={currencyItems} value={[formData.currency]}
                 onValueChange={({ value }) => {
                   if (value && value.length > 0) {
                     setFormData(prev => ({ ...prev, currency: value[0] }));
@@ -1347,7 +1354,7 @@ const App = () => {
                 <Select.Trigger><Select.ValueText /></Select.Trigger>
                 <Select.Positioner>
                   <Select.Content>
-                    {currencyItems.map(item => (
+                    {currencyItems.items.map(item => (
                       <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
                     ))}
                   </Select.Content>
