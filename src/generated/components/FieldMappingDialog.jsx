@@ -467,6 +467,16 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     setIsInitialized(true);
   }, [isOpen, initialMappings]); // Add initialMappings to dependencies to update when language changes
   
+  // Update mappings when language changes (if dialog is already open)
+  useEffect(() => {
+    if (isOpen && isInitialized && initialMappings) {
+      // Language changed while dialog is open, update mappings
+      const merged = { ...defaultMappings, ...initialMappings };
+      setMappings(merged);
+      console.log('[FieldMappingDialog] Updated mappings due to language change:', merged);
+    }
+  }, [language, isOpen, isInitialized, initialMappings]);
+  
   // Debug: Log boardColumnsItems whenever it changes
   useEffect(() => {
     console.log('[FieldMappingDialog] boardColumnsItems changed:', boardColumnsItems);
@@ -545,7 +555,16 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
     }
     const exists = validBoardColumnsItems.some(item => item && item.value === actual);
     const result = exists ? actual : 'custom';
-    console.log(`[FieldMappingDialog] getSelectValue(${fieldKey}):`, { mappingValue, defaultValue, actual, exists, result, validBoardColumnsItemsCount: validBoardColumnsItems.length });
+    console.log(`[DEBUG] getSelectValue(${fieldKey}):`, { 
+      mappingValue, 
+      defaultValue, 
+      actual, 
+      exists, 
+      result, 
+      validBoardColumnsItemsCount: validBoardColumnsItems.length,
+      mappings: mappings,
+      language: language
+    });
     return result;
   };
 
@@ -785,7 +804,18 @@ const FieldMappingDialog = ({ isOpen, onClose, onSave, language, initialMappings
                     key={`select-clientName-${language}`}
                     as="select"
                     value={getSelectValue('clientName')}
-                    onChange={(e) => handleSelectChange('clientName', e.target.value)}
+                    onClick={(e) => {
+                      console.log('[DEBUG] Select clientName onClick triggered');
+                      console.log('[DEBUG] Current mappings:', mappings);
+                      console.log('[DEBUG] getSelectValue result:', getSelectValue('clientName'));
+                    }}
+                    onChange={(e) => {
+                      console.log('[DEBUG] Select clientName onChange triggered');
+                      console.log('[DEBUG] Selected value:', e.target.value);
+                      console.log('[DEBUG] Current mappings:', mappings);
+                      console.log('[DEBUG] Current validBoardColumnsItems:', validBoardColumnsItems);
+                      handleSelectChange('clientName', e.target.value);
+                    }}
                     width="100%"
                     px="3"
                     py="2"
