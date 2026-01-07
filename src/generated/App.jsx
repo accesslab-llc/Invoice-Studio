@@ -117,7 +117,6 @@ const App = () => {
     invoiceDate: new Date().toISOString().split('T')[0],
     dueDate: '',
     validUntil: '',
-    deliveryType: '納期', // '納期' or '作業期間'
     deliveryPeriod: '',
     notesLabel: '備考',
     companyName: '',
@@ -938,7 +937,6 @@ const App = () => {
         accountNumber: sectionVisibility.paymentInfo ? formData.accountNumber : '',
         accountHolder: sectionVisibility.paymentInfo ? formData.accountHolder : '',
         validUntil: documentType === 'estimate' ? formData.validUntil : '',
-        deliveryType: documentType === 'estimate' ? formData.deliveryType : null,
         deliveryPeriod: documentType === 'estimate' ? formData.deliveryPeriod : null,
         notesLabel: documentType === 'estimate' ? formData.notesLabel : '備考',
         notes: sectionVisibility.notes ? formData.notes : null,
@@ -1444,45 +1442,11 @@ const App = () => {
                   {documentType === 'estimate' && (
                     <Field.Root>
                       <Field.Label>{t.deliveryPeriod}</Field.Label>
-                      <HStack gap="3">
-                        <Select.Root
-                          value={[formData.deliveryType]}
-                          onValueChange={({ value }) => {
-                            const newType = value[0];
-                            setFormData({ ...formData, deliveryType: newType });
-                          }}
-                          size="sm"
-                          width="150px"
-                        >
-                          <Select.Trigger 
-                            style={{ 
-                              color: '#1a1a1a', 
-                              backgroundColor: '#ffffff'
-                            }}
-                          >
-                            <Select.ValueText 
-                              style={{ 
-                                color: '#1a1a1a !important', 
-                                fontWeight: '500 !important'
-                              }}
-                            >
-                              {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : formData.deliveryType === '作業期間' ? t.deliveryTypeWorkPeriod : ''}
-                            </Select.ValueText>
-                          </Select.Trigger>
-                          <Select.Positioner>
-                            <Select.Content>
-                              <Select.Item key="納期" item={{ value: '納期', label: t.deliveryTypeDeadline }}>{t.deliveryTypeDeadline}</Select.Item>
-                              <Select.Item key="作業期間" item={{ value: '作業期間', label: t.deliveryTypeWorkPeriod }}>{t.deliveryTypeWorkPeriod}</Select.Item>
-                            </Select.Content>
-                          </Select.Positioner>
-                        </Select.Root>
-                        <Input
-                          flex="1"
-                          value={formData.deliveryPeriod}
-                          onChange={e => setFormData({ ...formData, deliveryPeriod: e.target.value })}
-                          placeholder={formData.deliveryType === '納期' ? t.deliveryPeriodPlaceholderDeadline : t.deliveryPeriodPlaceholderWorkPeriod}
-                        />
-                      </HStack>
+                      <Input
+                        value={formData.deliveryPeriod}
+                        onChange={e => setFormData({ ...formData, deliveryPeriod: e.target.value })}
+                        placeholder={t.deliveryPeriodPlaceholder || (language === 'ja' ? '例：ご発注後 2週間以内、または 2026年2月1日〜2月28日' : language === 'en' ? 'Example: Within 2 weeks after your order, or February 1, 2026 - February 28, 2026' : 'Ejemplo: Dentro de 2 semanas después de su pedido, o 1 de febrero de 2026 - 28 de febrero de 2026')}
+                      />
                     </Field.Root>
                   )}
                   <Field.Root>
@@ -2309,7 +2273,7 @@ const App = () => {
                           borderBottomColor={template === 'classic' ? 'gray.200' : 'transparent'}
                         >
                           <Heading size="2xs" mb="1" color={template === 'modern' ? 'cyan.800' : template === 'classic' ? 'black' : 'gray.700'}>
-                            {formData.deliveryType === '納期' ? t.deliveryTypeDeadline : t.deliveryTypeWorkPeriod}:
+                            {t.deliveryPeriod}:
                           </Heading>
                           <Text fontSize="2xs" color={template === 'classic' ? 'black' : 'gray.800'}>{formData.deliveryPeriod}</Text>
                         </Box>
