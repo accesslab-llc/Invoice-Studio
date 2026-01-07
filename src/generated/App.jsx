@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box, Button, Container, Stack, Heading, Text, VStack, HStack,
   Field, Input, Textarea, Select, createListCollection, Separator,
@@ -160,16 +160,15 @@ const App = () => {
     ]
   });
 
-  const layoutTemplates = createListCollection({
+  const layoutTemplates = useMemo(() => createListCollection({
     items: [
       { label: t.templateModern, value: 'modern' },
       { label: t.templateClassic, value: 'classic' },
       { label: t.templateMinimal, value: 'minimal' }
     ]
-  });
+  }), [language]);
 
-
-  const currencies = createListCollection({
+  const currencies = useMemo(() => createListCollection({
     items: [
       { label: t.currencyJPY, value: 'JPY' },
       { label: t.currencyUSD, value: 'USD' },
@@ -177,7 +176,7 @@ const App = () => {
       { label: t.currencyGBP, value: 'GBP' },
       { label: t.currencyCNY, value: 'CNY' }
     ]
-  });
+  }), [language]);
 
   const getCurrencySymbol = (currency) => {
     const symbols = {
