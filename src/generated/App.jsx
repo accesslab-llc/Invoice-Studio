@@ -1207,7 +1207,7 @@ const App = () => {
             </Button>
             <HStack gap="2" align="center">
               <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.language}:</Text>
-            <Select.Root collection={languages} value={[language]} 
+            <Select.Root key={`language-select-${language}`} collection={languages} value={[language]} 
               onValueChange={({ value }) => {
                 console.log('[App] Language change:', value);
                 if (value && value.length > 0) {
@@ -1227,7 +1227,7 @@ const App = () => {
             <HStack gap="3" wrap="wrap">
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-              <Select.Root collection={layoutTemplateItems} value={[template]}
+              <Select.Root key={`template-select-${language}-${template}`} collection={layoutTemplateItems} value={[template]}
                 onValueChange={({ value }) => {
                   if (value && value.length > 0) {
                     setTemplate(value[0]);
@@ -1308,7 +1308,7 @@ const App = () => {
               </Field.Root>
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-              <Select.Root collection={currencyItems} value={[formData.currency]}
+              <Select.Root key={`currency-select-${language}`} collection={currencyItems} value={[formData.currency]}
                 onValueChange={({ value }) => {
                   if (value && value.length > 0) {
                     setFormData(prev => ({ ...prev, currency: value[0] }));

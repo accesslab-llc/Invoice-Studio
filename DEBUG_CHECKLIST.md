@@ -4,6 +4,7 @@
 - 言語設定を変更した後、テンプレートカラーとフィールドマッピングが操作できなくなる
 - テンプレートカラーのInputで、視覚的に見えている場所と実際にクリックできる場所がずれている
 - Notes Background ColorのInputが操作できない
+- Create Invoiceボタンも押せない
 - MessageBackgroundColorのInputだけは正常に動作する
 
 ## 確認すべきポイント
@@ -224,6 +225,16 @@ useEffect(() => {
   - `key`プロパティは残す（言語変更時の再マウントのため）
 - **根本原因**: 修正9で追加した`position: relative`と`zIndex`が、かえって問題を引き起こしていた
 - **参考**: MessageBackgroundColorは正常に動作しており、シンプルな実装だった
+- **結果**: 部分的に改善したが、まだ問題が残る（テンプレートカラーはずれて押せる、備考背景色は押せない、Create Invoiceボタンも押せない）
+
+### 修正12: Selectコンポーネントにkeyプロパティを追加してPositionerを確実に閉じる
+- **日時**: 2024年（修正12）
+- **内容**: 
+  - 言語変更時にSelectコンポーネントが再マウントされるように、すべての`Select.Root`に`key`プロパティを追加
+  - `language-select-${language}`、`template-select-${language}-${template}`、`currency-select-${language}`を追加
+  - これにより、言語変更時にSelectコンポーネントが再マウントされ、Positionerが確実に閉じる
+- **根本原因**: 言語変更時にSelectのPositionerが閉じた後も何かが残っているか、またはSelectのPositionerが閉じる前に次の操作をしようとすると、何かがブロックされる可能性
+- **参考**: `key`プロパティを使うことで、コンポーネントが再マウントされ、内部状態がリセットされる
 - **結果**: テスト待ち
 
 ### 視覚的位置ずれの問題について
