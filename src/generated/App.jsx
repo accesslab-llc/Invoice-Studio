@@ -174,6 +174,15 @@ const App = () => {
     { label: t.currencyCNY, value: 'CNY' }
   ], [t.currencyJPY, t.currencyUSD, t.currencyEUR, t.currencyGBP, t.currencyCNY]);
 
+  // Debug: Log when language changes
+  useEffect(() => {
+    console.log('[DEBUG] Language changed to:', language);
+    console.log('[DEBUG] layoutTemplateItems:', layoutTemplateItems);
+    console.log('[DEBUG] currencyItems:', currencyItems);
+    console.log('[DEBUG] formData.templateColors:', formData.templateColors);
+    console.log('[DEBUG] template:', template);
+  }, [language, layoutTemplateItems, currencyItems, formData.templateColors, template]);
+
   const getCurrencySymbol = (currency) => {
     const symbols = {
       JPY: '¥',
@@ -1233,23 +1242,43 @@ const App = () => {
                   <Input
                     type="color"
                     value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
+                    onClick={(e) => {
+                      console.log('[DEBUG] Template color Input onClick triggered');
+                      console.log('[DEBUG] Event target:', e.target);
+                      console.log('[DEBUG] Current language:', language);
+                      console.log('[DEBUG] Current template:', template);
+                      console.log('[DEBUG] Current formData.templateColors:', formData.templateColors);
+                    }}
+                    onFocus={(e) => {
+                      console.log('[DEBUG] Template color Input onFocus triggered');
+                    }}
                     onChange={(e) => {
+                      console.log('[DEBUG] Template color Input onChange triggered');
+                      console.log('[DEBUG] New color value:', e.target.value);
+                      console.log('[DEBUG] Current template:', template);
+                      console.log('[DEBUG] Current formData.templateColors:', formData.templateColors);
                       const newColor = e.target.value;
-                      setFormData(prev => ({
-                        ...prev,
-                        templateColors: {
-                          modern: '#2563eb',
-                          classic: '#1a1a1a',
-                          minimal: '#666666',
-                          ...(prev.templateColors || {}),
-                          [template]: newColor
-                        }
-                      }));
+                      setFormData(prev => {
+                        console.log('[DEBUG] setFormData called, prev:', prev);
+                        const updated = {
+                          ...prev,
+                          templateColors: {
+                            modern: '#2563eb',
+                            classic: '#1a1a1a',
+                            minimal: '#666666',
+                            ...(prev.templateColors || {}),
+                            [template]: newColor
+                          }
+                        };
+                        console.log('[DEBUG] setFormData updated:', updated);
+                        return updated;
+                      });
                     }}
                     width="60px"
                     height="32px"
                     p="1"
                     cursor="pointer"
+                    style={{ pointerEvents: 'auto', zIndex: 1 }}
                   />
                 </HStack>
               </Field.Root>
