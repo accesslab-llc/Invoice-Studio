@@ -1465,7 +1465,7 @@ const App = () => {
                   )}
                   <Field.Root>
                     <HStack justify="space-between" mb="2">
-                      <Field.Label>{documentType === 'estimate' ? (t.estimateMessage || '見積メッセージ') : (t.invoiceMessage || '請求メッセージ')}</Field.Label>
+                      <Field.Label>{documentType === 'estimate' ? (t.estimateMessageLabel || '見積書メッセージ') : (t.invoiceMessageLabel || '請求書メッセージ')}</Field.Label>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -1476,22 +1476,26 @@ const App = () => {
                         {sectionVisibility.invoiceMessage ? t.visible : t.hidden}
                       </Button>
                     </HStack>
-                    <Input
-                      value={documentType === 'estimate' ? (formData.estimateMessage || '') : (formData.invoiceMessage || '')}
-                      onChange={e => {
-                        if (documentType === 'estimate') {
-                          setFormData({ ...formData, estimateMessage: e.target.value });
-                        } else {
-                          setFormData({ ...formData, invoiceMessage: e.target.value });
-                        }
-                      }}
-                      placeholder={documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}
-                    />
-                    <Field.HelperText fontSize="xs" color="gray.500">
-                      {documentType === 'estimate' 
-                        ? (t.estimateMessageHelperText || '空欄の場合は「下記の通りお見積もり申し上げます」が表示されます')
-                        : (t.messageHelperText || '空欄の場合は「下記の通りご請求申し上げます」が表示されます')}
-                    </Field.HelperText>
+                    {sectionVisibility.invoiceMessage && (
+                      <>
+                        <Input
+                          value={documentType === 'estimate' ? (formData.estimateMessage || '') : (formData.invoiceMessage || '')}
+                          onChange={e => {
+                            if (documentType === 'estimate') {
+                              setFormData({ ...formData, estimateMessage: e.target.value });
+                            } else {
+                              setFormData({ ...formData, invoiceMessage: e.target.value });
+                            }
+                          }}
+                          placeholder={documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}
+                        />
+                        <Field.HelperText fontSize="xs" color="gray.500">
+                          {documentType === 'estimate' 
+                            ? (t.estimateMessageHelperText || '空欄の場合は「下記の通りお見積もり申し上げます」が表示されます')
+                            : (t.messageHelperText || '空欄の場合は「下記の通りご請求申し上げます」が表示されます')}
+                        </Field.HelperText>
+                      </>
+                    )}
                   </Field.Root>
                 </Stack>
               </Card.Body>
