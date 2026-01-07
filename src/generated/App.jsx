@@ -1236,10 +1236,11 @@ const App = () => {
                 </Select.Positioner>
               </Select.Root>
               </HStack>
-              <Field.Root width="auto">
+              <Field.Root width="auto" key={`template-color-field-${language}-${template}`}>
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
                   <Input
+                    key={`template-color-input-${language}-${template}`}
                     type="color"
                     value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
                     onClick={(e) => {
@@ -1282,10 +1283,11 @@ const App = () => {
                   />
                 </HStack>
               </Field.Root>
-              <Field.Root width="auto">
+              <Field.Root width="auto" key={`message-bg-color-field-${language}`}>
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.messageBackgroundColor || 'メッセージ背景色'}:</Text>
                   <Input
+                    key={`message-bg-color-input-${language}`}
                     type="color"
                     value={formData.messageBackgroundColor || '#f8f9fa'}
                     onChange={(e) => setFormData(prev => ({
@@ -1299,10 +1301,11 @@ const App = () => {
                   />
                 </HStack>
               </Field.Root>
-              <Field.Root width="auto">
+              <Field.Root width="auto" key={`notes-bg-color-field-${language}`}>
                 <HStack gap="2" align="center">
                   <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.notesBackgroundColor || '備考背景色'}:</Text>
                   <Input
+                    key={`notes-bg-color-input-${language}`}
                     type="color"
                     value={formData.notesBackgroundColor || '#fff9e6'}
                     onChange={(e) => setFormData(prev => ({
