@@ -27,13 +27,16 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData
     if (isOpen) {
       setLocalTemplates(templates || []);
       setSelectedTemplateId('');
-      // Set default template name based on current date/time
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
-      const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-      setNewTemplateName(`テンプレート ${dateStr} ${timeStr}`);
+      // Set default template name based on language and existing template count
+      const templateCount = (templates || []).length;
+      const defaultName = language === 'ja' 
+        ? `テンプレート${templateCount + 1}`
+        : language === 'en'
+        ? `Template${templateCount + 1}`
+        : `Plantilla${templateCount + 1}`;
+      setNewTemplateName(defaultName);
     }
-  }, [isOpen, templates]);
+  }, [isOpen, templates, language]);
 
   const handleApplyTemplate = () => {
     if (!selectedTemplateId) {
