@@ -1427,18 +1427,23 @@ const App = () => {
                           sx={{
                             '&::-webkit-datetime-edit': {
                               color: formData.invoiceDate ? 'inherit' : 'transparent',
+                              opacity: formData.invoiceDate ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-text': {
                               color: formData.invoiceDate ? 'inherit' : 'transparent',
+                              opacity: formData.invoiceDate ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-month-field': {
                               color: formData.invoiceDate ? 'inherit' : 'transparent',
+                              opacity: formData.invoiceDate ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-day-field': {
                               color: formData.invoiceDate ? 'inherit' : 'transparent',
+                              opacity: formData.invoiceDate ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-year-field': {
                               color: formData.invoiceDate ? 'inherit' : 'transparent',
+                              opacity: formData.invoiceDate ? 1 : 0,
                             },
                           }}
                         />
@@ -1451,7 +1456,9 @@ const App = () => {
                             pointerEvents="none"
                             color="gray.500"
                             fontSize="sm"
-                            zIndex={1}
+                            zIndex={10}
+                            bg="white"
+                            px="1"
                           >
                             {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
                           </Box>
@@ -1476,18 +1483,23 @@ const App = () => {
                           sx={{
                             '&::-webkit-datetime-edit': {
                               color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
+                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-text': {
                               color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
+                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-month-field': {
                               color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
+                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-day-field': {
                               color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
+                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
                             },
                             '&::-webkit-datetime-edit-year-field': {
                               color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
+                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
                             },
                           }}
                         />
@@ -1500,7 +1512,9 @@ const App = () => {
                             pointerEvents="none"
                             color="gray.500"
                             fontSize="sm"
-                            zIndex={1}
+                            zIndex={10}
+                            bg="white"
+                            px="1"
                           >
                             {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
                           </Box>
