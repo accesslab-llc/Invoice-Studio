@@ -1417,109 +1417,29 @@ const App = () => {
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}</Field.Label>
-                      <Box position="relative">
-                        <Input 
-                          key={`invoice-date-input-${language}`}
-                          type="date" 
-                          value={formData.invoiceDate}
-                          onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
-                          lang={language}
-                          sx={{
-                            '&::-webkit-datetime-edit': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                              opacity: formData.invoiceDate ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-text': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                              opacity: formData.invoiceDate ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-month-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                              opacity: formData.invoiceDate ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-day-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                              opacity: formData.invoiceDate ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-year-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                              opacity: formData.invoiceDate ? 1 : 0,
-                            },
-                          }}
-                        />
-                        {!formData.invoiceDate && (
-                          <Box
-                            position="absolute"
-                            left="0.75rem"
-                            top="50%"
-                            transform="translateY(-50%)"
-                            pointerEvents="none"
-                            color="gray.500"
-                            fontSize="sm"
-                            zIndex={10}
-                            bg="white"
-                            px="1"
-                          >
-                            {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                          </Box>
-                        )}
-                      </Box>
+                      <Input 
+                        key={`invoice-date-input-${language}`}
+                        type="text" 
+                        value={formData.invoiceDate}
+                        onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
+                        placeholder={t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
+                      />
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
-                      <Box position="relative">
-                        <Input 
-                          key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
-                          type="date" 
-                          value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
-                          onChange={e => {
-                            if (documentType === 'estimate') {
-                              setFormData({ ...formData, validUntil: e.target.value });
-                            } else {
-                              setFormData({ ...formData, dueDate: e.target.value });
-                            }
-                          }}
-                          lang={language}
-                          sx={{
-                            '&::-webkit-datetime-edit': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-text': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-month-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-day-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
-                            },
-                            '&::-webkit-datetime-edit-year-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                              opacity: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 1 : 0,
-                            },
-                          }}
-                        />
-                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && (
-                          <Box
-                            position="absolute"
-                            left="0.75rem"
-                            top="50%"
-                            transform="translateY(-50%)"
-                            pointerEvents="none"
-                            color="gray.500"
-                            fontSize="sm"
-                            zIndex={10}
-                            bg="white"
-                            px="1"
-                          >
-                            {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                          </Box>
-                        )}
-                      </Box>
+                      <Input 
+                        key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
+                        type="text" 
+                        value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
+                        onChange={e => {
+                          if (documentType === 'estimate') {
+                            setFormData({ ...formData, validUntil: e.target.value });
+                          } else {
+                            setFormData({ ...formData, dueDate: e.target.value });
+                          }
+                        }}
+                        placeholder={t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
+                      />
                     </Field.Root>
                   </HStack>
                   <Field.Root>
