@@ -1441,9 +1441,6 @@ const App = () => {
                           </Box>
                         )}
                       </Box>
-                      <Field.HelperText fontSize="xs" color="gray.500">
-                        {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                      </Field.HelperText>
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
@@ -1477,9 +1474,6 @@ const App = () => {
                           </Box>
                         )}
                       </Box>
-                      <Field.HelperText fontSize="xs" color="gray.500">
-                        {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                      </Field.HelperText>
                     </Field.Root>
                   </HStack>
                   {documentType === 'estimate' && (
@@ -1516,13 +1510,8 @@ const App = () => {
                               setFormData({ ...formData, invoiceMessage: e.target.value });
                             }
                           }}
-                          placeholder={documentType === 'estimate' ? t.estimateMessage : t.invoiceMessage}
+                          placeholder={documentType === 'estimate' ? (t.estimateMessage || '') : (t.invoiceMessage || '')}
                         />
-                        <Field.HelperText fontSize="xs" color="gray.500">
-                          {documentType === 'estimate' 
-                            ? (t.estimateMessageHelperText || '空欄の場合は「下記の通りお見積もり申し上げます」が表示されます')
-                            : (t.messageHelperText || '空欄の場合は「下記の通りご請求申し上げます」が表示されます')}
-                        </Field.HelperText>
                       </>
                     )}
                   </Field.Root>
@@ -2245,12 +2234,12 @@ const App = () => {
                         </SimpleGrid>
                       )}
 
-                      {sectionVisibility.invoiceMessage && (
+                      {sectionVisibility.invoiceMessage && (documentType === 'estimate' ? formData.estimateMessage : formData.invoiceMessage) && (
                         <Box bg={formData.messageBackgroundColor || (template === 'modern' ? 'blue.50' : 'gray.50')} p="1.5" borderRadius="sm" borderLeftWidth="2px" borderColor={formData.templateColors[template]}>
                           <Text fontSize="2xs" fontWeight="500" color="gray.800">
                             {documentType === 'estimate' 
-                              ? (formData.estimateMessage || t.estimateMessage)
-                              : (formData.invoiceMessage || t.invoiceMessage)}
+                              ? formData.estimateMessage
+                              : formData.invoiceMessage}
                           </Text>
                         </Box>
                       )}
