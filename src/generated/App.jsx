@@ -53,8 +53,6 @@ const App = () => {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const [isInvoiceDateFocused, setIsInvoiceDateFocused] = useState(false);
-  const [isDateFieldFocused, setIsDateFieldFocused] = useState(false);
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
     invoiceDate: 'column3',
@@ -1419,131 +1417,29 @@ const App = () => {
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}</Field.Label>
-                      <Box position="relative">
-                        <Input 
-                          key={`invoice-date-input-${language}`}
-                          type="date" 
-                          value={formData.invoiceDate}
-                          onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
-                          onFocus={() => setIsInvoiceDateFocused(true)}
-                          onBlur={() => setIsInvoiceDateFocused(false)}
-                          lang={language}
-                          color={formData.invoiceDate ? 'inherit' : 'transparent'}
-                          sx={{
-                            '&::-webkit-datetime-edit': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-text': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-month-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-day-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-year-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-text': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-month-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-day-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-year-field': {
-                              color: formData.invoiceDate ? 'inherit' : 'transparent',
-                            },
-                          }}
-                        />
-                        {!formData.invoiceDate && (
-                          <Box
-                            position="absolute"
-                            left="0.75rem"
-                            top="50%"
-                            transform="translateY(-50%)"
-                            pointerEvents="none"
-                            color="gray.500"
-                            fontSize="sm"
-                            zIndex={1}
-                          >
-                            {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                          </Box>
-                        )}
-                      </Box>
+                      <Input 
+                        key={`invoice-date-input-${language}`}
+                        type="date" 
+                        value={formData.invoiceDate}
+                        onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
+                        lang={language}
+                      />
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
-                      <Box position="relative">
-                        <Input 
-                          key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
-                          type="date" 
-                          value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
-                          onChange={e => {
-                            if (documentType === 'estimate') {
-                              setFormData({ ...formData, validUntil: e.target.value });
-                            } else {
-                              setFormData({ ...formData, dueDate: e.target.value });
-                            }
-                          }}
-                          onFocus={() => setIsDateFieldFocused(true)}
-                          onBlur={() => setIsDateFieldFocused(false)}
-                          lang={language}
-                          color={(documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent'}
-                          sx={{
-                            '&::-webkit-datetime-edit': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-text': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-month-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-day-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&::-webkit-datetime-edit-year-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-text': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-month-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-day-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                            '&:focus::-webkit-datetime-edit-year-field': {
-                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
-                            },
-                          }}
-                        />
-                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && (
-                          <Box
-                            position="absolute"
-                            left="0.75rem"
-                            top="50%"
-                            transform="translateY(-50%)"
-                            pointerEvents="none"
-                            color="gray.500"
-                            fontSize="sm"
-                            zIndex={1}
-                          >
-                            {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                          </Box>
-                        )}
-                      </Box>
+                      <Input 
+                        key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
+                        type="date" 
+                        value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
+                        onChange={e => {
+                          if (documentType === 'estimate') {
+                            setFormData({ ...formData, validUntil: e.target.value });
+                          } else {
+                            setFormData({ ...formData, dueDate: e.target.value });
+                          }
+                        }}
+                        lang={language}
+                      />
                     </Field.Root>
                   </HStack>
                   <Field.Root>
