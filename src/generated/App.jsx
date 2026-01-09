@@ -1494,28 +1494,28 @@ const App = () => {
                           color={formData.invoiceDate ? 'inherit' : 'transparent'}
                           sx={{
                             '&::-webkit-datetime-edit-text': {
-                              color: 'transparent',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&::-webkit-datetime-edit-month-field': {
-                              color: 'transparent',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&::-webkit-datetime-edit-day-field': {
-                              color: 'transparent',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&::-webkit-datetime-edit-year-field': {
-                              color: 'transparent',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-text': {
-                              color: 'inherit',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-month-field': {
-                              color: 'inherit',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-day-field': {
-                              color: 'inherit',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-year-field': {
-                              color: 'inherit',
+                              color: formData.invoiceDate ? 'inherit' : 'transparent',
                             },
                           }}
                         />
@@ -1555,28 +1555,28 @@ const App = () => {
                           color={(documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent'}
                           sx={{
                             '&::-webkit-datetime-edit-text': {
-                              color: 'transparent',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&::-webkit-datetime-edit-month-field': {
-                              color: 'transparent',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&::-webkit-datetime-edit-day-field': {
-                              color: 'transparent',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&::-webkit-datetime-edit-year-field': {
-                              color: 'transparent',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-text': {
-                              color: 'inherit',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-month-field': {
-                              color: 'inherit',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-day-field': {
-                              color: 'inherit',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                             '&:focus::-webkit-datetime-edit-year-field': {
-                              color: 'inherit',
+                              color: (documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent',
                             },
                           }}
                         />
