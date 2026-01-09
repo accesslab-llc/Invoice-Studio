@@ -5,7 +5,7 @@ import {
   NumberInput, SimpleGrid, Card, Badge, Skeleton, Table, Image,
   Collapsible, Alert
 } from '@chakra-ui/react';
-import { FileText, Download, Settings, Eye, EyeOff, HelpCircle, Calendar } from 'lucide-react';
+import { FileText, Download, Settings, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import BoardSDK from './sdk/BoardSDK';
 import ItemSelector from './components/ItemSelector';
 import ImageUploader from './components/ImageUploader';
@@ -53,8 +53,6 @@ const App = () => {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const invoiceDatePickerRef = useRef(null);
-  const dateFieldPickerRef = useRef(null);
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
     invoiceDate: 'column3',
@@ -228,47 +226,6 @@ const App = () => {
     } catch (e) {
       return dateString;
     }
-  };
-
-  // Auto-format date input based on language
-  const formatDateInput = (value, lang) => {
-    // Remove all non-digit characters
-    const digits = value.replace(/\D/g, '');
-    
-    if (digits.length === 0) return '';
-    
-    if (lang === 'ja') {
-      // Japanese: YYYY年MM月DD日
-      if (digits.length <= 4) {
-        return digits;
-      } else if (digits.length <= 6) {
-        return `${digits.slice(0, 4)}年${digits.slice(4)}`;
-      } else if (digits.length <= 8) {
-        return `${digits.slice(0, 4)}年${digits.slice(4, 6)}月${digits.slice(6)}`;
-      } else {
-        return `${digits.slice(0, 4)}年${digits.slice(4, 6)}月${digits.slice(6, 8)}日`;
-      }
-    } else if (lang === 'en') {
-      // English: MM/DD/YYYY
-      if (digits.length <= 2) {
-        return digits;
-      } else if (digits.length <= 4) {
-        return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-      } else {
-        return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-      }
-    } else if (lang === 'es') {
-      // Spanish: DD/MM/YYYY
-      if (digits.length <= 2) {
-        return digits;
-      } else if (digits.length <= 4) {
-        return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-      } else {
-        return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-      }
-    }
-    
-    return value;
   };
 
   useEffect(() => {
@@ -1460,166 +1417,29 @@ const App = () => {
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}</Field.Label>
-                      <Box position="relative">
-                        <Input 
-                          key={`invoice-date-input-${language}`}
-                          type="text" 
-                          value={formData.invoiceDate}
-                          onChange={e => {
-                            const formatted = formatDateInput(e.target.value, language);
-                            setFormData({ ...formData, invoiceDate: formatted });
-                          }} 
-                          placeholder={t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                          pr="10"
-                        />
-                        <Input
-                          ref={invoiceDatePickerRef}
-                          type="date"
-                          value={formData.invoiceDate}
-                          onChange={e => {
-                            // Convert YYYY-MM-DD to language-specific format
-                            const dateValue = e.target.value;
-                            if (dateValue) {
-                              const [year, month, day] = dateValue.split('-');
-                              let formatted = '';
-                              if (language === 'ja') {
-                                formatted = `${year}年${month}月${day}日`;
-                              } else if (language === 'en') {
-                                formatted = `${month}/${day}/${year}`;
-                              } else if (language === 'es') {
-                                formatted = `${day}/${month}/${year}`;
-                              } else {
-                                formatted = dateValue;
-                              }
-                              setFormData({ ...formData, invoiceDate: formatted });
-                            } else {
-                              setFormData({ ...formData, invoiceDate: '' });
-                            }
-                          }}
-                          position="absolute"
-                          right="0.5rem"
-                          top="50%"
-                          transform="translateY(-50%)"
-                          width="auto"
-                          height="auto"
-                          opacity={0}
-                          pointerEvents="none"
-                          zIndex={1}
-                          style={{ width: '24px', height: '24px' }}
-                        />
-                        <Box
-                          position="absolute"
-                          right="0.75rem"
-                          top="50%"
-                          transform="translateY(-50%)"
-                          cursor="pointer"
-                          zIndex={2}
-                          onClick={() => {
-                            if (invoiceDatePickerRef.current) {
-                              invoiceDatePickerRef.current.showPicker?.() || invoiceDatePickerRef.current.click();
-                            }
-                          }}
-                        >
-                          <Calendar size={18} style={{ color: 'var(--chakra-colors-gray-500)' }} />
-                        </Box>
-                      </Box>
+                      <Input 
+                        key={`invoice-date-input-${language}`}
+                        type="date" 
+                        value={formData.invoiceDate}
+                        onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
+                        lang={language}
+                      />
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
-                      <Box position="relative">
-                        <Input 
-                          key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
-                          type="text" 
-                          value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
-                          onChange={e => {
-                            const formatted = formatDateInput(e.target.value, language);
-                            if (documentType === 'estimate') {
-                              setFormData({ ...formData, validUntil: formatted });
-                            } else {
-                              setFormData({ ...formData, dueDate: formatted });
-                            }
-                          }}
-                          placeholder={t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
-                          pr="10"
-                        />
-                        <Input
-                          ref={dateFieldPickerRef}
-                          type="date"
-                          value={(() => {
-                            // Convert formatted date back to YYYY-MM-DD for date input
-                            const dateValue = documentType === 'estimate' ? formData.validUntil : formData.dueDate;
-                            if (!dateValue) return '';
-                            // Try to parse the formatted date
-                            const digits = dateValue.replace(/\D/g, '');
-                            if (digits.length === 8) {
-                              if (language === 'ja') {
-                                // YYYYMMDD
-                                return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
-                              } else if (language === 'en') {
-                                // MMDDYYYY
-                                return `${digits.slice(4, 8)}-${digits.slice(0, 2)}-${digits.slice(2, 4)}`;
-                              } else if (language === 'es') {
-                                // DDMMYYYY
-                                return `${digits.slice(4, 8)}-${digits.slice(2, 4)}-${digits.slice(0, 2)}`;
-                              }
-                            }
-                            return dateValue;
-                          })()}
-                          onChange={e => {
-                            // Convert YYYY-MM-DD to language-specific format
-                            const dateValue = e.target.value;
-                            if (dateValue) {
-                              const [year, month, day] = dateValue.split('-');
-                              let formatted = '';
-                              if (language === 'ja') {
-                                formatted = `${year}年${month}月${day}日`;
-                              } else if (language === 'en') {
-                                formatted = `${month}/${day}/${year}`;
-                              } else if (language === 'es') {
-                                formatted = `${day}/${month}/${year}`;
-                              } else {
-                                formatted = dateValue;
-                              }
-                              if (documentType === 'estimate') {
-                                setFormData({ ...formData, validUntil: formatted });
-                              } else {
-                                setFormData({ ...formData, dueDate: formatted });
-                              }
-                            } else {
-                              if (documentType === 'estimate') {
-                                setFormData({ ...formData, validUntil: '' });
-                              } else {
-                                setFormData({ ...formData, dueDate: '' });
-                              }
-                            }
-                          }}
-                          position="absolute"
-                          right="0.5rem"
-                          top="50%"
-                          transform="translateY(-50%)"
-                          width="auto"
-                          height="auto"
-                          opacity={0}
-                          pointerEvents="none"
-                          zIndex={1}
-                          style={{ width: '24px', height: '24px' }}
-                        />
-                        <Box
-                          position="absolute"
-                          right="0.75rem"
-                          top="50%"
-                          transform="translateY(-50%)"
-                          cursor="pointer"
-                          zIndex={2}
-                          onClick={() => {
-                            if (dateFieldPickerRef.current) {
-                              dateFieldPickerRef.current.showPicker?.() || dateFieldPickerRef.current.click();
-                            }
-                          }}
-                        >
-                          <Calendar size={18} style={{ color: 'var(--chakra-colors-gray-500)' }} />
-                        </Box>
-                      </Box>
+                      <Input 
+                        key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
+                        type="date" 
+                        value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
+                        onChange={e => {
+                          if (documentType === 'estimate') {
+                            setFormData({ ...formData, validUntil: e.target.value });
+                          } else {
+                            setFormData({ ...formData, dueDate: e.target.value });
+                          }
+                        }}
+                        lang={language}
+                      />
                     </Field.Root>
                   </HStack>
                   <Field.Root>
