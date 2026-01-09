@@ -53,6 +53,8 @@ const App = () => {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [isInvoiceDateFocused, setIsInvoiceDateFocused] = useState(false);
+  const [isDateFieldFocused, setIsDateFieldFocused] = useState(false);
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
     invoiceDate: 'column3',
@@ -1423,10 +1425,12 @@ const App = () => {
                           type="date" 
                           value={formData.invoiceDate}
                           onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
+                          onFocus={() => setIsInvoiceDateFocused(true)}
+                          onBlur={() => setIsInvoiceDateFocused(false)}
                           lang={language}
                           color={formData.invoiceDate ? 'inherit' : 'transparent'}
                         />
-                        {!formData.invoiceDate && (
+                        {!formData.invoiceDate && !isInvoiceDateFocused && (
                           <Box
                             position="absolute"
                             left="0.75rem"
@@ -1456,10 +1460,12 @@ const App = () => {
                               setFormData({ ...formData, dueDate: e.target.value });
                             }
                           }}
+                          onFocus={() => setIsDateFieldFocused(true)}
+                          onBlur={() => setIsDateFieldFocused(false)}
                           lang={language}
                           color={(documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent'}
                         />
-                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && (
+                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && !isDateFieldFocused && (
                           <Box
                             position="absolute"
                             left="0.75rem"
