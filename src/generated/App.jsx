@@ -1417,30 +1417,66 @@ const App = () => {
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.estimateDate : t.invoiceDate}</Field.Label>
-                      <Input 
-                        type="date" 
-                        value={formData.invoiceDate}
-                        onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
-                        lang={language}
-                      />
+                      <Box position="relative">
+                        <Input 
+                          key={`invoice-date-input-${language}`}
+                          type="date" 
+                          value={formData.invoiceDate}
+                          onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} 
+                          lang={language}
+                          color={formData.invoiceDate ? 'inherit' : 'transparent'}
+                        />
+                        {!formData.invoiceDate && (
+                          <Box
+                            position="absolute"
+                            left="0.75rem"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            pointerEvents="none"
+                            color="gray.500"
+                            fontSize="sm"
+                            zIndex={1}
+                          >
+                            {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
+                          </Box>
+                        )}
+                      </Box>
                       <Field.HelperText fontSize="xs" color="gray.500">
                         {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
                       </Field.HelperText>
                     </Field.Root>
                     <Field.Root flex="1">
                       <Field.Label>{documentType === 'estimate' ? t.validUntil : t.dueDate}</Field.Label>
-                      <Input 
-                        type="date" 
-                        value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
-                        onChange={e => {
-                          if (documentType === 'estimate') {
-                            setFormData({ ...formData, validUntil: e.target.value });
-                          } else {
-                            setFormData({ ...formData, dueDate: e.target.value });
-                          }
-                        }}
-                        lang={language}
-                      />
+                      <Box position="relative">
+                        <Input 
+                          key={`${documentType === 'estimate' ? 'valid-until' : 'due-date'}-input-${language}`}
+                          type="date" 
+                          value={documentType === 'estimate' ? (formData.validUntil || '') : formData.dueDate}
+                          onChange={e => {
+                            if (documentType === 'estimate') {
+                              setFormData({ ...formData, validUntil: e.target.value });
+                            } else {
+                              setFormData({ ...formData, dueDate: e.target.value });
+                            }
+                          }}
+                          lang={language}
+                          color={(documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent'}
+                        />
+                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && (
+                          <Box
+                            position="absolute"
+                            left="0.75rem"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            pointerEvents="none"
+                            color="gray.500"
+                            fontSize="sm"
+                            zIndex={1}
+                          >
+                            {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
+                          </Box>
+                        )}
+                      </Box>
                       <Field.HelperText fontSize="xs" color="gray.500">
                         {t.datePlaceholder || (language === 'ja' ? '年 / 月 / 日' : language === 'en' ? 'MM / DD / YYYY' : 'DD / MM / YYYY')}
                       </Field.HelperText>
