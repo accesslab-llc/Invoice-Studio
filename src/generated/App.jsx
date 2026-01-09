@@ -55,7 +55,6 @@ const App = () => {
   const [authError, setAuthError] = useState(null);
   const [isInvoiceDateFocused, setIsInvoiceDateFocused] = useState(false);
   const [isDateFieldFocused, setIsDateFieldFocused] = useState(false);
-  const [isLoadingItem, setIsLoadingItem] = useState(false);
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
     invoiceDate: 'column3',
@@ -267,66 +266,6 @@ const App = () => {
   useEffect(() => {
     calculateTotals();
   }, [formData.items, formData.taxRate, formData.discount]);
-
-  // Auto-save formData to localStorage
-  useEffect(() => {
-    // Don't save if we're currently loading an item (to avoid overwriting with old data)
-    if (isLoadingItem) return;
-    
-    try {
-      // Save formData to localStorage (excluding large image data for performance)
-      const formDataToSave = {
-        ...formData,
-        // Don't save image data to avoid localStorage size limits
-        companyLogo: null,
-        signatureImage: null,
-        watermarkImage: null,
-      };
-      localStorage.setItem('invoiceFormData', JSON.stringify(formDataToSave));
-    } catch (error) {
-      console.error('Failed to save formData to localStorage:', error);
-    }
-  }, [formData, isLoadingItem]);
-
-  // Restore formData from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedFormData = localStorage.getItem('invoiceFormData');
-      if (savedFormData) {
-        const parsed = JSON.parse(savedFormData);
-        // Only restore if no item is selected (to avoid overwriting item data)
-        if (!selectedItemId) {
-          setFormData(prev => ({
-            ...prev,
-            ...parsed,
-            // Restore image data separately if needed (they're stored in templates)
-            companyLogo: prev.companyLogo,
-            signatureImage: prev.signatureImage,
-            watermarkImage: prev.watermarkImage,
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Failed to restore formData from localStorage:', error);
-    }
-  }, []); // Only run on mount
-
-  // Warn user before leaving page if there's unsaved data
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      // Check if there's meaningful data entered
-      const hasData = formData.invoiceNumber || formData.clientName || formData.items?.length > 0;
-      if (hasData) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [formData]);
 
   const fetchBoardData = async (mappings = fieldMappings) => {
     setLoading(true);
@@ -610,7 +549,6 @@ const App = () => {
 
   const loadSelectedItem = async () => {
     if (!selectedItemId) return;
-    setIsLoadingItem(true);
 
     // Use ref to get the latest fieldMappings (in case it was just updated)
     const currentMappings = fieldMappingsRef.current;
@@ -818,7 +756,6 @@ const App = () => {
     });
 
     setCurrentStep('edit');
-    setIsLoadingItem(false);
   };
 
   // Track if we need to reload selected item after items update

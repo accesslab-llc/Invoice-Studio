@@ -27,7 +27,11 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData
     if (isOpen) {
       setLocalTemplates(templates || []);
       setSelectedTemplateId('');
-      setNewTemplateName('');
+      // Set default template name based on current date/time
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+      setNewTemplateName(`テンプレート ${dateStr} ${timeStr}`);
     }
   }, [isOpen, templates]);
 
