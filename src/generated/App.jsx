@@ -55,6 +55,7 @@ const App = () => {
   const [authError, setAuthError] = useState(null);
   const [isInvoiceDateFocused, setIsInvoiceDateFocused] = useState(false);
   const [isDateFieldFocused, setIsDateFieldFocused] = useState(false);
+  const [isLoadingItem, setIsLoadingItem] = useState(false);
   const [fieldMappings, setFieldMappings] = useState({
     invoiceNumber: 'manual',
     invoiceDate: 'column3',
@@ -266,6 +267,66 @@ const App = () => {
   useEffect(() => {
     calculateTotals();
   }, [formData.items, formData.taxRate, formData.discount]);
+
+  // Auto-save formData to localStorage
+  useEffect(() => {
+    // Don't save if we're currently loading an item (to avoid overwriting with old data)
+    if (isLoadingItem) return;
+    
+    try {
+      // Save formData to localStorage (excluding large image data for performance)
+      const formDataToSave = {
+        ...formData,
+        // Don't save image data to avoid localStorage size limits
+        companyLogo: null,
+        signatureImage: null,
+        watermarkImage: null,
+      };
+      localStorage.setItem('invoiceFormData', JSON.stringify(formDataToSave));
+    } catch (error) {
+      console.error('Failed to save formData to localStorage:', error);
+    }
+  }, [formData, isLoadingItem]);
+
+  // Restore formData from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedFormData = localStorage.getItem('invoiceFormData');
+      if (savedFormData) {
+        const parsed = JSON.parse(savedFormData);
+        // Only restore if no item is selected (to avoid overwriting item data)
+        if (!selectedItemId) {
+          setFormData(prev => ({
+            ...prev,
+            ...parsed,
+            // Restore image data separately if needed (they're stored in templates)
+            companyLogo: prev.companyLogo,
+            signatureImage: prev.signatureImage,
+            watermarkImage: prev.watermarkImage,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore formData from localStorage:', error);
+    }
+  }, []); // Only run on mount
+
+  // Warn user before leaving page if there's unsaved data
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      // Check if there's meaningful data entered
+      const hasData = formData.invoiceNumber || formData.clientName || formData.items?.length > 0;
+      if (hasData) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [formData]);
 
   const fetchBoardData = async (mappings = fieldMappings) => {
     setLoading(true);
@@ -549,6 +610,7 @@ const App = () => {
 
   const loadSelectedItem = async () => {
     if (!selectedItemId) return;
+    setIsLoadingItem(true);
 
     // Use ref to get the latest fieldMappings (in case it was just updated)
     const currentMappings = fieldMappingsRef.current;
@@ -756,6 +818,7 @@ const App = () => {
     });
 
     setCurrentStep('edit');
+    setIsLoadingItem(false);
   };
 
   // Track if we need to reload selected item after items update
@@ -1429,8 +1492,34 @@ const App = () => {
                           onBlur={() => setIsInvoiceDateFocused(false)}
                           lang={language}
                           color={formData.invoiceDate ? 'inherit' : 'transparent'}
+                          sx={{
+                            '&::-webkit-datetime-edit-text': {
+                              color: 'transparent',
+                            },
+                            '&::-webkit-datetime-edit-month-field': {
+                              color: 'transparent',
+                            },
+                            '&::-webkit-datetime-edit-day-field': {
+                              color: 'transparent',
+                            },
+                            '&::-webkit-datetime-edit-year-field': {
+                              color: 'transparent',
+                            },
+                            '&:focus::-webkit-datetime-edit-text': {
+                              color: 'inherit',
+                            },
+                            '&:focus::-webkit-datetime-edit-month-field': {
+                              color: 'inherit',
+                            },
+                            '&:focus::-webkit-datetime-edit-day-field': {
+                              color: 'inherit',
+                            },
+                            '&:focus::-webkit-datetime-edit-year-field': {
+                              color: 'inherit',
+                            },
+                          }}
                         />
-                        {!formData.invoiceDate && !isInvoiceDateFocused && (
+                        {!formData.invoiceDate && (
                           <Box
                             position="absolute"
                             left="0.75rem"
@@ -1464,8 +1553,34 @@ const App = () => {
                           onBlur={() => setIsDateFieldFocused(false)}
                           lang={language}
                           color={(documentType === 'estimate' ? formData.validUntil : formData.dueDate) ? 'inherit' : 'transparent'}
+                          sx={{
+                            '&::-webkit-datetime-edit-text': {
+                              color: 'transparent',
+                            },
+                            '&::-webkit-datetime-edit-month-field': {
+                              color: 'transparent',
+                            },
+                            '&::-webkit-datetime-edit-day-field': {
+                              color: 'transparent',
+                            },
+                            '&::-webkit-datetime-edit-year-field': {
+                              color: 'transparent',
+                            },
+                            '&:focus::-webkit-datetime-edit-text': {
+                              color: 'inherit',
+                            },
+                            '&:focus::-webkit-datetime-edit-month-field': {
+                              color: 'inherit',
+                            },
+                            '&:focus::-webkit-datetime-edit-day-field': {
+                              color: 'inherit',
+                            },
+                            '&:focus::-webkit-datetime-edit-year-field': {
+                              color: 'inherit',
+                            },
+                          }}
                         />
-                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && !isDateFieldFocused && (
+                        {!(documentType === 'estimate' ? formData.validUntil : formData.dueDate) && (
                           <Box
                             position="absolute"
                             left="0.75rem"
@@ -1482,16 +1597,6 @@ const App = () => {
                       </Box>
                     </Field.Root>
                   </HStack>
-                  {documentType === 'estimate' && (
-                    <Field.Root>
-                      <Field.Label>{t.deliveryPeriod}</Field.Label>
-                      <Input
-                        value={formData.deliveryPeriod}
-                        onChange={e => setFormData({ ...formData, deliveryPeriod: e.target.value })}
-                        placeholder={t.deliveryPeriodPlaceholder || (language === 'ja' ? '例：ご発注後 2週間以内、または 2026年2月1日〜2月28日' : language === 'en' ? 'Example: Within 2 weeks after your order, or February 1, 2026 - February 28, 2026' : 'Ejemplo: Dentro de 2 semanas después de su pedido, o 1 de febrero de 2026 - 28 de febrero de 2026')}
-                      />
-                    </Field.Root>
-                  )}
                   <Field.Root>
                     <HStack justify="space-between" mb="2">
                       <Field.Label>{documentType === 'estimate' ? (t.estimateMessageLabel || '見積書メッセージ') : (t.invoiceMessageLabel || '請求書メッセージ')}</Field.Label>
@@ -2298,24 +2403,6 @@ const App = () => {
                         </Stack>
                       </HStack>
 
-                      {documentType === 'estimate' && formData.deliveryPeriod && (
-                        <Box 
-                          bg={template === 'modern' ? 'cyan.50' : template === 'classic' ? 'white' : 'gray.50'}
-                          p="2" 
-                          borderRadius="sm" 
-                          borderWidth={template === 'modern' ? '1px' : '0'}
-                          borderColor={template === 'modern' ? 'cyan.300' : 'transparent'}
-                          borderLeftWidth={template === 'classic' ? '4px' : template === 'minimal' ? '3px' : '0'}
-                          borderLeftColor={template === 'classic' ? 'black' : template === 'minimal' ? 'gray.500' : 'transparent'}
-                          borderBottomWidth={template === 'classic' ? '1px' : '0'}
-                          borderBottomColor={template === 'classic' ? 'gray.200' : 'transparent'}
-                        >
-                          <Heading size="2xs" mb="1" color={template === 'modern' ? 'cyan.800' : template === 'classic' ? 'black' : 'gray.700'}>
-                            {t.deliveryPeriod}:
-                          </Heading>
-                          <Text fontSize="2xs" color={template === 'classic' ? 'black' : 'gray.800'}>{formData.deliveryPeriod}</Text>
-                        </Box>
-                      )}
 
                       {documentType === 'invoice' && formData.bankName && (
                         <Box bg="blue.50" p="2" borderRadius="sm" borderWidth="1px" borderColor="blue.300">

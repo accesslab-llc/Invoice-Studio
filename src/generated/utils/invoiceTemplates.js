@@ -129,11 +129,6 @@ export const generateInvoiceHTML = (data, lang, template, pageSize = 'a4', fitTo
       <div class="total-row final"><span>${t.total}:</span><span>${currencySymbol}${data.total.toLocaleString()}</span></div>
     </div>
 
-    ${isEstimate && data.deliveryPeriod ? `
-    <div class="delivery-info">
-      <h4>${t.deliveryPeriod}:</h4>
-      <p>${data.deliveryPeriod}</p>
-    </div>` : ''}
 
     ${!isEstimate && data.bankName ? `
     <div class="payment-info">
