@@ -15,6 +15,7 @@ import HelpDialog from './components/HelpDialog';
 import { generateInvoiceHTML } from './utils/invoiceTemplates';
 import { translations } from './utils/translations';
 import { TEMPLATE_FIELDS } from './constants/templateFields';
+import { CPQ_STEPS, CPQ_MAX_MODELS, createEmptyPriceModel, isPriceModelComplete } from './constants/cpq';
 
 const board = new BoardSDK();
 
@@ -44,6 +45,11 @@ const App = () => {
   const [language, setLanguage] = useState('ja');
   const [template, setTemplate] = useState('modern');
   const [currentStep, setCurrentStep] = useState('select');
+  const [appMode, setAppMode] = useState(null); // null = entry, 'cpq' | 'invoice'
+  const [entryChoice, setEntryChoice] = useState(null); // 'cpq' | 'invoice' (before Start)
+  const [cpqStep, setCpqStep] = useState(CPQ_STEPS.SELECT);
+  const [cpqPriceModels, setCpqPriceModels] = useState([]);
+  const [cpqEditLocked, setCpqEditLocked] = useState(true);
   const [pageSize, setPageSize] = useState('a4');
   const [fitToOnePage, setFitToOnePage] = useState(true);
   const [documentType, setDocumentType] = useState('invoice'); // 'invoice' or 'estimate'
@@ -1184,8 +1190,117 @@ const App = () => {
     );
   }
 
+  // 初期画面（共通エントリーページ）：処理選択 + 言語 + 通貨。選択後それぞれのフローへ。
+  if (appMode === null) {
+    return (
+      <Container maxW="2xl" py="8">
+        <Stack gap="8">
+          <VStack gap="2">
+            <Heading size="2xl">
+              <FileText size={32} style={{ display: 'inline', marginRight: '12px' }} />
+              {t.title}
+            </Heading>
+            <Text color="fg.muted" fontSize="lg">{t.subtitle}</Text>
+          </VStack>
+
+          {authError && (
+            <Alert.Root status="error" variant="solid">
+              <Alert.Title>認証エラー</Alert.Title>
+              <Alert.Description>{authError}</Alert.Description>
+            </Alert.Root>
+          )}
+
+          <Card.Root>
+            <Card.Header>
+              <Heading size="lg">{t.entryHowToProceed}</Heading>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap="6">
+                <HStack gap="4" wrap="wrap">
+                  <Button
+                    size="lg"
+                    colorPalette="green"
+                    variant={entryChoice === 'cpq' ? 'solid' : 'outline'}
+                    onClick={() => setEntryChoice('cpq')}
+                  >
+                    {t.entryOptionCPQ}
+                  </Button>
+                  <Button
+                    size="lg"
+                    colorPalette="blue"
+                    variant={entryChoice === 'invoice' ? 'solid' : 'outline'}
+                    onClick={() => setEntryChoice('invoice')}
+                  >
+                    {t.entryOptionInvoice}
+                  </Button>
+                </HStack>
+
+                <Separator />
+
+                <Field.Root>
+                  <Field.Label fontSize="md" fontWeight="bold">{t.entrySelectLanguage}</Field.Label>
+                  <Select.Root
+                    key={`entry-lang-${language}`}
+                    collection={languages}
+                    value={[language]}
+                    onValueChange={({ value }) => value?.[0] && setLanguage(value[0])}
+                    size="lg"
+                    width="100%"
+                  >
+                    <Select.Trigger><Select.ValueText /></Select.Trigger>
+                    <Select.Positioner>
+                      <Select.Content>
+                        {languages.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label fontSize="md" fontWeight="bold">{t.entrySelectCurrency}</Field.Label>
+                  <Select.Root
+                    key={`entry-currency-${formData.currency}`}
+                    collection={currencyItems}
+                    value={[formData.currency]}
+                    onValueChange={({ value }) => value?.[0] && setFormData(prev => ({ ...prev, currency: value[0] }))}
+                    size="lg"
+                    width="100%"
+                  >
+                    <Select.Trigger><Select.ValueText /></Select.Trigger>
+                    <Select.Positioner>
+                      <Select.Content>
+                        {currencyItems.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                </Field.Root>
+
+                <Button
+                  size="lg"
+                  colorPalette="blue"
+                  disabled={!entryChoice}
+                  onClick={() => {
+                    setAppMode(entryChoice);
+                    if (entryChoice === 'invoice') setCurrentStep('select');
+                    if (entryChoice === 'cpq') setCpqStep(CPQ_STEPS.SELECT);
+                  }}
+                >
+                  {t.start}
+                </Button>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+        </Stack>
+      </Container>
+    );
+  }
+
   return (
-    <Container maxW="7xl" py="8" colorPalette="blue">
+    <Container maxW="7xl" py="8" colorPalette={appMode === 'cpq' ? 'green' : 'blue'}>
       <Stack gap="8">
         <VStack gap="4">
           <Heading size="2xl">
@@ -1210,25 +1325,11 @@ const App = () => {
             <Button onClick={() => setIsHelpDialogOpen(true)} variant="outline" colorPalette="green">
               <HelpCircle size={16} /> {t.help}
             </Button>
-            <HStack gap="2" align="center">
-              <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.language}:</Text>
-            <Select.Root key={`language-select-${language}-${currentStep}`} collection={languages} value={[language]} 
-              onValueChange={({ value }) => {
-                console.log('[App] Language change:', value);
-                if (value && value.length > 0) {
-                  setLanguage(value[0]);
-                }
-              }} size="sm" width="200px">
-              <Select.Trigger><Select.ValueText /></Select.Trigger>
-              <Select.Positioner>
-                <Select.Content>
-                  {languages.items.map(item => (
-                    <Select.Item item={item} key={item.value}>{item.label}</Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Positioner>
-            </Select.Root>
-            </HStack>
+            {(appMode === 'cpq' || appMode === 'invoice') && (
+              <Button variant="outline" onClick={() => { setAppMode(null); setEntryChoice(null); setCpqStep(CPQ_STEPS.SELECT); setCurrentStep('select'); }}>
+                {t.backToStart}
+              </Button>
+            )}
             <HStack gap="3" wrap="wrap">
               <HStack gap="2" align="center">
                 <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
@@ -1311,42 +1412,25 @@ const App = () => {
                   />
                 </HStack>
               </Field.Root>
-              <HStack gap="2" align="center">
-                <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.currency}:</Text>
-              <Select.Root key={`currency-select-${language}-${currentStep}`} collection={currencyItems} value={[formData.currency]}
-                onValueChange={({ value }) => {
-                  if (value && value.length > 0) {
-                    setFormData(prev => ({ ...prev, currency: value[0] }));
-                  }
-                }}
-                size="sm" width="200px">
-                <Select.Trigger><Select.ValueText /></Select.Trigger>
-                <Select.Positioner>
-                  <Select.Content>
-                    {currencyItems.items.map(item => (
-                      <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Positioner>
-              </Select.Root>
-              </HStack>
             </HStack>
           </HStack>
 
-          <HStack gap="2">
-            <Badge colorPalette={currentStep === 'select' ? 'blue' : 'gray'} size="lg">
-              1. {t.selectItem}
-            </Badge>
-            <Badge colorPalette={currentStep === 'edit' ? 'blue' : 'gray'} size="lg">
-              2. {t.editInvoice}
-            </Badge>
-            <Badge colorPalette={currentStep === 'download' ? 'blue' : 'gray'} size="lg">
-              3. {t.download}
-            </Badge>
-          </HStack>
+          {appMode === 'invoice' && (
+            <HStack gap="2">
+              <Badge colorPalette={currentStep === 'select' ? 'blue' : 'gray'} size="lg">
+                1. {t.selectItem}
+              </Badge>
+              <Badge colorPalette={currentStep === 'edit' ? 'blue' : 'gray'} size="lg">
+                2. {t.editInvoice}
+              </Badge>
+              <Badge colorPalette={currentStep === 'download' ? 'blue' : 'gray'} size="lg">
+                3. {t.download}
+              </Badge>
+            </HStack>
+          )}
         </HStack>
 
-        {currentStep === 'select' && (
+        {appMode === 'invoice' && currentStep === 'select' && (
           <Card.Root>
             <Card.Header>
               <HStack justify="space-between">
@@ -1366,12 +1450,158 @@ const App = () => {
                 selectedItemId={selectedItemId}
                 onSelectItem={setSelectedItemId}
                 language={language}
+                variant="invoice"
               />
             </Card.Body>
           </Card.Root>
         )}
 
-        {currentStep === 'edit' && (
+        {/* CPQ flow */}
+        {appMode === 'cpq' && cpqStep === CPQ_STEPS.SELECT && (
+          <Card.Root borderColor="green.200" borderWidth="2px">
+            <Card.Header>
+              <HStack justify="space-between">
+                <Heading size="lg" color="green.700">{t.cpqSelectItem}</Heading>
+                <Button colorPalette="green" onClick={() => setCpqStep(CPQ_STEPS.TRANSITION)} disabled={!selectedItemId}>
+                  {t.cpqNext}
+                </Button>
+              </HStack>
+            </Card.Header>
+            <Card.Body>
+              <ItemSelector
+                items={items}
+                selectedItemId={selectedItemId}
+                onSelectItem={setSelectedItemId}
+                language={language}
+                variant="cpq"
+              />
+            </Card.Body>
+          </Card.Root>
+        )}
+
+        {appMode === 'cpq' && cpqStep === CPQ_STEPS.TRANSITION && (
+          <Card.Root borderColor="green.200" borderWidth="2px">
+            <Card.Header>
+              <Heading size="lg" color="green.700">{t.cpqTransitionTitle}</Heading>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap="4">
+                <Button size="lg" colorPalette="green" variant="outline" onClick={() => setCpqStep(CPQ_STEPS.PRICE_MODEL)}>
+                  {t.cpqGoToPriceModel}
+                </Button>
+                <Button size="lg" colorPalette="green" variant="outline" onClick={() => setCpqStep(CPQ_STEPS.RESULT)}>
+                  {t.cpqSkipToResult}
+                </Button>
+                <Button variant="ghost" onClick={() => setCpqStep(CPQ_STEPS.SELECT)}>← {t.backToSelection}</Button>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+        )}
+
+        {appMode === 'cpq' && cpqStep === CPQ_STEPS.PRICE_MODEL && (
+          <Card.Root borderColor="green.200" borderWidth="2px">
+            <Card.Header>
+              <HStack justify="space-between">
+                <Heading size="lg" color="green.700">{t.cpqPriceModelTitle}</Heading>
+                <Button
+                  size="sm"
+                  variant={cpqEditLocked ? 'solid' : 'outline'}
+                  colorPalette="green"
+                  onClick={() => {
+                    if (cpqEditLocked) {
+                      setCpqEditLocked(false);
+                      if (typeof window !== 'undefined') window.alert(t.cpqEditLockWarning);
+                    } else {
+                      setCpqEditLocked(true);
+                    }
+                  }}
+                >
+                  {cpqEditLocked ? <EyeOff size={16} /> : <Eye size={16} />} {cpqEditLocked ? 'ロック中' : '編集可'}
+                </Button>
+              </HStack>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap="4">
+                <Box p="6" borderWidth="2px" borderStyle="dashed" borderColor="green.300" rounded="md" textAlign="center">
+                  {cpqPriceModels.length === 0 ? (
+                    <Button
+                      colorPalette="green"
+                      variant="outline"
+                      size="lg"
+                      disabled={cpqEditLocked}
+                      onClick={() => setCpqPriceModels([createEmptyPriceModel()])}
+                    >
+                      + {t.cpqAddModel}
+                    </Button>
+                  ) : (
+                    <Stack gap="2">
+                      {cpqPriceModels.map((_, i) => (
+                        <HStack key={i} p="2" borderWidth="1px" rounded="md" justify="space-between">
+                          <Text fontSize="sm">モデル {i + 1}</Text>
+                          {!cpqEditLocked && (
+                            <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>削除</Button>
+                          )}
+                        </HStack>
+                      ))}
+                      {cpqPriceModels.length < CPQ_MAX_MODELS && (
+                        <Button
+                          colorPalette="green"
+                          variant="outline"
+                          size="sm"
+                          disabled={cpqEditLocked}
+                          onClick={() => setCpqPriceModels(prev => [...prev, createEmptyPriceModel()])}
+                        >
+                          + {t.cpqAddModel}
+                        </Button>
+                      )}
+                    </Stack>
+                  )}
+                </Box>
+                <HStack>
+                  <Button variant="outline" onClick={() => setCpqStep(CPQ_STEPS.TRANSITION)}>← {t.backToSelection}</Button>
+                  <Button
+                    colorPalette="green"
+                    disabled={cpqPriceModels.length === 0 || cpqPriceModels.some(m => !isPriceModelComplete(m))}
+                    onClick={() => setCpqStep(CPQ_STEPS.RESULT)}
+                  >
+                    {t.cpqResultTitle}へ
+                  </Button>
+                </HStack>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+        )}
+
+        {appMode === 'cpq' && cpqStep === CPQ_STEPS.RESULT && (
+          <Card.Root borderColor="green.200" borderWidth="2px">
+            <Card.Header>
+              <Heading size="lg" color="green.700">{t.cpqResultTitle}</Heading>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap="4">
+                <Text>{t.cpqBaseAmount}: 0 | {t.cpqOptionsTotal}: 0 | {t.cpqDiscountTotal}: 0 | {t.taxRate}: 0% | {t.total}: 0</Text>
+                <Separator />
+                <Button
+                  colorPalette="green"
+                  size="lg"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') window.alert('monday への書き戻しは後で実装します。');
+                    setAppMode(null);
+                    setEntryChoice(null);
+                    setCpqStep(CPQ_STEPS.SELECT);
+                  }}
+                >
+                  {t.cpqWriteBack}
+                </Button>
+                <Button variant="ghost" onClick={() => { setAppMode(null); setEntryChoice(null); setCpqStep(CPQ_STEPS.SELECT); }}>
+                  {t.backToStart}
+                </Button>
+              </Stack>
+            </Card.Body>
+          </Card.Root>
+        )}
+
+        {appMode === 'invoice' && currentStep === 'edit' && (
           <Stack gap="6">
             <HStack justify="space-between" wrap="wrap" gap="4">
               <HStack gap="4" wrap="wrap">
@@ -1840,7 +2070,7 @@ const App = () => {
           </Stack>
         )}
 
-        {currentStep === 'download' && (
+        {appMode === 'invoice' && currentStep === 'download' && (
           <Stack gap="6">
             <HStack justify="space-between" wrap="wrap" gap="4">
               <Button variant="outline" onClick={() => setCurrentStep('edit')}>

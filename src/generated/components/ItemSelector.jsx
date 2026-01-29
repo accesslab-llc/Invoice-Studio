@@ -16,7 +16,7 @@ import {
 import { Search, FileText } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
+const ItemSelector = ({ items, selectedItemId, onSelectItem, language, variant = 'invoice' }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const t = translations[language];
@@ -160,7 +160,7 @@ const ItemSelector = ({ items, selectedItemId, onSelectItem, language }) => {
                   <Text color="fg.muted">{item.group?.title || '-'}</Text>
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge colorPalette="blue" variant="subtle" size="sm">
+                  <Badge colorPalette={variant === 'cpq' ? 'green' : 'blue'} variant="subtle" size="sm">
                     {item.subitems?.length || 0} {t.items}
                   </Badge>
                 </Table.Cell>
