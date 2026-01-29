@@ -16,8 +16,10 @@ import {
 import { Save, Trash2, Check } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData, fieldMappings, onApply }) => {
+const TemplateDialog = ({ isOpen, onClose, templateType = 'invoice', templates, onSave, language, formData, fieldMappings, onApply }) => {
   const t = translations[language];
+  const isCpq = templateType === 'cpq';
+  const titleText = isCpq ? (t.templatesForCPQ ?? 'CPQ用テンプレート') : (t.templatesForInvoice ?? '請求書用テンプレート');
 
   const [localTemplates, setLocalTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
@@ -107,7 +109,7 @@ const TemplateDialog = ({ isOpen, onClose, templates, onSave, language, formData
       <Dialog.Positioner>
         <Dialog.Content>
           <Dialog.Header>
-            <Dialog.Title>{t.manageTemplates}</Dialog.Title>
+            <Dialog.Title>{titleText}</Dialog.Title>
             <Dialog.Description>{t.templateDescription || 'テンプレートを管理します。選択して適用・削除、または新規保存ができます。'}</Dialog.Description>
           </Dialog.Header>
           <Dialog.Body>

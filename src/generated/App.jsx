@@ -55,6 +55,7 @@ const App = () => {
   const [documentType, setDocumentType] = useState('invoice'); // 'invoice' or 'estimate'
   const [isFieldMappingOpen, setIsFieldMappingOpen] = useState(false);
   const [templates, setTemplates] = useState([]);
+  const [cpqTemplates, setCpqTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('none');
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
@@ -265,6 +266,18 @@ const App = () => {
 
     setTemplates([DEFAULT_TEMPLATE]);
     localStorage.setItem('invoiceTemplates', JSON.stringify([DEFAULT_TEMPLATE]));
+  }, []);
+
+  useEffect(() => {
+    const savedCpq = localStorage.getItem('cpqTemplates');
+    if (savedCpq) {
+      try {
+        const parsed = JSON.parse(savedCpq);
+        if (Array.isArray(parsed)) setCpqTemplates(parsed);
+      } catch (e) {
+        console.error('Failed to load CPQ templates:', e);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -815,6 +828,16 @@ const App = () => {
     }
   };
 
+  const handleCpqTemplatesSave = (newTemplates) => {
+    setCpqTemplates(newTemplates);
+    localStorage.setItem('cpqTemplates', JSON.stringify(newTemplates));
+  };
+
+  const handleCpqTemplateApply = (template) => {
+    if (!template?.formData?.cpqPriceModels) return;
+    setCpqPriceModels(template.formData.cpqPriceModels);
+  };
+
   const handleTemplateApply = (template) => {
     if (!template) return;
 
@@ -1319,9 +1342,11 @@ const App = () => {
 
         <HStack gap="4" wrap="wrap" justify="space-between">
           <HStack gap="4" wrap="wrap">
-            <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline" colorPalette="blue">
-              <FileText size={16} /> {t.manageTemplates}
-            </Button>
+            {((appMode === 'invoice' && currentStep === 'select') || (appMode === 'cpq' && cpqStep === CPQ_STEPS.SELECT)) ? null : (
+              <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline" colorPalette="blue">
+                <FileText size={16} /> {t.manageTemplates}
+              </Button>
+            )}
             <Button onClick={() => setIsHelpDialogOpen(true)} variant="outline" colorPalette="green">
               <HelpCircle size={16} /> {t.help}
             </Button>
@@ -1330,89 +1355,91 @@ const App = () => {
                 {t.backToStart}
               </Button>
             )}
-            <HStack gap="3" wrap="wrap">
-              <HStack gap="2" align="center">
-                <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.template || 'テンプレート'}:</Text>
-              <Select.Root key={`template-select-${language}-${template}-${currentStep}`} collection={layoutTemplateItems} value={[template]}
-                onValueChange={({ value }) => {
-                  if (value && value.length > 0) {
-                    setTemplate(value[0]);
-                  }
-                }} size="sm" width="300px">
-                <Select.Trigger><Select.ValueText /></Select.Trigger>
-                <Select.Positioner>
-                  <Select.Content>
-                    {layoutTemplateItems.items.map(item => (
-                      <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Positioner>
-              </Select.Root>
-              </HStack>
-              <Field.Root width="auto" key={`template-color-field-${language}-${template}`}>
+            {appMode === 'invoice' && (currentStep === 'edit' || currentStep === 'download') && (
+              <HStack gap="3" wrap="wrap">
                 <HStack gap="2" align="center">
-                  <Text fontSize="sm" fontWeight="medium">{t.templateColor}:</Text>
-                  <Input
-                    key={`template-color-input-${language}-${template}-${currentStep}`}
-                    type="color"
-                    value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
-                    onChange={(e) => {
-                      const newColor = e.target.value;
-                      setFormData(prev => ({
+                  <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">{t.layoutSelect}:</Text>
+                <Select.Root key={`template-select-${language}-${template}-${currentStep}`} collection={layoutTemplateItems} value={[template]}
+                  onValueChange={({ value }) => {
+                    if (value && value.length > 0) {
+                      setTemplate(value[0]);
+                    }
+                  }} size="sm" width="300px">
+                  <Select.Trigger><Select.ValueText /></Select.Trigger>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {layoutTemplateItems.items.map(item => (
+                        <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+                </HStack>
+                <Field.Root width="auto" key={`template-color-field-${language}-${template}`}>
+                  <HStack gap="2" align="center">
+                    <Text fontSize="sm" fontWeight="medium">{t.layoutColor}:</Text>
+                    <Input
+                      key={`template-color-input-${language}-${template}-${currentStep}`}
+                      type="color"
+                      value={formData.templateColors?.[template] || (template === 'modern' ? '#2563eb' : template === 'classic' ? '#1a1a1a' : '#666666')}
+                      onChange={(e) => {
+                        const newColor = e.target.value;
+                        setFormData(prev => ({
+                          ...prev,
+                          templateColors: {
+                            modern: '#2563eb',
+                            classic: '#1a1a1a',
+                            minimal: '#666666',
+                            ...(prev.templateColors || {}),
+                            [template]: newColor
+                          }
+                        }));
+                      }}
+                      width="60px"
+                      height="32px"
+                      p="1"
+                      cursor="pointer"
+                    />
+                  </HStack>
+                </Field.Root>
+                <Field.Root width="auto" key={`message-bg-color-field-${language}-${currentStep}`}>
+                  <HStack gap="2" align="center">
+                    <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.messageBackgroundColor || 'メッセージ背景色'}:</Text>
+                    <Input
+                      key={`message-bg-color-input-${language}-${currentStep}`}
+                      type="color"
+                      value={formData.messageBackgroundColor || '#f8f9fa'}
+                      onChange={(e) => setFormData(prev => ({
                         ...prev,
-                        templateColors: {
-                          modern: '#2563eb',
-                          classic: '#1a1a1a',
-                          minimal: '#666666',
-                          ...(prev.templateColors || {}),
-                          [template]: newColor
-                        }
-                      }));
-                    }}
-                    width="60px"
-                    height="32px"
-                    p="1"
-                    cursor="pointer"
-                  />
-                </HStack>
-              </Field.Root>
-              <Field.Root width="auto" key={`message-bg-color-field-${language}-${currentStep}`}>
-                <HStack gap="2" align="center">
-                  <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.messageBackgroundColor || 'メッセージ背景色'}:</Text>
-                  <Input
-                    key={`message-bg-color-input-${language}-${currentStep}`}
-                    type="color"
-                    value={formData.messageBackgroundColor || '#f8f9fa'}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      messageBackgroundColor: e.target.value
-                    }))}
-                    width="60px"
-                    height="32px"
-                    p="1"
-                    cursor="pointer"
-                  />
-                </HStack>
-              </Field.Root>
-              <Field.Root width="auto" key={`notes-bg-color-field-${language}-${currentStep}`}>
-                <HStack gap="2" align="center">
-                  <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.notesBackgroundColor || '備考背景色'}:</Text>
-                  <Input
-                    key={`notes-bg-color-input-${language}-${currentStep}`}
-                    type="color"
-                    value={formData.notesBackgroundColor || '#fff9e6'}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      notesBackgroundColor: e.target.value
-                    }))}
-                    width="60px"
-                    height="32px"
-                    p="1"
-                    cursor="pointer"
-                  />
-                </HStack>
-              </Field.Root>
-            </HStack>
+                        messageBackgroundColor: e.target.value
+                      }))}
+                      width="60px"
+                      height="32px"
+                      p="1"
+                      cursor="pointer"
+                    />
+                  </HStack>
+                </Field.Root>
+                <Field.Root width="auto" key={`notes-bg-color-field-${language}-${currentStep}`}>
+                  <HStack gap="2" align="center">
+                    <Text fontSize="sm" fontWeight="medium" whiteSpace="nowrap">{t.notesBackgroundColor || '備考背景色'}:</Text>
+                    <Input
+                      key={`notes-bg-color-input-${language}-${currentStep}`}
+                      type="color"
+                      value={formData.notesBackgroundColor || '#fff9e6'}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        notesBackgroundColor: e.target.value
+                      }))}
+                      width="60px"
+                      height="32px"
+                      p="1"
+                      cursor="pointer"
+                    />
+                  </HStack>
+                </Field.Root>
+              </HStack>
+            )}
           </HStack>
 
           {appMode === 'invoice' && (
@@ -2545,12 +2572,13 @@ const App = () => {
       <TemplateDialog
         isOpen={isTemplateDialogOpen}
         onClose={() => setIsTemplateDialogOpen(false)}
-        templates={templates}
-        onSave={handleTemplatesSave}
+        templateType={appMode === 'cpq' ? 'cpq' : 'invoice'}
+        templates={appMode === 'cpq' ? cpqTemplates : templates}
+        onSave={appMode === 'cpq' ? handleCpqTemplatesSave : handleTemplatesSave}
         language={language}
-        formData={formData}
-        fieldMappings={fieldMappings}
-        onApply={handleTemplateApply}
+        formData={appMode === 'cpq' ? { cpqPriceModels } : formData}
+        fieldMappings={appMode === 'cpq' ? {} : fieldMappings}
+        onApply={appMode === 'cpq' ? handleCpqTemplateApply : handleTemplateApply}
       />
     </Container>
   );
