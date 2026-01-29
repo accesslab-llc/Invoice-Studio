@@ -239,7 +239,11 @@ export const translations = {
     cpqDiscountTotal: '割引額',
     cpqWriteBack: '書き戻す',
     cpqEditLockWarning: '編集ロックを解除すると価格モデルを変更できます。再計算が必要になる場合があります。',
-    cpqColumnMapping: '書き戻し先カラム'
+    cpqColumnMapping: '書き戻し先カラム',
+    cpqBackToPriceModel: '価格モデル設定画面へ戻る',
+    cpqAddModelConfirm: '追加',
+    cpqSelectModelTypeLabel: '1. 使用する価格モデル',
+    cpqSelectRoleLabel: '2. このモデルを'
   },
   en: {
     title: 'Invoice Generator',
@@ -481,7 +485,11 @@ export const translations = {
     cpqDiscountTotal: 'Discount',
     cpqWriteBack: 'Write back',
     cpqEditLockWarning: 'Unlocking allows editing the price model. Recalculation may be required.',
-    cpqColumnMapping: 'Write-back column'
+    cpqColumnMapping: 'Write-back column',
+    cpqBackToPriceModel: 'Back to price model setup',
+    cpqAddModelConfirm: 'Add',
+    cpqSelectModelTypeLabel: '1. Price model to use',
+    cpqSelectRoleLabel: '2. Use this model as'
   },
   es: {
     title: 'Generador de Facturas',
@@ -723,7 +731,11 @@ export const translations = {
     cpqDiscountTotal: 'Descuento',
     cpqWriteBack: 'Escribir en Monday',
     cpqEditLockWarning: 'Al desbloquear puede editar el modelo de precios. Puede ser necesario recalcular.',
-    cpqColumnMapping: 'Columna de escritura'
+    cpqColumnMapping: 'Columna de escritura',
+    cpqBackToPriceModel: 'Volver a configuración del modelo de precios',
+    cpqAddModelConfirm: 'Añadir',
+    cpqSelectModelTypeLabel: '1. Modelo de precio a usar',
+    cpqSelectRoleLabel: '2. Usar este modelo como'
   }
 };
 

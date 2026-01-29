@@ -32,19 +32,33 @@ export const CPQ_STEPS = Object.freeze({
 });
 
 /**
- * 空の価格モデル定義を1つ返す（追加時のテンプレート）
- * @param {string} [id] - 一意ID。省略時は crypto.randomUUID 相当の文字列を想定
+ * 空の価格モデル定義を1つ返す（Per-unit デフォルト）
+ * @param {string} [id] - 一意ID
  */
 export function createEmptyPriceModel(id = `pm-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`) {
-  return {
-    id,
-    type: PRICE_MODEL_TYPES.PER_UNIT,
-    role: MODEL_ROLES.ADD,
-    config: {
-      quantity: { type: 'manual', value: 0 },
-      unitPrice: { type: 'manual', value: 0 },
-    },
-  };
+  return createPriceModel(PRICE_MODEL_TYPES.PER_UNIT, MODEL_ROLES.ADD, id);
+}
+
+/**
+ * 指定した種別・役割で価格モデルを1つ作成する（追加時の選択用）
+ * @param {string} type - PRICE_MODEL_TYPES のいずれか
+ * @param {string} role - MODEL_ROLES.ADD または MODEL_ROLES.SUBTRACT
+ * @param {string} [id] - 一意ID
+ */
+export function createPriceModel(type, role, id = `pm-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`) {
+  const base = { id, type, role };
+  switch (type) {
+    case PRICE_MODEL_TYPES.PER_UNIT:
+      return { ...base, config: { quantity: { type: 'manual', value: 0 }, unitPrice: { type: 'manual', value: 0 } } };
+    case PRICE_MODEL_TYPES.TIERED:
+      return { ...base, config: { quantity: { type: 'manual', value: 0 }, tiers: [{ min: 0, max: 10, unitPrice: 0 }] } };
+    case PRICE_MODEL_TYPES.FLAT_FEE:
+      return { ...base, config: { amount: { type: 'manual', value: 0 } } };
+    case PRICE_MODEL_TYPES.PLAN_BASED:
+      return { ...base, config: { statusColumnId: '', planPrices: {}, quantity: { type: 'manual', value: 1 } } };
+    default:
+      return { ...base, config: { quantity: { type: 'manual', value: 0 }, unitPrice: { type: 'manual', value: 0 } } };
+  }
 }
 
 /**

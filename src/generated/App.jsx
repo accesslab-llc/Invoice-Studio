@@ -15,7 +15,7 @@ import HelpDialog from './components/HelpDialog';
 import { generateInvoiceHTML } from './utils/invoiceTemplates';
 import { translations } from './utils/translations';
 import { TEMPLATE_FIELDS } from './constants/templateFields';
-import { CPQ_STEPS, CPQ_MAX_MODELS, createEmptyPriceModel, isPriceModelComplete } from './constants/cpq';
+import { CPQ_STEPS, CPQ_MAX_MODELS, PRICE_MODEL_TYPES, MODEL_ROLES, createPriceModel, isPriceModelComplete } from './constants/cpq';
 
 const board = new BoardSDK();
 
@@ -50,6 +50,9 @@ const App = () => {
   const [cpqStep, setCpqStep] = useState(CPQ_STEPS.SELECT);
   const [cpqPriceModels, setCpqPriceModels] = useState([]);
   const [cpqEditLocked, setCpqEditLocked] = useState(true);
+  const [cpqShowAddChoice, setCpqShowAddChoice] = useState(false);
+  const [cpqAddType, setCpqAddType] = useState(PRICE_MODEL_TYPES.PER_UNIT);
+  const [cpqAddRole, setCpqAddRole] = useState(MODEL_ROLES.ADD);
   const [pageSize, setPageSize] = useState('a4');
   const [fitToOnePage, setFitToOnePage] = useState(true);
   const [documentType, setDocumentType] = useState('invoice'); // 'invoice' or 'estimate'
@@ -183,6 +186,28 @@ const App = () => {
       { label: t.currencyCNY, value: 'CNY' }
     ]
   }), [t.currencyJPY, t.currencyUSD, t.currencyEUR, t.currencyGBP, t.currencyCNY]);
+
+  const cpqModelTypeCollection = useMemo(() => createListCollection({
+    items: [
+      { label: t.cpqModelPerUnit, value: PRICE_MODEL_TYPES.PER_UNIT },
+      { label: t.cpqModelTiered, value: PRICE_MODEL_TYPES.TIERED },
+      { label: t.cpqModelFlatFee, value: PRICE_MODEL_TYPES.FLAT_FEE },
+      { label: t.cpqModelPlanBased, value: PRICE_MODEL_TYPES.PLAN_BASED },
+    ]
+  }), [t.cpqModelPerUnit, t.cpqModelTiered, t.cpqModelFlatFee, t.cpqModelPlanBased]);
+
+  const cpqRoleCollection = useMemo(() => createListCollection({
+    items: [
+      { label: t.cpqRoleAdd, value: MODEL_ROLES.ADD },
+      { label: t.cpqRoleSubtract, value: MODEL_ROLES.SUBTRACT },
+    ]
+  }), [t.cpqRoleAdd, t.cpqRoleSubtract]);
+
+  const getCpqModelLabel = (model) => {
+    const typeLabel = cpqModelTypeCollection.items.find((it) => it.value === model.type)?.label ?? model.type;
+    const roleLabel = cpqRoleCollection.items.find((it) => it.value === model.role)?.label ?? model.role;
+    return `${typeLabel}（${roleLabel}）`;
+  };
 
   // Debug: Log when language changes
   useEffect(() => {
@@ -1549,24 +1574,82 @@ const App = () => {
             </Card.Header>
             <Card.Body>
               <Stack gap="4">
-                <Box p="6" borderWidth="2px" borderStyle="dashed" borderColor="green.300" rounded="md" textAlign="center">
-                  {cpqPriceModels.length === 0 ? (
-                    <Button
-                      colorPalette="green"
-                      variant="outline"
-                      size="lg"
-                      disabled={cpqEditLocked}
-                      onClick={() => setCpqPriceModels([createEmptyPriceModel()])}
-                    >
-                      + {t.cpqAddModel}
-                    </Button>
+                <Box p="6" borderWidth="2px" borderStyle="dashed" borderColor="green.300" rounded="md">
+                  {cpqShowAddChoice ? (
+                    <Stack gap="4">
+                      <Field.Root>
+                        <Field.Label>{t.cpqSelectModelTypeLabel}</Field.Label>
+                        <Select.Root
+                          collection={cpqModelTypeCollection}
+                          value={[cpqAddType]}
+                          onValueChange={({ value }) => value?.[0] && setCpqAddType(value[0])}
+                          size="sm"
+                          width="100%"
+                        >
+                          <Select.Trigger><Select.ValueText /></Select.Trigger>
+                          <Select.Positioner>
+                            <Select.Content>
+                              {cpqModelTypeCollection.items.map((item) => (
+                                <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
+                        </Select.Root>
+                      </Field.Root>
+                      <Field.Root>
+                        <Field.Label>{t.cpqSelectRoleLabel}</Field.Label>
+                        <Select.Root
+                          collection={cpqRoleCollection}
+                          value={[cpqAddRole]}
+                          onValueChange={({ value }) => value?.[0] && setCpqAddRole(value[0])}
+                          size="sm"
+                          width="100%"
+                        >
+                          <Select.Trigger><Select.ValueText /></Select.Trigger>
+                          <Select.Positioner>
+                            <Select.Content>
+                              {cpqRoleCollection.items.map((item) => (
+                                <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
+                        </Select.Root>
+                      </Field.Root>
+                      <HStack gap="2">
+                        <Button
+                          colorPalette="green"
+                          size="sm"
+                          onClick={() => {
+                            setCpqPriceModels(prev => [...prev, createPriceModel(cpqAddType, cpqAddRole)]);
+                            setCpqShowAddChoice(false);
+                          }}
+                        >
+                          {t.cpqAddModelConfirm}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setCpqShowAddChoice(false)}>
+                          {t.fieldMappingCancel || 'キャンセル'}
+                        </Button>
+                      </HStack>
+                    </Stack>
+                  ) : cpqPriceModels.length === 0 ? (
+                    <Box textAlign="center">
+                      <Button
+                        colorPalette="green"
+                        variant="outline"
+                        size="lg"
+                        disabled={cpqEditLocked}
+                        onClick={() => setCpqShowAddChoice(true)}
+                      >
+                        + {t.cpqAddModel}
+                      </Button>
+                    </Box>
                   ) : (
                     <Stack gap="2">
-                      {cpqPriceModels.map((_, i) => (
-                        <HStack key={i} p="2" borderWidth="1px" rounded="md" justify="space-between">
-                          <Text fontSize="sm">モデル {i + 1}</Text>
+                      {cpqPriceModels.map((m, i) => (
+                        <HStack key={m.id} p="2" borderWidth="1px" rounded="md" justify="space-between">
+                          <Text fontSize="sm">{getCpqModelLabel(m)}</Text>
                           {!cpqEditLocked && (
-                            <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>削除</Button>
+                            <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
                           )}
                         </HStack>
                       ))}
@@ -1576,7 +1659,7 @@ const App = () => {
                           variant="outline"
                           size="sm"
                           disabled={cpqEditLocked}
-                          onClick={() => setCpqPriceModels(prev => [...prev, createEmptyPriceModel()])}
+                          onClick={() => setCpqShowAddChoice(true)}
                         >
                           + {t.cpqAddModel}
                         </Button>
@@ -1620,8 +1703,8 @@ const App = () => {
                 >
                   {t.cpqWriteBack}
                 </Button>
-                <Button variant="ghost" onClick={() => { setAppMode(null); setEntryChoice(null); setCpqStep(CPQ_STEPS.SELECT); }}>
-                  {t.backToStart}
+                <Button variant="outline" onClick={() => setCpqStep(CPQ_STEPS.PRICE_MODEL)}>
+                  ← {t.cpqBackToPriceModel}
                 </Button>
               </Stack>
             </Card.Body>
