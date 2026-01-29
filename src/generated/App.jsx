@@ -1579,41 +1579,43 @@ const App = () => {
                     <Stack gap="4">
                       <Field.Root>
                         <Field.Label>{t.cpqSelectModelTypeLabel}</Field.Label>
-                        <Select.Root
-                          collection={cpqModelTypeCollection}
-                          value={[cpqAddType]}
-                          onValueChange={({ value }) => value?.[0] && setCpqAddType(value[0])}
-                          size="sm"
+                        <Box
+                          as="select"
+                          value={cpqAddType}
+                          onChange={(e) => setCpqAddType(e.target.value)}
                           width="100%"
+                          minH="32px"
+                          px="2"
+                          rounded="md"
+                          borderWidth="1px"
+                          borderColor="border"
+                          bg="bg"
+                          fontSize="sm"
                         >
-                          <Select.Trigger><Select.ValueText /></Select.Trigger>
-                          <Select.Positioner>
-                            <Select.Content>
-                              {cpqModelTypeCollection.items.map((item) => (
-                                <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
-                              ))}
-                            </Select.Content>
-                          </Select.Positioner>
-                        </Select.Root>
+                          {cpqModelTypeCollection.items.map((item) => (
+                            <option key={item.value} value={item.value}>{item.label}</option>
+                          ))}
+                        </Box>
                       </Field.Root>
                       <Field.Root>
                         <Field.Label>{t.cpqSelectRoleLabel}</Field.Label>
-                        <Select.Root
-                          collection={cpqRoleCollection}
-                          value={[cpqAddRole]}
-                          onValueChange={({ value }) => value?.[0] && setCpqAddRole(value[0])}
-                          size="sm"
+                        <Box
+                          as="select"
+                          value={cpqAddRole}
+                          onChange={(e) => setCpqAddRole(e.target.value)}
                           width="100%"
+                          minH="32px"
+                          px="2"
+                          rounded="md"
+                          borderWidth="1px"
+                          borderColor="border"
+                          bg="bg"
+                          fontSize="sm"
                         >
-                          <Select.Trigger><Select.ValueText /></Select.Trigger>
-                          <Select.Positioner>
-                            <Select.Content>
-                              {cpqRoleCollection.items.map((item) => (
-                                <Select.Item key={item.value} item={item}>{item.label}</Select.Item>
-                              ))}
-                            </Select.Content>
-                          </Select.Positioner>
-                        </Select.Root>
+                          {cpqRoleCollection.items.map((item) => (
+                            <option key={item.value} value={item.value}>{item.label}</option>
+                          ))}
+                        </Box>
                       </Field.Root>
                       <HStack gap="2">
                         <Button
