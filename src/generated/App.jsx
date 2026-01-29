@@ -1576,110 +1576,102 @@ const App = () => {
             <Card.Body>
               <Stack gap="4">
                 <Box p="6" borderWidth="2px" borderStyle="dashed" borderColor="green.300" rounded="md">
-                  {cpqShowAddChoice ? (
-                    <Stack gap="4">
-                      <Field.Root>
-                        <Field.Label>{t.cpqSelectModelTypeLabel}</Field.Label>
-                        <Box
-                          as="select"
-                          value={cpqAddType}
-                          onChange={(e) => setCpqAddType(e.target.value)}
-                          width="100%"
-                          minH="32px"
-                          px="2"
-                          rounded="md"
-                          borderWidth="1px"
-                          borderColor="border"
-                          bg="bg"
-                          fontSize="sm"
-                        >
-                          {cpqModelTypeCollection.items.map((item) => (
-                            <option key={item.value} value={item.value}>{item.label}</option>
-                          ))}
-                        </Box>
-                      </Field.Root>
-                      <Field.Root>
-                        <Field.Label>{t.cpqSelectRoleLabel}</Field.Label>
-                        <Box
-                          as="select"
-                          value={cpqAddRole}
-                          onChange={(e) => setCpqAddRole(e.target.value)}
-                          width="100%"
-                          minH="32px"
-                          px="2"
-                          rounded="md"
-                          borderWidth="1px"
-                          borderColor="border"
-                          bg="bg"
-                          fontSize="sm"
-                        >
-                          {cpqRoleCollection.items.map((item) => (
-                            <option key={item.value} value={item.value}>{item.label}</option>
-                          ))}
-                        </Box>
-                      </Field.Root>
-                      <HStack gap="2">
-                        <Button
-                          colorPalette="green"
-                          size="sm"
-                          onClick={() => {
-                            setCpqPriceModels(prev => [...prev, createPriceModel(cpqAddType, cpqAddRole)]);
-                            setCpqShowAddChoice(false);
-                          }}
-                        >
-                          {t.cpqAddModelConfirm}
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setCpqShowAddChoice(false)}>
-                          {t.fieldMappingCancel || 'キャンセル'}
-                        </Button>
-                      </HStack>
-                    </Stack>
-                  ) : cpqPriceModels.length === 0 ? (
-                    <Box textAlign="center">
-                      <Button
-                        colorPalette="green"
-                        variant="outline"
-                        size="lg"
-                        disabled={cpqEditLocked}
-                        onClick={() => setCpqShowAddChoice(true)}
-                      >
-                        + {t.cpqAddModel}
-                      </Button>
-                    </Box>
-                  ) : (
-                    <Stack gap="4">
-                      {cpqPriceModels.map((m, i) => (
-                        <Box key={m.id}>
-                          <HStack p="2" borderWidth="1px" rounded="md" justify="space-between" mb="2">
-                            <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
-                            {!cpqEditLocked && (
-                              <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
-                            )}
-                          </HStack>
-                          <CpqModelConfigEditor
-                            model={m}
-                            index={i}
-                            board={board}
-                            isLocked={cpqEditLocked}
-                            t={t}
-                            getModelLabel={getCpqModelLabel}
-                            onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
-                          />
-                        </Box>
-                      ))}
-                      {cpqPriceModels.length < CPQ_MAX_MODELS && (
+                  <Stack gap="4">
+                    {cpqPriceModels.length > 0 && (
+                      <>
+                        {cpqPriceModels.map((m, i) => (
+                          <Box key={m.id}>
+                            <HStack p="2" borderWidth="1px" rounded="md" justify="space-between" mb="2">
+                              <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
+                              {!cpqEditLocked && (
+                                <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
+                              )}
+                            </HStack>
+                            <CpqModelConfigEditor
+                              model={m}
+                              index={i}
+                              board={board}
+                              isLocked={cpqEditLocked}
+                              t={t}
+                              getModelLabel={getCpqModelLabel}
+                              onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
+                            />
+                          </Box>
+                        ))}
+                      </>
+                    )}
+                    {cpqShowAddChoice ? (
+                      <Stack gap="4" pt={cpqPriceModels.length > 0 ? '2' : '0'}>
+                        <Field.Root>
+                          <Field.Label>{t.cpqSelectModelTypeLabel}</Field.Label>
+                          <Box
+                            as="select"
+                            value={cpqAddType}
+                            onChange={(e) => setCpqAddType(e.target.value)}
+                            width="100%"
+                            minH="32px"
+                            px="2"
+                            rounded="md"
+                            borderWidth="1px"
+                            borderColor="border"
+                            bg="bg"
+                            fontSize="sm"
+                          >
+                            {cpqModelTypeCollection.items.map((item) => (
+                              <option key={item.value} value={item.value}>{item.label}</option>
+                            ))}
+                          </Box>
+                        </Field.Root>
+                        <Field.Root>
+                          <Field.Label>{t.cpqSelectRoleLabel}</Field.Label>
+                          <Box
+                            as="select"
+                            value={cpqAddRole}
+                            onChange={(e) => setCpqAddRole(e.target.value)}
+                            width="100%"
+                            minH="32px"
+                            px="2"
+                            rounded="md"
+                            borderWidth="1px"
+                            borderColor="border"
+                            bg="bg"
+                            fontSize="sm"
+                          >
+                            {cpqRoleCollection.items.map((item) => (
+                              <option key={item.value} value={item.value}>{item.label}</option>
+                            ))}
+                          </Box>
+                        </Field.Root>
+                        <HStack gap="2">
+                          <Button
+                            colorPalette="green"
+                            size="sm"
+                            onClick={() => {
+                              setCpqPriceModels(prev => [...prev, createPriceModel(cpqAddType, cpqAddRole)]);
+                              setCpqShowAddChoice(false);
+                            }}
+                          >
+                            {t.cpqAddModelConfirm}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setCpqShowAddChoice(false)}>
+                            {t.fieldMappingCancel || 'キャンセル'}
+                          </Button>
+                        </HStack>
+                      </Stack>
+                    ) : cpqPriceModels.length < CPQ_MAX_MODELS ? (
+                      <Box textAlign={cpqPriceModels.length === 0 ? 'center' : 'left'}>
                         <Button
                           colorPalette="green"
                           variant="outline"
-                          size="sm"
+                          size={cpqPriceModels.length === 0 ? 'lg' : 'sm'}
                           disabled={cpqEditLocked}
                           onClick={() => setCpqShowAddChoice(true)}
                         >
                           + {t.cpqAddModel}
                         </Button>
-                      )}
-                    </Stack>
-                  )}
+                      </Box>
+                    ) : null}
+                  </Stack>
                 </Box>
                 <HStack>
                   <Button variant="outline" onClick={() => setCpqStep(CPQ_STEPS.TRANSITION)}>← {t.backToSelection}</Button>
