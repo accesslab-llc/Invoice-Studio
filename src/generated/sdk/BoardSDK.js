@@ -767,6 +767,77 @@ class BoardSDK {
   }
 
   /**
+   * Fetch subitem columns (same board; from first available subitem board)
+   */
+  async fetchSubitemColumns() {
+    if (!this.boardId) await this.initialize();
+    try {
+      const query = `
+        query GetSubitemColumns($boardId: [ID!]!) {
+          boards(ids: $boardId) {
+            items_page(limit: 10) {
+              items {
+                subitems {
+                  board {
+                    id
+                    columns { id title type }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+      const response = await this.query(query, { boardId: [this.boardId] });
+      const boards = response?.boards || response?.data?.boards;
+      const items = boards?.[0]?.items_page?.items;
+      if (!items?.length) return [];
+      for (const item of items) {
+        for (const sub of item.subitems || []) {
+          if (sub.board?.columns?.length) {
+            return sub.board.columns;
+          }
+        }
+      }
+      return [];
+    } catch (e) {
+      console.error('[BoardSDK] fetchSubitemColumns failed:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch status/dropdown column labels from column settings (for Plan-based CPQ)
+   */
+  async fetchStatusColumnLabels(columnId) {
+    if (!this.boardId || !columnId) return [];
+    try {
+      const query = `
+        query GetColumnSettings($boardId: [ID!]!) {
+          boards(ids: $boardId) {
+            columns { id title type settings_str }
+          }
+        }
+      `;
+      const response = await this.query(query, { boardId: [this.boardId] });
+      const boards = response?.boards || response?.data?.boards;
+      const columns = boards?.[0]?.columns || [];
+      const col = columns.find(c => c.id === columnId);
+      if (!col?.settings_str) return [];
+      const settings = JSON.parse(col.settings_str || '{}');
+      const labels = settings.labels || settings.label_colors || settings.label_ids;
+      if (Array.isArray(labels)) return labels.map(l => (typeof l === 'string' ? l : (l?.label ?? l?.title ?? String(l))));
+      if (labels && typeof labels === 'object' && !Array.isArray(labels)) {
+        return Object.values(labels).map(v => (typeof v === 'string' ? v : (v?.label ?? v?.title ?? String(v))));
+      }
+      return [];
+    } catch (e) {
+      console.error('[BoardSDK] fetchStatusColumnLabels failed:', e);
+      return [];
+    }
+  }
+
+  /**
    * Fluent API for building queries (backward compatibility)
    */
   items() {

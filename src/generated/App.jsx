@@ -54,6 +54,11 @@ const App = () => {
   const [cpqShowAddChoice, setCpqShowAddChoice] = useState(false);
   const [cpqAddType, setCpqAddType] = useState(PRICE_MODEL_TYPES.PER_UNIT);
   const [cpqAddRole, setCpqAddRole] = useState(MODEL_ROLES.ADD);
+  const [cpqWriteBackTarget, setCpqWriteBackTarget] = useState('item');
+  const [cpqWriteBackColumnId, setCpqWriteBackColumnId] = useState('');
+  const [cpqWriteBackSubitemColumnId, setCpqWriteBackSubitemColumnId] = useState('');
+  const [cpqWriteBackColumns, setCpqWriteBackColumns] = useState([]);
+  const [cpqWriteBackSubitemColumns, setCpqWriteBackSubitemColumns] = useState([]);
   const [pageSize, setPageSize] = useState('a4');
   const [fitToOnePage, setFitToOnePage] = useState(true);
   const [documentType, setDocumentType] = useState('invoice'); // 'invoice' or 'estimate'
@@ -309,6 +314,21 @@ const App = () => {
   useEffect(() => {
     calculateTotals();
   }, [formData.items, formData.taxRate, formData.discount]);
+
+  useEffect(() => {
+    if (appMode !== 'cpq' || cpqStep !== CPQ_STEPS.RESULT || !board?.fetchColumns) return;
+    let cancelled = false;
+    Promise.all([
+      board.fetchColumns().catch(() => []),
+      board.fetchSubitemColumns ? board.fetchSubitemColumns().catch(() => []) : Promise.resolve([])
+    ]).then(([cols, subCols]) => {
+      if (!cancelled) {
+        setCpqWriteBackColumns(cols || []);
+        setCpqWriteBackSubitemColumns(subCols || []);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [appMode, cpqStep, board]);
 
   const fetchBoardData = async (mappings = fieldMappings) => {
     setLoading(true);
@@ -1697,6 +1717,72 @@ const App = () => {
               <Stack gap="4">
                 <Text>{t.cpqBaseAmount}: 0 | {t.cpqOptionsTotal}: 0 | {t.cpqDiscountTotal}: 0 | {t.taxRate}: 0% | {t.total}: 0</Text>
                 <Separator />
+                <Field.Root>
+                  <Field.Label>{t.cpqWriteBackTarget}</Field.Label>
+                  <HStack gap="2">
+                    <Button
+                      size="sm"
+                      variant={cpqWriteBackTarget === 'item' ? 'solid' : 'outline'}
+                      colorPalette="green"
+                      onClick={() => { setCpqWriteBackTarget('item'); setCpqWriteBackSubitemColumnId(''); }}
+                    >
+                      {t.cpqWriteBackToItem}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={cpqWriteBackTarget === 'subitem' ? 'solid' : 'outline'}
+                      colorPalette="green"
+                      onClick={() => { setCpqWriteBackTarget('subitem'); setCpqWriteBackColumnId(''); }}
+                    >
+                      {t.cpqWriteBackToSubitem}
+                    </Button>
+                  </HStack>
+                </Field.Root>
+                {cpqWriteBackTarget === 'item' ? (
+                  <Field.Root>
+                    <Field.Label>{t.cpqColumnMapping}</Field.Label>
+                    <Box
+                      as="select"
+                      value={cpqWriteBackColumnId}
+                      onChange={(e) => setCpqWriteBackColumnId(e.target.value)}
+                      minW="240px"
+                      minH="32px"
+                      px="2"
+                      rounded="md"
+                      borderWidth="1px"
+                      borderColor="border"
+                      bg="bg"
+                      fontSize="sm"
+                    >
+                      <option value="">—</option>
+                      {cpqWriteBackColumns.map((col) => (
+                        <option key={col.id} value={col.id}>{col.title}</option>
+                      ))}
+                    </Box>
+                  </Field.Root>
+                ) : (
+                  <Field.Root>
+                    <Field.Label>{t.cpqColumnMapping}（{t.cpqWriteBackToSubitem}）</Field.Label>
+                    <Box
+                      as="select"
+                      value={cpqWriteBackSubitemColumnId}
+                      onChange={(e) => setCpqWriteBackSubitemColumnId(e.target.value)}
+                      minW="240px"
+                      minH="32px"
+                      px="2"
+                      rounded="md"
+                      borderWidth="1px"
+                      borderColor="border"
+                      bg="bg"
+                      fontSize="sm"
+                    >
+                      <option value="">—</option>
+                      {cpqWriteBackSubitemColumns.map((col) => (
+                        <option key={col.id} value={col.id}>{col.title}</option>
+                      ))}
+                    </Box>
+                  </Field.Root>
+                )}
                 <Button
                   colorPalette="green"
                   size="lg"

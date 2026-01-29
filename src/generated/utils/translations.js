@@ -227,7 +227,7 @@ export const translations = {
     cpqSkipToResult: '価格モデル設定をスキップして計算結果へ',
     cpqPriceModelTitle: '価格モデル設定',
     cpqAddModel: 'モデルを追加',
-    cpqModelPerUnit: 'Per-unit（数量×単価）',
+    cpqModelPerUnit: 'Per-unit（数量×単価・時間課金は時間を数量として扱う）',
     cpqModelTiered: 'Tiered（数量レンジ）',
     cpqModelFlatFee: 'Flat fee（固定料金）',
     cpqModelPlanBased: 'Plan-based（プラン別）',
@@ -250,7 +250,13 @@ export const translations = {
     cpqTierRange: 'レンジ',
     cpqTierMin: '最小',
     cpqTierMax: '最大',
-    cpqPlanPrices: 'プラン別金額（手入力）'
+    cpqPlanPrices: 'プラン別金額（手入力）',
+    cpqTierRangeValue: 'レンジを判定する値',
+    cpqTierMultiplyValue: 'レンジの単価にかける値',
+    cpqSubitemColumnPrefix: 'サブアイテム',
+    cpqWriteBackTarget: '書き戻し先',
+    cpqWriteBackToItem: 'アイテムのカラム',
+    cpqWriteBackToSubitem: 'サブアイテムのカラム'
   },
   en: {
     title: 'Invoice Generator',
@@ -480,7 +486,7 @@ export const translations = {
     cpqSkipToResult: 'Skip to calculation result',
     cpqPriceModelTitle: 'Price model setup',
     cpqAddModel: 'Add model',
-    cpqModelPerUnit: 'Per-unit (quantity × unit price)',
+    cpqModelPerUnit: 'Per-unit (quantity × unit price; time = quantity for time-based)',
     cpqModelTiered: 'Tiered (quantity range)',
     cpqModelFlatFee: 'Flat fee',
     cpqModelPlanBased: 'Plan-based',
@@ -503,7 +509,13 @@ export const translations = {
     cpqTierRange: 'Tier range',
     cpqTierMin: 'Min',
     cpqTierMax: 'Max',
-    cpqPlanPrices: 'Plan prices (manual)'
+    cpqPlanPrices: 'Plan prices (manual)',
+    cpqTierRangeValue: 'Value to determine tier',
+    cpqTierMultiplyValue: 'Value to multiply by tier unit price',
+    cpqSubitemColumnPrefix: 'Subitem',
+    cpqWriteBackTarget: 'Write-back target',
+    cpqWriteBackToItem: 'Item column',
+    cpqWriteBackToSubitem: 'Subitem column'
   },
   es: {
     title: 'Generador de Facturas',
@@ -733,7 +745,7 @@ export const translations = {
     cpqSkipToResult: 'Omitir al resultado del cálculo',
     cpqPriceModelTitle: 'Configuración del modelo de precios',
     cpqAddModel: 'Añadir modelo',
-    cpqModelPerUnit: 'Por unidad (cantidad × precio)',
+    cpqModelPerUnit: 'Por unidad (cantidad × precio; tiempo = cantidad si es por tiempo)',
     cpqModelTiered: 'Escalonado (rango de cantidad)',
     cpqModelFlatFee: 'Tarifa fija',
     cpqModelPlanBased: 'Por plan',
@@ -756,7 +768,13 @@ export const translations = {
     cpqTierRange: 'Rango de nivel',
     cpqTierMin: 'Mín',
     cpqTierMax: 'Máx',
-    cpqPlanPrices: 'Precios por plan (manual)'
+    cpqPlanPrices: 'Precios por plan (manual)',
+    cpqTierRangeValue: 'Valor para determinar nivel',
+    cpqTierMultiplyValue: 'Valor a multiplicar por precio del nivel',
+    cpqSubitemColumnPrefix: 'Subelemento',
+    cpqWriteBackTarget: 'Destino de escritura',
+    cpqWriteBackToItem: 'Columna del elemento',
+    cpqWriteBackToSubitem: 'Columna del subelemento'
   }
 };
 

@@ -23,25 +23,28 @@ function filterStatusColumns(columns) {
   return columns.filter(c => STATUS_COLUMN_TYPES.includes(c.type));
 }
 
-/** 1つのスロット（カラム or 手入力）のUI */
+/** options: [ { value: '__manual__'|'item__id'|'subitem__id', label } ] */
 function SourceSlot({ label, value, options, manualValue, onSourceChange, onManualChange, isLocked, t }) {
   const isManual = !value?.columnId;
+  const selectValue = isManual ? '__manual__' : (value.columnSource === 'subitem' ? `subitem__${value.columnId}` : `item__${value.columnId}`);
   return (
     <Field.Root size="sm">
       <Field.Label>{label}</Field.Label>
       <HStack gap="2" align="flex-start" flexWrap="wrap">
         <Box
           as="select"
-          value={value?.columnId ? value.columnId : '__manual__'}
+          value={selectValue}
           onChange={(e) => {
             const v = e.target.value;
             if (v === '__manual__') {
               onSourceChange({ type: 'manual', value: manualValue ?? 0 });
+            } else if (v.startsWith('subitem__')) {
+              onSourceChange({ type: 'column', columnId: v.slice(9), columnSource: 'subitem' });
             } else {
-              onSourceChange({ type: 'column', columnId: v });
+              onSourceChange({ type: 'column', columnId: v.startsWith('item__') ? v.slice(6) : v, columnSource: 'item' });
             }
           }}
-          minW="160px"
+          minW="200px"
           minH="32px"
           px="2"
           rounded="md"
@@ -51,9 +54,8 @@ function SourceSlot({ label, value, options, manualValue, onSourceChange, onManu
           fontSize="sm"
           disabled={isLocked}
         >
-          <option value="__manual__">{t.cpqInputSourceManual}</option>
-          {(options || []).map((col) => (
-            <option key={col.id} value={col.id}>{col.title}</option>
+          {(options || []).map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </Box>
         {isManual && (
@@ -74,9 +76,24 @@ function SourceSlot({ label, value, options, manualValue, onSourceChange, onManu
   );
 }
 
+function buildNumericOptions(numericColumns, subitemNumericColumns, t) {
+  const opts = [{ value: '__manual__', label: t.cpqInputSourceManual }];
+  (numericColumns || []).forEach(c => opts.push({ value: `item__${c.id}`, label: c.title }));
+  (subitemNumericColumns || []).forEach(c => opts.push({ value: `subitem__${c.id}`, label: `${t.cpqSubitemColumnPrefix}: ${c.title}` }));
+  return opts;
+}
+
 export default function CpqModelConfigEditor({ model, index, board, isLocked, t, onUpdate, getModelLabel }) {
   const [columns, setColumns] = useState([]);
+  const [subitemColumns, setSubitemColumns] = useState([]);
   const [columnsLoading, setColumnsLoading] = useState(true);
+  const [statusLabels, setStatusLabels] = useState([]);
+
+  useEffect(() => {
+    if (model?.type === PRICE_MODEL_TYPES.TIERED && model.config && model.config.quantity != null && model.config.rangeValue == null) {
+      onUpdate({ ...model, config: { ...model.config, rangeValue: { type: 'manual', value: 0 } } });
+    }
+  }, [model?.id, model?.type, !!model?.config?.rangeValue]);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,8 +104,14 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
       }
       setColumnsLoading(true);
       try {
-        const cols = await board.fetchColumns();
-        if (!cancelled) setColumns(cols || []);
+        const [cols, subCols] = await Promise.all([
+          board.fetchColumns().catch(() => []),
+          board.fetchSubitemColumns ? board.fetchSubitemColumns().catch(() => []) : Promise.resolve([])
+        ]);
+        if (!cancelled) {
+          setColumns(cols || []);
+          setSubitemColumns(subCols || []);
+        }
       } catch (e) {
         if (!cancelled) setColumns([]);
       } finally {
@@ -99,8 +122,34 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
     return () => { cancelled = true; };
   }, [board]);
 
+  useEffect(() => {
+    if (model?.type !== PRICE_MODEL_TYPES.PLAN_BASED || !model.config?.statusColumnId || !board?.fetchStatusColumnLabels) {
+      setStatusLabels([]);
+      return;
+    }
+    let cancelled = false;
+    board.fetchStatusColumnLabels(model.config.statusColumnId).then((labels) => {
+      if (!cancelled && Array.isArray(labels)) {
+        setStatusLabels(labels);
+        const prev = model.config.planPrices || {};
+        const planPrices = { ...prev };
+        let changed = false;
+        labels.forEach((label) => {
+          if (planPrices[label] === undefined) {
+            planPrices[label] = 0;
+            changed = true;
+          }
+        });
+        if (changed) onUpdate({ ...model, config: { ...model.config, planPrices } });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [model?.type, model?.config?.statusColumnId, board]);
+
   const numericColumns = filterNumericColumns(columns);
+  const subitemNumericColumns = filterNumericColumns(subitemColumns);
   const statusColumns = filterStatusColumns(columns);
+  const numericOptions = buildNumericOptions(numericColumns, subitemNumericColumns, t);
 
   const updateConfig = (patch) => {
     onUpdate({ ...model, config: { ...model.config, ...patch } });
@@ -122,7 +171,7 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
               <SourceSlot
                 label={t.quantity}
                 value={config.quantity}
-                options={numericColumns}
+                options={numericOptions}
                 manualValue={config.quantity?.type === 'manual' ? config.quantity.value : 0}
                 onSourceChange={(q) => updateConfig({ quantity: q })}
                 onManualChange={(v) => updateConfig({ quantity: { type: 'manual', value: v } })}
@@ -132,7 +181,7 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
               <SourceSlot
                 label={t.unitPrice}
                 value={config.unitPrice}
-                options={numericColumns}
+                options={numericOptions}
                 manualValue={config.unitPrice?.type === 'manual' ? config.unitPrice.value : 0}
                 onSourceChange={(p) => updateConfig({ unitPrice: p })}
                 onManualChange={(v) => updateConfig({ unitPrice: { type: 'manual', value: v } })}
@@ -146,7 +195,7 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
             <SourceSlot
               label={t.amount}
               value={config.amount}
-              options={numericColumns}
+              options={numericOptions}
               manualValue={config.amount?.type === 'manual' ? config.amount.value : 0}
               onSourceChange={(a) => updateConfig({ amount: a })}
               onManualChange={(v) => updateConfig({ amount: { type: 'manual', value: v } })}
@@ -158,9 +207,19 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
           {model.type === PRICE_MODEL_TYPES.TIERED && (
             <>
               <SourceSlot
-                label={t.quantity}
+                label={t.cpqTierRangeValue}
+                value={config.rangeValue || { type: 'manual', value: 0 }}
+                options={numericOptions}
+                manualValue={config.rangeValue?.type === 'manual' ? config.rangeValue.value : 0}
+                onSourceChange={(r) => updateConfig({ rangeValue: r })}
+                onManualChange={(v) => updateConfig({ rangeValue: { type: 'manual', value: v } })}
+                isLocked={isLocked}
+                t={t}
+              />
+              <SourceSlot
+                label={t.cpqTierMultiplyValue}
                 value={config.quantity}
-                options={numericColumns}
+                options={numericOptions}
                 manualValue={config.quantity?.type === 'manual' ? config.quantity.value : 0}
                 onSourceChange={(q) => updateConfig({ quantity: q })}
                 onManualChange={(v) => updateConfig({ quantity: { type: 'manual', value: v } })}
@@ -272,7 +331,7 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
               <SourceSlot
                 label={t.quantity}
                 value={config.quantity}
-                options={numericColumns}
+                options={numericOptions}
                 manualValue={config.quantity?.type === 'manual' ? config.quantity.value : 1}
                 onSourceChange={(q) => updateConfig({ quantity: q })}
                 onManualChange={(v) => updateConfig({ quantity: { type: 'manual', value: v } })}
@@ -280,71 +339,30 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                 t={t}
               />
               <Text fontSize="xs" fontWeight="medium" color="fg.muted">{t.cpqPlanPrices}</Text>
-              {Object.entries(config.planPrices || {}).map(([label, amount]) => (
-                <HStack key={label} gap="2">
-                  <Box as="input"
-                    type="text"
-                    value={label}
-                    onChange={(e) => {
-                      const planPrices = { ...(config.planPrices || {}) };
-                      delete planPrices[label];
-                      planPrices[e.target.value.trim()] = amount;
-                      updateConfig({ planPrices });
-                    }}
-                    placeholder="ラベル"
-                    size="sm"
-                    maxW="120px"
-                    px="2"
-                    py="1"
-                    rounded="md"
-                    borderWidth="1px"
-                    borderColor="border"
-                    disabled={isLocked}
-                  />
-                  <NumberInput.Root
-                    size="sm"
-                    maxW="100px"
-                    min={0}
-                    step={0.01}
-                    disabled={isLocked}
-                    value={String(amount)}
-                    onValueChange={({ valueAsNumber }) => {
-                      const planPrices = { ...(config.planPrices || {}), [label]: valueAsNumber };
-                      updateConfig({ planPrices });
-                    }}
-                  >
-                    <NumberInput.Input />
-                  </NumberInput.Root>
-                  {!isLocked && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      colorPalette="red"
-                      onClick={() => {
-                        const planPrices = { ...(config.planPrices || {}) };
-                        delete planPrices[label];
+              {statusLabels.length === 0 && config.statusColumnId ? (
+                <Text fontSize="sm" color="fg.muted">ステータスカラムのラベルを取得中…</Text>
+              ) : statusLabels.length === 0 ? (
+                <Text fontSize="sm" color="fg.muted">ステータスカラムを選択するとラベルが表示されます</Text>
+              ) : (
+                statusLabels.map((label) => (
+                  <HStack key={label} gap="2">
+                    <Text fontSize="sm" minW="100px">{label}</Text>
+                    <NumberInput.Root
+                      size="sm"
+                      maxW="120px"
+                      min={0}
+                      step={0.01}
+                      disabled={isLocked}
+                      value={String((config.planPrices || {})[label] ?? 0)}
+                      onValueChange={({ valueAsNumber }) => {
+                        const planPrices = { ...(config.planPrices || {}), [label]: valueAsNumber };
                         updateConfig({ planPrices });
                       }}
                     >
-                      削除
-                    </Button>
-                  )}
-                </HStack>
-              ))}
-              {!isLocked && (
-                <Button
-                  size="xs"
-                  variant="outline"
-                  colorPalette="green"
-                  onClick={() => {
-                    const keys = Object.keys(config.planPrices || {});
-                    const key = keys.length === 0 ? '新規' : `新規${keys.length + 1}`;
-                    const planPrices = { ...(config.planPrices || {}), [key]: 0 };
-                    updateConfig({ planPrices });
-                  }}
-                >
-                  + プラン金額を追加
-                </Button>
+                      <NumberInput.Input />
+                    </NumberInput.Root>
+                  </HStack>
+                ))
               )}
             </>
           )}

@@ -51,7 +51,7 @@ export function createPriceModel(type, role, id = `pm-${Date.now()}-${Math.rando
     case PRICE_MODEL_TYPES.PER_UNIT:
       return { ...base, config: { quantity: { type: 'manual', value: 0 }, unitPrice: { type: 'manual', value: 0 } } };
     case PRICE_MODEL_TYPES.TIERED:
-      return { ...base, config: { quantity: { type: 'manual', value: 0 }, tiers: [{ min: 0, max: 10, unitPrice: 0 }] } };
+      return { ...base, config: { rangeValue: { type: 'manual', value: 0 }, quantity: { type: 'manual', value: 0 }, tiers: [{ min: 0, max: 10, unitPrice: 0 }] } };
     case PRICE_MODEL_TYPES.FLAT_FEE:
       return { ...base, config: { amount: { type: 'manual', value: 0 } } };
     case PRICE_MODEL_TYPES.PLAN_BASED:
@@ -83,10 +83,12 @@ export function isPriceModelComplete(model) {
     }
     case PRICE_MODEL_TYPES.TIERED: {
       const tiers = model.config.tiers;
+      const rangeValue = model.config.rangeValue;
       const quantity = model.config.quantity;
       if (!Array.isArray(tiers) || tiers.length === 0) return false;
+      const rangeOk = rangeValue?.type === 'manual' ? typeof rangeValue.value === 'number' : Boolean(rangeValue?.columnId);
       const qOk = quantity?.type === 'manual' ? typeof quantity.value === 'number' : Boolean(quantity?.columnId);
-      return qOk && tiers.every(t => typeof t.min === 'number' && typeof t.max === 'number' && typeof t.unitPrice === 'number');
+      return rangeOk && qOk && tiers.every(t => typeof t.min === 'number' && typeof t.max === 'number' && typeof t.unitPrice === 'number');
     }
     case PRICE_MODEL_TYPES.PLAN_BASED: {
       const statusColumnId = model.config.statusColumnId;
