@@ -91,7 +91,8 @@ export function isPriceModelComplete(model) {
     case PRICE_MODEL_TYPES.PLAN_BASED: {
       const statusColumnId = model.config.statusColumnId;
       const planPrices = model.config.planPrices;
-      return Boolean(statusColumnId && planPrices && typeof planPrices === 'object');
+      const hasPlanPrices = planPrices && typeof planPrices === 'object' && Object.keys(planPrices).length > 0;
+      return Boolean(statusColumnId && hasPlanPrices);
     }
     default:
       return false;

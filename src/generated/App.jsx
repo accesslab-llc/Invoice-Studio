@@ -12,6 +12,7 @@ import ImageUploader from './components/ImageUploader';
 import FieldMappingDialog from './components/FieldMappingDialog';
 import TemplateDialog from './components/TemplateDialog';
 import HelpDialog from './components/HelpDialog';
+import CpqModelConfigEditor from './components/CpqModelConfigEditor';
 import { generateInvoiceHTML } from './utils/invoiceTemplates';
 import { translations } from './utils/translations';
 import { TEMPLATE_FIELDS } from './constants/templateFields';
@@ -1646,14 +1647,25 @@ const App = () => {
                       </Button>
                     </Box>
                   ) : (
-                    <Stack gap="2">
+                    <Stack gap="4">
                       {cpqPriceModels.map((m, i) => (
-                        <HStack key={m.id} p="2" borderWidth="1px" rounded="md" justify="space-between">
-                          <Text fontSize="sm">{getCpqModelLabel(m)}</Text>
-                          {!cpqEditLocked && (
-                            <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
-                          )}
-                        </HStack>
+                        <Box key={m.id}>
+                          <HStack p="2" borderWidth="1px" rounded="md" justify="space-between" mb="2">
+                            <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
+                            {!cpqEditLocked && (
+                              <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
+                            )}
+                          </HStack>
+                          <CpqModelConfigEditor
+                            model={m}
+                            index={i}
+                            board={board}
+                            isLocked={cpqEditLocked}
+                            t={t}
+                            getModelLabel={getCpqModelLabel}
+                            onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
+                          />
+                        </Box>
                       ))}
                       {cpqPriceModels.length < CPQ_MAX_MODELS && (
                         <Button

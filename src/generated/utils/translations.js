@@ -243,7 +243,14 @@ export const translations = {
     cpqBackToPriceModel: '価格モデル設定画面へ戻る',
     cpqAddModelConfirm: '追加',
     cpqSelectModelTypeLabel: '1. 使用する価格モデル',
-    cpqSelectRoleLabel: '2. このモデルを'
+    cpqSelectRoleLabel: '2. このモデルを',
+    cpqInputSourceManual: '手入力',
+    cpqInputSourceColumn: 'ボードのカラム',
+    cpqStatusColumn: 'ステータスカラム',
+    cpqTierRange: 'レンジ',
+    cpqTierMin: '最小',
+    cpqTierMax: '最大',
+    cpqPlanPrices: 'プラン別金額（手入力）'
   },
   en: {
     title: 'Invoice Generator',
@@ -489,7 +496,14 @@ export const translations = {
     cpqBackToPriceModel: 'Back to price model setup',
     cpqAddModelConfirm: 'Add',
     cpqSelectModelTypeLabel: '1. Price model to use',
-    cpqSelectRoleLabel: '2. Use this model as'
+    cpqSelectRoleLabel: '2. Use this model as',
+    cpqInputSourceManual: 'Manual input',
+    cpqInputSourceColumn: 'Board column',
+    cpqStatusColumn: 'Status column',
+    cpqTierRange: 'Tier range',
+    cpqTierMin: 'Min',
+    cpqTierMax: 'Max',
+    cpqPlanPrices: 'Plan prices (manual)'
   },
   es: {
     title: 'Generador de Facturas',
@@ -735,7 +749,14 @@ export const translations = {
     cpqBackToPriceModel: 'Volver a configuración del modelo de precios',
     cpqAddModelConfirm: 'Añadir',
     cpqSelectModelTypeLabel: '1. Modelo de precio a usar',
-    cpqSelectRoleLabel: '2. Usar este modelo como'
+    cpqSelectRoleLabel: '2. Usar este modelo como',
+    cpqInputSourceManual: 'Entrada manual',
+    cpqInputSourceColumn: 'Columna del tablero',
+    cpqStatusColumn: 'Columna de estado',
+    cpqTierRange: 'Rango de nivel',
+    cpqTierMin: 'Mín',
+    cpqTierMax: 'Máx',
+    cpqPlanPrices: 'Precios por plan (manual)'
   }
 };
 
