@@ -17,6 +17,7 @@ import { generateInvoiceHTML } from './utils/invoiceTemplates';
 import { translations } from './utils/translations';
 import { TEMPLATE_FIELDS } from './constants/templateFields';
 import { CPQ_STEPS, CPQ_MAX_MODELS, PRICE_MODEL_TYPES, MODEL_ROLES, createPriceModel, isPriceModelComplete } from './constants/cpq';
+import { runCPQCalculation } from './utils/cpqCalculation';
 
 const board = new BoardSDK();
 
@@ -214,6 +215,15 @@ const App = () => {
     const roleLabel = cpqRoleCollection.items.find((it) => it.value === model.role)?.label ?? model.role;
     return `${typeLabel}（${roleLabel}）`;
   };
+
+  const cpqResult = useMemo(() => {
+    if (appMode !== 'cpq' || cpqStep !== CPQ_STEPS.RESULT || !selectedItemId || !items?.length) {
+      return { baseAmount: 0, optionsTotal: 0, discountTotal: 0, taxRate: formData.taxRate ?? 10, taxAmount: 0, total: 0 };
+    }
+    const selectedItem = items.find(i => i.id === selectedItemId);
+    if (!selectedItem) return { baseAmount: 0, optionsTotal: 0, discountTotal: 0, taxRate: formData.taxRate ?? 10, taxAmount: 0, total: 0 };
+    return runCPQCalculation(cpqPriceModels, selectedItem, formData.taxRate ?? 10);
+  }, [appMode, cpqStep, selectedItemId, items, cpqPriceModels, formData.taxRate]);
 
   // Debug: Log when language changes
   useEffect(() => {
@@ -1715,7 +1725,13 @@ const App = () => {
             </Card.Header>
             <Card.Body>
               <Stack gap="4">
-                <Text>{t.cpqBaseAmount}: 0 | {t.cpqOptionsTotal}: 0 | {t.cpqDiscountTotal}: 0 | {t.taxRate}: 0% | {t.total}: 0</Text>
+                <Stack gap="1" fontSize="sm">
+                  <Text>{t.cpqBaseAmount}: {getCurrencySymbol(formData.currency)}{cpqResult.baseAmount.toLocaleString()}</Text>
+                  <Text>{t.cpqOptionsTotal}: {getCurrencySymbol(formData.currency)}{cpqResult.optionsTotal.toLocaleString()}</Text>
+                  <Text>{t.cpqDiscountTotal}: {getCurrencySymbol(formData.currency)}{cpqResult.discountTotal.toLocaleString()}</Text>
+                  <Text>{t.taxRate}: {cpqResult.taxRate}% / {t.tax}: {getCurrencySymbol(formData.currency)}{cpqResult.taxAmount.toLocaleString()}</Text>
+                  <Text fontWeight="bold">{t.total}: {getCurrencySymbol(formData.currency)}{cpqResult.total.toLocaleString()}</Text>
+                </Stack>
                 <Separator />
                 <Field.Root>
                   <Field.Label>{t.cpqWriteBackTarget}</Field.Label>
