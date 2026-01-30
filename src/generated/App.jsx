@@ -60,7 +60,7 @@ const App = () => {
   const [cpqWriteBackSubitemColumnId, setCpqWriteBackSubitemColumnId] = useState('');
   const [cpqWriteBackColumns, setCpqWriteBackColumns] = useState([]);
   const [cpqWriteBackSubitemColumns, setCpqWriteBackSubitemColumns] = useState([]);
-  const [cpqWriteBackLineStyle, setCpqWriteBackLineStyle] = useState('A'); // 'A' | 'B'
+  const [cpqWriteBackLineStyle, setCpqWriteBackLineStyle] = useState('A'); // 'A' | 'B' | 'C'
   const [cpqWriteBackLineLabels, setCpqWriteBackLineLabels] = useState({});
   const [cpqWriteBackSubitemAmountColumnId, setCpqWriteBackSubitemAmountColumnId] = useState('');
   const [cpqWriteBackSubitemQuantityColumnId, setCpqWriteBackSubitemQuantityColumnId] = useState('');
@@ -1799,19 +1799,6 @@ const App = () => {
                         </NumberInput.Root>
                         {isCurrency && key !== 'taxRate' && <Text fontSize="xs" color="fg.muted">{getCurrencySymbol(formData.currency)}</Text>}
                         {key === 'taxRate' && <Text fontSize="xs" color="fg.muted">%</Text>}
-                        <Box as="select" value={cpqResultMappings[key] || ''} onChange={(e) => setCpqResultMappings((m) => ({ ...m, [key]: e.target.value }))} minW="180px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
-                          <option value="">—</option>
-                          <optgroup label={t.cpqItemColumnGroup || 'アイテムのカラム'}>
-                            {cpqWriteBackColumns.map((col) => (
-                              <option key={`item__${col.id}`} value={`item__${col.id}`}>{col.title}</option>
-                            ))}
-                          </optgroup>
-                          <optgroup label={t.cpqSubitemColumnGroup || 'サブアイテムのカラム'}>
-                            {cpqWriteBackSubitemColumns.map((col) => (
-                              <option key={`subitem__${col.id}`} value={`subitem__${col.id}`}>{col.title}</option>
-                            ))}
-                          </optgroup>
-                        </Box>
                       </HStack>
                     );
                   });
@@ -1819,7 +1806,7 @@ const App = () => {
                 <Separator />
                 <Stack gap="3">
                   <Text fontWeight="semibold" fontSize="sm">{t.cpqWriteBackLineStyle || '内訳の出し方'}</Text>
-                  <HStack gap="4">
+                  <HStack gap="4" wrap="wrap">
                     <label>
                       <input type="radio" name="cpqWriteBackLineStyle" checked={cpqWriteBackLineStyle === 'A'} onChange={() => setCpqWriteBackLineStyle('A')} />
                       <Text as="span" ml="2" fontSize="sm">{t.cpqWriteBackLineStyleA || '結果の内訳（基本・オプション・割引・税・合計）'}</Text>
@@ -1828,71 +1815,117 @@ const App = () => {
                       <input type="radio" name="cpqWriteBackLineStyle" checked={cpqWriteBackLineStyle === 'B'} onChange={() => setCpqWriteBackLineStyle('B')} />
                       <Text as="span" ml="2" fontSize="sm">{t.cpqWriteBackLineStyleB || '価格モデルごと＋割引・税・合計'}</Text>
                     </label>
+                    <label>
+                      <input type="radio" name="cpqWriteBackLineStyle" checked={cpqWriteBackLineStyle === 'C'} onChange={() => setCpqWriteBackLineStyle('C')} />
+                      <Text as="span" ml="2" fontSize="sm">{t.cpqWriteBackLineStyleC || '既存カラムに書き込む'}</Text>
+                    </label>
                   </HStack>
-                  <Text fontWeight="semibold" fontSize="sm" mt="2">{t.cpqWriteBackLineName || '品名（サブアイテム名）'}</Text>
-                  <Stack gap="2">
-                    {cpqWriteBackLines.map((line) => (
-                      <HStack key={line.key} gap="3" align="center" wrap="wrap">
-                        <Box as="input" type="text" value={cpqWriteBackLineLabels[line.key] !== undefined ? cpqWriteBackLineLabels[line.key] : line.defaultLabel} onChange={(e) => setCpqWriteBackLineLabels((prev) => ({ ...prev, [line.key]: e.target.value }))} placeholder={line.defaultLabel} minW="160px" px="2" py="1" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm" />
-                        <Text fontSize="sm" color="fg.muted">{getCurrencySymbol(formData.currency)}{Number(line.amount).toLocaleString()}</Text>
-                      </HStack>
-                    ))}
-                  </Stack>
-                  <Box pt="2">
-                    <Text fontWeight="semibold" fontSize="sm" mb="2">{t.cpqWriteBackSubitemMapping || 'サブアイテムの既存カラムに書き込む（C）'}</Text>
-                    <Stack gap="2">
-                      <HStack gap="2" align="center">
-                        <Text fontSize="xs" minW="80px">{t.cpqWriteBackAmountColumn || '金額カラム'}</Text>
-                        <Box as="select" value={cpqWriteBackSubitemAmountColumnId} onChange={(e) => setCpqWriteBackSubitemAmountColumnId(e.target.value)} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
-                          <option value="">—</option>
-                          {cpqWriteBackSubitemColumns.map((col) => (
-                            <option key={col.id} value={col.id}>{col.title}</option>
-                          ))}
-                        </Box>
-                      </HStack>
-                      <HStack gap="2" align="center">
-                        <Text fontSize="xs" minW="80px">{t.cpqWriteBackQuantityColumn || '数量カラム'}</Text>
-                        <Box as="select" value={cpqWriteBackSubitemQuantityColumnId} onChange={(e) => setCpqWriteBackSubitemQuantityColumnId(e.target.value)} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
-                          <option value="">—</option>
-                          {cpqWriteBackSubitemColumns.map((col) => (
-                            <option key={col.id} value={col.id}>{col.title}</option>
-                          ))}
-                        </Box>
-                      </HStack>
-                      <HStack gap="2" align="center">
-                        <Text fontSize="xs" minW="80px">{t.cpqWriteBackUnitPriceColumn || '単価カラム'}</Text>
-                        <Box as="select" value={cpqWriteBackSubitemUnitPriceColumnId} onChange={(e) => setCpqWriteBackSubitemUnitPriceColumnId(e.target.value)} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
-                          <option value="">—</option>
-                          {cpqWriteBackSubitemColumns.map((col) => (
-                            <option key={col.id} value={col.id}>{col.title}</option>
-                          ))}
-                        </Box>
-                      </HStack>
-                    </Stack>
-                  </Box>
-                  <Button
-                    colorPalette="green"
-                    size="lg"
-                    onClick={async () => {
-                      if (!selectedItemId) return;
-                      try {
-                        for (const line of cpqWriteBackLines) {
-                          const name = (cpqWriteBackLineLabels[line.key] ?? line.defaultLabel) || line.defaultLabel;
-                          const columnValues = {};
-                          if (cpqWriteBackSubitemAmountColumnId) columnValues[cpqWriteBackSubitemAmountColumnId] = line.amount;
-                          if (cpqWriteBackSubitemQuantityColumnId) columnValues[cpqWriteBackSubitemQuantityColumnId] = 1;
-                          if (cpqWriteBackSubitemUnitPriceColumnId) columnValues[cpqWriteBackSubitemUnitPriceColumnId] = line.amount;
-                          await board.createSubitem(selectedItemId, name, columnValues);
-                        }
-                        if (typeof window !== 'undefined') window.alert(t.cpqWriteBackSuccess || 'サブアイテムを作成しました');
-                      } catch (err) {
-                        console.error(err);
-                        if (typeof window !== 'undefined') window.alert((t.cpqWriteBackError || '書き戻しに失敗しました') + ': ' + (err?.message || String(err)));
-                      }
-                    }}
-                  >
-                    {t.cpqWriteBackToSubitems || 'サブアイテムに書き戻す'}
-                  </Button>
+
+                  {cpqWriteBackLineStyle === 'C' ? (
+                    <>
+                      <Text fontWeight="semibold" fontSize="sm" mt="2">{t.cpqWriteBackMappingToColumns || '計算結果の各項目の書き戻し先'}</Text>
+                      {(() => {
+                        const baseAmount = cpqResultOverrides.baseAmount != null ? cpqResultOverrides.baseAmount : cpqResult.baseAmount;
+                        const optionsTotal = cpqResultOverrides.optionsTotal != null ? cpqResultOverrides.optionsTotal : cpqResult.optionsTotal;
+                        const discountTotal = cpqResultOverrides.discountTotal != null ? cpqResultOverrides.discountTotal : cpqResult.discountTotal;
+                        const taxRate = cpqResultOverrides.taxRate != null ? cpqResultOverrides.taxRate : cpqResult.taxRate;
+                        const subtotal = baseAmount + optionsTotal - discountTotal;
+                        const taxAmount = Math.round(subtotal * (Number(taxRate) || 0) / 100);
+                        const total = subtotal + taxAmount;
+                        const labels = { baseAmount: t.cpqBaseAmount, optionsTotal: t.cpqOptionsTotal, discountTotal: t.cpqDiscountTotal, taxRate: t.taxRate, taxAmount: t.tax, total: t.total };
+                        const vals = { baseAmount, optionsTotal, discountTotal, taxRate, taxAmount, total };
+                        return (['baseAmount', 'optionsTotal', 'discountTotal', 'taxRate', 'taxAmount', 'total']).map((key) => (
+                          <HStack key={key} gap="3" align="center" wrap="wrap">
+                            <Text fontSize="sm" minW="100px">{labels[key]}:</Text>
+                            <Text fontSize="sm" color="fg.muted">{key === 'taxRate' ? `${Number(vals[key])}%` : `${getCurrencySymbol(formData.currency)}${Number(vals[key]).toLocaleString()}`}</Text>
+                            <Box as="select" value={cpqResultMappings[key] || ''} onChange={(e) => setCpqResultMappings((m) => ({ ...m, [key]: e.target.value }))} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
+                              <option value="">—</option>
+                              <optgroup label={t.cpqItemColumnGroup || 'アイテムのカラム'}>
+                                {cpqWriteBackColumns.map((col) => (
+                                  <option key={`item__${col.id}`} value={`item__${col.id}`}>{col.title}</option>
+                                ))}
+                              </optgroup>
+                              <optgroup label={t.cpqSubitemColumnGroup || 'サブアイテムのカラム'}>
+                                {cpqWriteBackSubitemColumns.map((col) => (
+                                  <option key={`subitem__${col.id}`} value={`subitem__${col.id}`}>{col.title}</option>
+                                ))}
+                              </optgroup>
+                            </Box>
+                          </HStack>
+                        ));
+                      })()}
+                      <Button colorPalette="green" size="lg" onClick={() => { if (typeof window !== 'undefined') window.alert(t.cpqWriteBackToExistingColumnsNote || '既存カラムへの書き込みは後で実装します。'); }}>
+                        {t.cpqWriteBackToExistingColumns || '既存カラムに書き込む'}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Text fontWeight="semibold" fontSize="sm" mt="2">{t.cpqWriteBackLineName || '品名（サブアイテム名）'}</Text>
+                      <Stack gap="2">
+                        {cpqWriteBackLines.map((line) => (
+                          <HStack key={line.key} gap="3" align="center" wrap="wrap">
+                            <Box as="input" type="text" value={cpqWriteBackLineLabels[line.key] !== undefined ? cpqWriteBackLineLabels[line.key] : line.defaultLabel} onChange={(e) => setCpqWriteBackLineLabels((prev) => ({ ...prev, [line.key]: e.target.value }))} placeholder={line.defaultLabel} minW="160px" px="2" py="1" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm" />
+                            <Text fontSize="sm" color="fg.muted">{getCurrencySymbol(formData.currency)}{Number(line.amount).toLocaleString()}</Text>
+                          </HStack>
+                        ))}
+                      </Stack>
+                      <Box pt="2">
+                        <Text fontWeight="semibold" fontSize="sm" mb="2">{t.cpqWriteBackSubitemMapping || 'サブアイテムのカラム（金額・数量・単価）'}</Text>
+                        <Stack gap="2">
+                          <HStack gap="2" align="center">
+                            <Text fontSize="xs" minW="80px">{t.cpqWriteBackAmountColumn || '金額カラム'}</Text>
+                            <Box as="select" value={cpqWriteBackSubitemAmountColumnId} onChange={(e) => setCpqWriteBackSubitemAmountColumnId(e.target.value)} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
+                              <option value="">—</option>
+                              {cpqWriteBackSubitemColumns.map((col) => (
+                                <option key={col.id} value={col.id}>{col.title}</option>
+                              ))}
+                            </Box>
+                          </HStack>
+                          <HStack gap="2" align="center">
+                            <Text fontSize="xs" minW="80px">{t.cpqWriteBackQuantityColumn || '数量カラム'}</Text>
+                            <Box as="select" value={cpqWriteBackSubitemQuantityColumnId} onChange={(e) => setCpqWriteBackSubitemQuantityColumnId(e.target.value)} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
+                              <option value="">—</option>
+                              {cpqWriteBackSubitemColumns.map((col) => (
+                                <option key={col.id} value={col.id}>{col.title}</option>
+                              ))}
+                            </Box>
+                          </HStack>
+                          <HStack gap="2" align="center">
+                            <Text fontSize="xs" minW="80px">{t.cpqWriteBackUnitPriceColumn || '単価カラム'}</Text>
+                            <Box as="select" value={cpqWriteBackSubitemUnitPriceColumnId} onChange={(e) => setCpqWriteBackSubitemUnitPriceColumnId(e.target.value)} minW="200px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
+                              <option value="">—</option>
+                              {cpqWriteBackSubitemColumns.map((col) => (
+                                <option key={col.id} value={col.id}>{col.title}</option>
+                              ))}
+                            </Box>
+                          </HStack>
+                        </Stack>
+                      </Box>
+                      <Button
+                        colorPalette="green"
+                        size="lg"
+                        onClick={async () => {
+                          if (!selectedItemId) return;
+                          try {
+                            for (const line of cpqWriteBackLines) {
+                              const name = (cpqWriteBackLineLabels[line.key] ?? line.defaultLabel) || line.defaultLabel;
+                              const columnValues = {};
+                              if (cpqWriteBackSubitemAmountColumnId) columnValues[cpqWriteBackSubitemAmountColumnId] = line.amount;
+                              if (cpqWriteBackSubitemQuantityColumnId) columnValues[cpqWriteBackSubitemQuantityColumnId] = 1;
+                              if (cpqWriteBackSubitemUnitPriceColumnId) columnValues[cpqWriteBackSubitemUnitPriceColumnId] = line.amount;
+                              await board.createSubitem(selectedItemId, name, columnValues);
+                            }
+                            if (typeof window !== 'undefined') window.alert(t.cpqWriteBackSuccess || 'サブアイテムを作成しました');
+                          } catch (err) {
+                            console.error(err);
+                            if (typeof window !== 'undefined') window.alert((t.cpqWriteBackError || '書き戻しに失敗しました') + ': ' + (err?.message || String(err)));
+                          }
+                        }}
+                      >
+                        {t.cpqWriteBackToSubitems || 'サブアイテムに書き戻す'}
+                      </Button>
+                    </>
+                  )}
                 </Stack>
                 <Separator />
                 <Button variant="outline" onClick={() => setCpqStep(CPQ_STEPS.PRICE_MODEL)}>
