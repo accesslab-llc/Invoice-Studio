@@ -216,6 +216,7 @@ const App = () => {
 
   const getCpqModelLabel = (model) => {
     const typeLabel = cpqModelTypeCollection.items.find((it) => it.value === model.type)?.label ?? model.type;
+    if (model.type === PRICE_MODEL_TYPES.PERCENTAGE) return typeLabel;
     const roleLabel = cpqRoleCollection.items.find((it) => it.value === model.role)?.label ?? model.role;
     return `${typeLabel}（${roleLabel}）`;
   };
@@ -1630,7 +1631,7 @@ const App = () => {
                             <HStack justify="space-between" align="center" mb="3">
                               <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
                               <HStack gap="3" align="center">
-                                {m.role === MODEL_ROLES.ADD && (
+                                {m.role === MODEL_ROLES.ADD && m.type !== PRICE_MODEL_TYPES.PERCENTAGE && (
                                   <HStack gap="1" align="center">
                                     <Box as="input" type="checkbox" id={`cpq-option-${m.id}`} checked={m.optionFee === true} onChange={(e) => setCpqPriceModels(prev => prev.map((model, j) => j === i ? { ...model, optionFee: e.target.checked } : model))} disabled={cpqEditLocked} />
                                     <Text as="label" htmlFor={`cpq-option-${m.id}`} fontSize="xs" whiteSpace="nowrap">{t.cpqOptionFeeCheckbox || 'オプション料金として扱う'}</Text>
