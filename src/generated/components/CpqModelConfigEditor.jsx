@@ -118,7 +118,7 @@ function buildNumericOptions(numericColumns, subitemNumericColumns, t) {
   };
 }
 
-export default function CpqModelConfigEditor({ model, index, allModels = [], board, isLocked, t, onUpdate, getModelLabel }) {
+export default function CpqModelConfigEditor({ model, index, allModels = [], board, isLocked, t, onUpdate, getModelLabel, embedded }) {
   const [columns, setColumns] = useState([]);
   const [subitemColumns, setSubitemColumns] = useState([]);
   const [columnsLoading, setColumnsLoading] = useState(true);
@@ -195,12 +195,10 @@ export default function CpqModelConfigEditor({ model, index, allModels = [], boa
 
   const config = model.config;
 
-  return (
-    <Box p="3" borderWidth="1px" rounded="md" borderColor="green.200" bg="green.50" _dark={{ bg: 'green.950', borderColor: 'green.800' }}>
-      {columnsLoading ? (
-        <Text fontSize="sm" color="fg.muted">カラム読み込み中...</Text>
-      ) : (
-        <Stack gap="3">
+  const content = columnsLoading ? (
+    <Text fontSize="sm" color="fg.muted">カラム読み込み中...</Text>
+  ) : (
+    <Stack gap="3">
           {model.type === PRICE_MODEL_TYPES.PER_UNIT && (
             <>
               <SourceSlot
@@ -447,7 +445,11 @@ export default function CpqModelConfigEditor({ model, index, allModels = [], boa
             </>
           )}
         </Stack>
-      )}
+  );
+  if (embedded) return content;
+  return (
+    <Box p="3" borderWidth="1px" rounded="md" borderColor="green.200" bg="green.50" _dark={{ bg: 'green.950', borderColor: 'green.800' }}>
+      {content}
     </Box>
   );
 }

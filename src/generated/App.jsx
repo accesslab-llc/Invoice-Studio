@@ -1626,8 +1626,8 @@ const App = () => {
                     {cpqPriceModels.length > 0 && (
                       <>
                         {cpqPriceModels.map((m, i) => (
-                          <Box key={m.id}>
-                            <HStack p="2" borderWidth="1px" rounded="md" justify="space-between" mb="2" align="center">
+                          <Box key={m.id} p="3" borderWidth="1px" rounded="md" borderColor="green.200" bg="green.50" _dark={{ bg: 'green.950', borderColor: 'green.800' }}>
+                            <HStack justify="space-between" align="center" mb="3">
                               <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
                               <HStack gap="3" align="center">
                                 {m.role === MODEL_ROLES.ADD && (
@@ -1650,6 +1650,7 @@ const App = () => {
                               t={t}
                               getModelLabel={getCpqModelLabel}
                               onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
+                              embedded
                             />
                           </Box>
                         ))}
