@@ -253,7 +253,7 @@ export const translations = {
     cpqTierMax: '最大',
     cpqPlanPrices: 'プラン別金額（手入力）',
     cpqPercentageTargetModels: '％をかけるモデル',
-    cpqPercentageNotation: '10％表記（入力値を÷100して使用）',
+    cpqPercentageNotation: '入力値を÷100して使用',
     cpqTierRangeValue: 'レンジを判定する値',
     cpqTierMultiplyValue: 'レンジの単価にかける値',
     cpqSubitemColumnPrefix: 'サブアイテム',
@@ -265,7 +265,10 @@ export const translations = {
     cpqResultLock: 'ロック（手入力不可）',
     cpqResultUnlock: '解除（手入力可）',
     cpqRecalculate: '再計算',
-    cpqResultFieldMapping: '書き戻し先カラム'
+    cpqResultFieldMapping: '書き戻し先カラム',
+    cpqAddModelSectionTitle: '追加するモデルを選択',
+    cpqAddedModelsSectionTitle: '追加されたモデル',
+    cpqOptionFeeCheckbox: 'オプション料金として扱う'
   },
   en: {
     title: 'Invoice Generator',
@@ -533,7 +536,10 @@ export const translations = {
     cpqResultLock: 'Lock (no manual edit)',
     cpqResultUnlock: 'Unlock (manual edit)',
     cpqRecalculate: 'Recalculate',
-    cpqResultFieldMapping: 'Write-back column'
+    cpqResultFieldMapping: 'Write-back column',
+    cpqAddModelSectionTitle: 'Select model to add',
+    cpqAddedModelsSectionTitle: 'Added models',
+    cpqOptionFeeCheckbox: 'Treat as option fee'
   },
   es: {
     title: 'Generador de Facturas',
@@ -801,7 +807,10 @@ export const translations = {
     cpqResultLock: 'Bloquear (no editar)',
     cpqResultUnlock: 'Desbloquear (editar)',
     cpqRecalculate: 'Recalcular',
-    cpqResultFieldMapping: 'Columna de escritura'
+    cpqResultFieldMapping: 'Columna de escritura',
+    cpqAddModelSectionTitle: 'Seleccionar modelo a añadir',
+    cpqAddedModelsSectionTitle: 'Modelos añadidos',
+    cpqOptionFeeCheckbox: 'Tratar como opción'
   }
 };
 
