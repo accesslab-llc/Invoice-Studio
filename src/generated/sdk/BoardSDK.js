@@ -713,6 +713,36 @@ class BoardSDK {
   }
 
   /**
+   * Create a subitem under a parent item (CPQ 書き戻し用).
+   * @param {string} parentItemId - 親アイテムの ID
+   * @param {string} itemName - サブアイテム名（品名・手入力）
+   * @param {{ [columnId: string]: number | string }} [columnValues] - カラムID → 値（C: マッピングで既存カラムに書き込む場合）
+   * @returns {Promise<{ id: string }>}
+   */
+  async createSubitem(parentItemId, itemName, columnValues = {}) {
+    const query = `
+      mutation CreateSubitem($parentItemId: ID!, $subitemName: String!, $columnValues: JSON) {
+        create_subitem(parent_item_id: $parentItemId, item_name: $subitemName, column_values: $columnValues) {
+          id
+        }
+      }
+    `;
+    const variables = {
+      parentItemId: String(parentItemId),
+      subitemName: String(itemName || '')
+    };
+    if (Object.keys(columnValues).length > 0) {
+      const formatted = {};
+      for (const [colId, val] of Object.entries(columnValues)) {
+        formatted[colId] = typeof val === 'number' ? { number: val } : val;
+      }
+      variables.columnValues = JSON.stringify(formatted);
+    }
+    const data = await this.query(query, variables);
+    return data?.create_subitem ?? { id: null };
+  }
+
+  /**
    * Fetch board columns dynamically
    */
   async fetchColumns() {

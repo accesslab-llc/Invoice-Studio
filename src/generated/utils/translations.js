@@ -268,7 +268,18 @@ export const translations = {
     cpqResultFieldMapping: '書き戻し先カラム',
     cpqAddModelSectionTitle: '追加するモデルを選択',
     cpqAddedModelsSectionTitle: '追加されたモデル',
-    cpqOptionFeeCheckbox: 'オプション料金として扱う'
+    cpqOptionFeeCheckbox: 'オプション料金として扱う',
+    cpqWriteBackLineStyle: '内訳の出し方',
+    cpqWriteBackLineStyleA: '結果の内訳（基本・オプション・割引・税・合計）',
+    cpqWriteBackLineStyleB: '価格モデルごと＋割引・税・合計',
+    cpqWriteBackLineName: '品名（サブアイテム名）',
+    cpqWriteBackSubitemMapping: 'サブアイテムの既存カラムに書き込む（C）',
+    cpqWriteBackAmountColumn: '金額カラム',
+    cpqWriteBackQuantityColumn: '数量カラム',
+    cpqWriteBackUnitPriceColumn: '単価カラム',
+    cpqWriteBackToSubitems: 'サブアイテムに書き戻す',
+    cpqWriteBackSuccess: 'サブアイテムを作成しました',
+    cpqWriteBackError: '書き戻しに失敗しました'
   },
   en: {
     title: 'Invoice Generator',
@@ -539,7 +550,18 @@ export const translations = {
     cpqResultFieldMapping: 'Write-back column',
     cpqAddModelSectionTitle: 'Select model to add',
     cpqAddedModelsSectionTitle: 'Added models',
-    cpqOptionFeeCheckbox: 'Treat as option fee'
+    cpqOptionFeeCheckbox: 'Treat as option fee',
+    cpqWriteBackLineStyle: 'Line style',
+    cpqWriteBackLineStyleA: 'Result breakdown (base, options, discount, tax, total)',
+    cpqWriteBackLineStyleB: 'Per price model + discount, tax, total',
+    cpqWriteBackLineName: 'Line name (subitem name)',
+    cpqWriteBackSubitemMapping: 'Write to existing subitem columns (C)',
+    cpqWriteBackAmountColumn: 'Amount column',
+    cpqWriteBackQuantityColumn: 'Quantity column',
+    cpqWriteBackUnitPriceColumn: 'Unit price column',
+    cpqWriteBackToSubitems: 'Write back to subitems',
+    cpqWriteBackSuccess: 'Subitems created',
+    cpqWriteBackError: 'Write-back failed'
   },
   es: {
     title: 'Generador de Facturas',
@@ -810,7 +832,18 @@ export const translations = {
     cpqResultFieldMapping: 'Columna de escritura',
     cpqAddModelSectionTitle: 'Seleccionar modelo a añadir',
     cpqAddedModelsSectionTitle: 'Modelos añadidos',
-    cpqOptionFeeCheckbox: 'Tratar como opción'
+    cpqOptionFeeCheckbox: 'Tratar como opción',
+    cpqWriteBackLineStyle: 'Estilo de líneas',
+    cpqWriteBackLineStyleA: 'Desglose (base, opciones, descuento, impuesto, total)',
+    cpqWriteBackLineStyleB: 'Por modelo de precio + descuento, impuesto, total',
+    cpqWriteBackLineName: 'Nombre de línea (nombre de subítem)',
+    cpqWriteBackSubitemMapping: 'Escribir en columnas de subítem existentes (C)',
+    cpqWriteBackAmountColumn: 'Columna de importe',
+    cpqWriteBackQuantityColumn: 'Columna de cantidad',
+    cpqWriteBackUnitPriceColumn: 'Columna de precio unitario',
+    cpqWriteBackToSubitems: 'Escribir en subítems',
+    cpqWriteBackSuccess: 'Subítems creados',
+    cpqWriteBackError: 'Error al escribir'
   }
 };
 

@@ -97,7 +97,8 @@ export function runCPQCalculation(models, item, taxRate = 10) {
       discountTotal: 0,
       taxRate,
       taxAmount: 0,
-      total: 0
+      total: 0,
+      modelValuesById: {}
     };
   }
 
@@ -125,6 +126,7 @@ export function runCPQCalculation(models, item, taxRate = 10) {
     const pctRaw = resolveInput(cfg.percentageSource, item, subitems);
     const pct = cfg.isPercentageNotation ? pctRaw / 100 : pctRaw;
     const value = targetSum * pct;
+    modelValuesById[model.id] = value;
     if (model.role === MODEL_ROLES.ADD) {
       optionsTotal += value;
     } else {
@@ -142,6 +144,17 @@ export function runCPQCalculation(models, item, taxRate = 10) {
     discountTotal,
     taxRate,
     taxAmount,
-    total
+    total,
+    modelValuesById
   };
+}
+
+/**
+ * 書き戻し用: 計算結果と modelValuesById を返す（A/B の行組み立て用）
+ */
+export function runCPQCalculationWithDetails(models, item, taxRate = 10) {
+  const result = runCPQCalculation(models, item, taxRate);
+  const modelValuesById = result.modelValuesById ?? {};
+  const { modelValuesById: _mv, ...rest } = result;
+  return { result: rest, modelValuesById };
 }
