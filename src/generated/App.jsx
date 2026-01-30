@@ -16,7 +16,7 @@ import CpqModelConfigEditor from './components/CpqModelConfigEditor';
 import { generateInvoiceHTML } from './utils/invoiceTemplates';
 import { translations } from './utils/translations';
 import { TEMPLATE_FIELDS } from './constants/templateFields';
-import { CPQ_STEPS, CPQ_MAX_MODELS, PRICE_MODEL_TYPES, MODEL_ROLES, createPriceModel, isPriceModelComplete } from './constants/cpq';
+import { CPQ_STEPS, CPQ_MAX_MODELS, PRICE_MODEL_TYPES, MODEL_ROLES, createPriceModel, isPriceModelComplete, getColumnIdsFromCpqModels } from './constants/cpq';
 import { runCPQCalculation } from './utils/cpqCalculation';
 
 const board = new BoardSDK();
@@ -60,6 +60,9 @@ const App = () => {
   const [cpqWriteBackSubitemColumnId, setCpqWriteBackSubitemColumnId] = useState('');
   const [cpqWriteBackColumns, setCpqWriteBackColumns] = useState([]);
   const [cpqWriteBackSubitemColumns, setCpqWriteBackSubitemColumns] = useState([]);
+  const [cpqResultLocked, setCpqResultLocked] = useState(true);
+  const [cpqResultOverrides, setCpqResultOverrides] = useState({ baseAmount: null, optionsTotal: null, discountTotal: null, taxRate: null, taxAmount: null, total: null });
+  const [cpqResultMappings, setCpqResultMappings] = useState({ baseAmount: '', optionsTotal: '', discountTotal: '', taxRate: '', taxAmount: '', total: '' });
   const [pageSize, setPageSize] = useState('a4');
   const [fitToOnePage, setFitToOnePage] = useState(true);
   const [documentType, setDocumentType] = useState('invoice'); // 'invoice' or 'estimate'
@@ -200,8 +203,9 @@ const App = () => {
       { label: t.cpqModelTiered, value: PRICE_MODEL_TYPES.TIERED },
       { label: t.cpqModelFlatFee, value: PRICE_MODEL_TYPES.FLAT_FEE },
       { label: t.cpqModelPlanBased, value: PRICE_MODEL_TYPES.PLAN_BASED },
+      { label: t.cpqModelPercentage, value: PRICE_MODEL_TYPES.PERCENTAGE },
     ]
-  }), [t.cpqModelPerUnit, t.cpqModelTiered, t.cpqModelFlatFee, t.cpqModelPlanBased]);
+  }), [t.cpqModelPerUnit, t.cpqModelTiered, t.cpqModelFlatFee, t.cpqModelPlanBased, t.cpqModelPercentage]);
 
   const cpqRoleCollection = useMemo(() => createListCollection({
     items: [
@@ -340,6 +344,15 @@ const App = () => {
     return () => { cancelled = true; };
   }, [appMode, cpqStep, board]);
 
+  // CPQ 計算結果表示時に、CPQ で参照するカラムを含めてアイテムを再取得（計算が正しく出るように）
+  const prevCpqStepRef = useRef(cpqStep);
+  useEffect(() => {
+    if (appMode !== 'cpq' || cpqStep !== CPQ_STEPS.RESULT || !selectedItemId) return;
+    const justEnteredResult = prevCpqStepRef.current !== CPQ_STEPS.RESULT && cpqStep === CPQ_STEPS.RESULT;
+    prevCpqStepRef.current = cpqStep;
+    if (justEnteredResult) fetchBoardData(fieldMappings);
+  }, [appMode, cpqStep, selectedItemId]);
+
   const fetchBoardData = async (mappings = fieldMappings) => {
     setLoading(true);
     setAuthError(null); // Clear previous auth errors
@@ -455,15 +468,18 @@ const App = () => {
       addSubitemColumn(mappings.subitemPrice);
       addSubitemColumn(mappings.subitemQuantity);
       
-      console.log('[App] Fetching columns from fieldMappings:', columnIds);
+      // CPQ で参照しているカラムも含めて取得（計算結果で正しく値を読むため）
+      const cpqCols = getColumnIdsFromCpqModels(cpqPriceModels);
+      cpqCols.itemIds.forEach((id) => { if (!columnIds.includes(id)) columnIds.push(id); });
+      cpqCols.subitemIds.forEach((id) => { if (!subitemColumnIds.includes(id)) subitemColumnIds.push(id); });
+      
+      console.log('[App] Fetching columns from fieldMappings + CPQ:', columnIds);
       console.log('[App] Fetching subitem columns:', subitemColumnIds);
       
       // Fetch items with dynamically determined columns
-      // If no columns specified, fetch all columns (pass null to fetch all)
-      // For subitems, always fetch all columns to ensure we get the data even if the mapped column ID doesn't exist
       const result = await board.items()
-        .withColumns(columnIds.length > 0 ? columnIds : null) // null means fetch all columns
-        .withSubItems(null) // Always fetch all subitem columns to ensure we get the data
+        .withColumns(columnIds.length > 0 ? columnIds : null)
+        .withSubItems(subitemColumnIds.length > 0 ? subitemColumnIds : null)
         .withPagination({ limit: 50 })
         .execute();
 
@@ -1617,15 +1633,16 @@ const App = () => {
                                 <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
                               )}
                             </HStack>
-                            <CpqModelConfigEditor
-                              model={m}
-                              index={i}
-                              board={board}
-                              isLocked={cpqEditLocked}
-                              t={t}
-                              getModelLabel={getCpqModelLabel}
-                              onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
-                            />
+                          <CpqModelConfigEditor
+                            model={m}
+                            index={i}
+                            allModels={cpqPriceModels}
+                            board={board}
+                            isLocked={cpqEditLocked}
+                            t={t}
+                            getModelLabel={getCpqModelLabel}
+                            onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
+                          />
                           </Box>
                         ))}
                       </>
@@ -1721,94 +1738,63 @@ const App = () => {
         {appMode === 'cpq' && cpqStep === CPQ_STEPS.RESULT && (
           <Card.Root borderColor="green.200" borderWidth="2px">
             <Card.Header>
-              <Heading size="lg" color="green.700">{t.cpqResultTitle}</Heading>
+              <HStack justify="space-between" wrap="wrap" gap="2">
+                <Heading size="lg" color="green.700">{t.cpqResultTitle}</Heading>
+                <HStack gap="2">
+                  <Button
+                    size="sm"
+                    variant={cpqResultLocked ? 'solid' : 'outline'}
+                    colorPalette="green"
+                    onClick={() => setCpqResultLocked((v) => !v)}
+                  >
+                    {cpqResultLocked ? (t.cpqResultLock || 'ロック') : (t.cpqResultUnlock || '解除')}
+                  </Button>
+                  <Button size="sm" variant="outline" colorPalette="green" onClick={() => setCpqResultOverrides({ baseAmount: null, optionsTotal: null, discountTotal: null, taxRate: null, taxAmount: null, total: null })}>
+                    {t.cpqRecalculate}
+                  </Button>
+                </HStack>
+              </HStack>
             </Card.Header>
             <Card.Body>
               <Stack gap="4">
-                <Stack gap="1" fontSize="sm">
-                  <Text>{t.cpqBaseAmount}: {getCurrencySymbol(formData.currency)}{cpqResult.baseAmount.toLocaleString()}</Text>
-                  <Text>{t.cpqOptionsTotal}: {getCurrencySymbol(formData.currency)}{cpqResult.optionsTotal.toLocaleString()}</Text>
-                  <Text>{t.cpqDiscountTotal}: {getCurrencySymbol(formData.currency)}{cpqResult.discountTotal.toLocaleString()}</Text>
-                  <Text>{t.taxRate}: {cpqResult.taxRate}% / {t.tax}: {getCurrencySymbol(formData.currency)}{cpqResult.taxAmount.toLocaleString()}</Text>
-                  <Text fontWeight="bold">{t.total}: {getCurrencySymbol(formData.currency)}{cpqResult.total.toLocaleString()}</Text>
-                </Stack>
-                <Separator />
                 <Field.Root>
                   <Field.Label>{t.cpqWriteBackTarget}</Field.Label>
                   <HStack gap="2">
-                    <Button
-                      size="sm"
-                      variant={cpqWriteBackTarget === 'item' ? 'solid' : 'outline'}
-                      colorPalette="green"
-                      onClick={() => { setCpqWriteBackTarget('item'); setCpqWriteBackSubitemColumnId(''); }}
-                    >
+                    <Button size="sm" variant={cpqWriteBackTarget === 'item' ? 'solid' : 'outline'} colorPalette="green" onClick={() => setCpqWriteBackTarget('item')}>
                       {t.cpqWriteBackToItem}
                     </Button>
-                    <Button
-                      size="sm"
-                      variant={cpqWriteBackTarget === 'subitem' ? 'solid' : 'outline'}
-                      colorPalette="green"
-                      onClick={() => { setCpqWriteBackTarget('subitem'); setCpqWriteBackColumnId(''); }}
-                    >
+                    <Button size="sm" variant={cpqWriteBackTarget === 'subitem' ? 'solid' : 'outline'} colorPalette="green" onClick={() => setCpqWriteBackTarget('subitem')}>
                       {t.cpqWriteBackToSubitem}
                     </Button>
                   </HStack>
                 </Field.Root>
-                {cpqWriteBackTarget === 'item' ? (
-                  <Field.Root>
-                    <Field.Label>{t.cpqColumnMapping}</Field.Label>
-                    <Box
-                      as="select"
-                      value={cpqWriteBackColumnId}
-                      onChange={(e) => setCpqWriteBackColumnId(e.target.value)}
-                      minW="240px"
-                      minH="32px"
-                      px="2"
-                      rounded="md"
-                      borderWidth="1px"
-                      borderColor="border"
-                      bg="bg"
-                      fontSize="sm"
-                    >
-                      <option value="">—</option>
-                      {cpqWriteBackColumns.map((col) => (
-                        <option key={col.id} value={col.id}>{col.title}</option>
-                      ))}
-                    </Box>
-                  </Field.Root>
-                ) : (
-                  <Field.Root>
-                    <Field.Label>{t.cpqColumnMapping}（{t.cpqWriteBackToSubitem}）</Field.Label>
-                    <Box
-                      as="select"
-                      value={cpqWriteBackSubitemColumnId}
-                      onChange={(e) => setCpqWriteBackSubitemColumnId(e.target.value)}
-                      minW="240px"
-                      minH="32px"
-                      px="2"
-                      rounded="md"
-                      borderWidth="1px"
-                      borderColor="border"
-                      bg="bg"
-                      fontSize="sm"
-                    >
-                      <option value="">—</option>
-                      {cpqWriteBackSubitemColumns.map((col) => (
-                        <option key={col.id} value={col.id}>{col.title}</option>
-                      ))}
-                    </Box>
-                  </Field.Root>
-                )}
-                <Button
-                  colorPalette="green"
-                  size="lg"
-                  onClick={() => {
-                    if (typeof window !== 'undefined') window.alert('monday への書き戻しは後で実装します。');
-                    setAppMode(null);
-                    setEntryChoice(null);
-                    setCpqStep(CPQ_STEPS.SELECT);
-                  }}
-                >
+                {(['baseAmount', 'optionsTotal', 'discountTotal', 'taxRate', 'taxAmount', 'total']).map((key) => {
+                  const labels = { baseAmount: t.cpqBaseAmount, optionsTotal: t.cpqOptionsTotal, discountTotal: t.cpqDiscountTotal, taxRate: `${t.taxRate}(%)`, taxAmount: t.tax, total: t.total };
+                  const calcVal = cpqResult[key];
+                  const displayVal = cpqResultOverrides[key] != null ? cpqResultOverrides[key] : calcVal;
+                  const isCurrency = key !== 'taxRate';
+                  const cols = cpqWriteBackTarget === 'item' ? cpqWriteBackColumns : cpqWriteBackSubitemColumns;
+                  return (
+                    <HStack key={key} gap="3" align="center" wrap="wrap">
+                      <Text fontSize="sm" minW="100px">{labels[key]}:</Text>
+                      {cpqResultLocked ? (
+                        <Text fontSize="sm">{isCurrency ? getCurrencySymbol(formData.currency) : ''}{Number(displayVal).toLocaleString()}{key === 'taxRate' ? '%' : ''}</Text>
+                      ) : (
+                        <NumberInput.Root size="sm" maxW="140px" value={String(Number.isFinite(displayVal) ? displayVal : 0)} onValueChange={({ valueAsNumber }) => setCpqResultOverrides((o) => ({ ...o, [key]: Number.isFinite(valueAsNumber) ? valueAsNumber : null }))}>
+                          <NumberInput.Input />
+                        </NumberInput.Root>
+                      )}
+                      <Box as="select" value={cpqResultMappings[key] || ''} onChange={(e) => setCpqResultMappings((m) => ({ ...m, [key]: e.target.value }))} minW="160px" minH="28px" px="2" rounded="md" borderWidth="1px" borderColor="border" bg="bg" fontSize="sm">
+                        <option value="">—</option>
+                        {cols.map((col) => (
+                          <option key={col.id} value={col.id}>{col.title}</option>
+                        ))}
+                      </Box>
+                    </HStack>
+                  );
+                })}
+                <Separator />
+                <Button colorPalette="green" size="lg" onClick={() => { if (typeof window !== 'undefined') window.alert('monday への書き戻しは後で実装します。'); setAppMode(null); setEntryChoice(null); setCpqStep(CPQ_STEPS.SELECT); }}>
                   {t.cpqWriteBack}
                 </Button>
                 <Button variant="outline" onClick={() => setCpqStep(CPQ_STEPS.PRICE_MODEL)}>

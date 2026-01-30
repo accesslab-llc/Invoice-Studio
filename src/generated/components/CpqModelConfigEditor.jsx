@@ -13,6 +13,27 @@ import { PRICE_MODEL_TYPES, TIERED_MAX_TIERS } from '../constants/cpq';
 const NUMERIC_COLUMN_TYPES = ['numbers', 'formula'];
 const STATUS_COLUMN_TYPES = ['dropdown', 'color', 'status'];
 
+function safeNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function validateTiers(tiers) {
+  if (!Array.isArray(tiers) || tiers.length === 0) return null;
+  const sorted = [...tiers].sort((a, b) => safeNum(a.min) - safeNum(b.min));
+  for (let i = 0; i < sorted.length; i++) {
+    const t = sorted[i];
+    const min = safeNum(t.min);
+    const max = safeNum(t.max);
+    if (min > max) return '各レンジで「最小」は「最大」以下にしてください。';
+    if (i > 0) {
+      const prevMax = safeNum(sorted[i - 1].max);
+      if (min <= prevMax) return 'レンジが重なっています。前のレンジの「最大」より大きい「最小」にしてください。';
+    }
+  }
+  return null;
+}
+
 function filterNumericColumns(columns) {
   if (!Array.isArray(columns)) return [];
   return columns.filter(c => NUMERIC_COLUMN_TYPES.includes(c.type));
@@ -23,10 +44,11 @@ function filterStatusColumns(columns) {
   return columns.filter(c => STATUS_COLUMN_TYPES.includes(c.type));
 }
 
-/** options: [ { value: '__manual__'|'item__id'|'subitem__id', label } ] */
+/** options: { manual, itemCols, subitemCols } for optgroup display */
 function SourceSlot({ label, value, options, manualValue, onSourceChange, onManualChange, isLocked, t }) {
   const isManual = !value?.columnId;
   const selectValue = isManual ? '__manual__' : (value.columnSource === 'subitem' ? `subitem__${value.columnId}` : `item__${value.columnId}`);
+  const opts = options || { manual: { value: '__manual__', label: t.cpqInputSourceManual }, itemCols: [], subitemCols: [] };
   return (
     <Field.Root size="sm">
       <Field.Label>{label}</Field.Label>
@@ -37,14 +59,14 @@ function SourceSlot({ label, value, options, manualValue, onSourceChange, onManu
           onChange={(e) => {
             const v = e.target.value;
             if (v === '__manual__') {
-              onSourceChange({ type: 'manual', value: manualValue ?? 0 });
+              onSourceChange({ type: 'manual', value: safeNum(manualValue) });
             } else if (v.startsWith('subitem__')) {
               onSourceChange({ type: 'column', columnId: v.slice(9), columnSource: 'subitem' });
             } else {
               onSourceChange({ type: 'column', columnId: v.startsWith('item__') ? v.slice(6) : v, columnSource: 'item' });
             }
           }}
-          minW="200px"
+          minW="220px"
           minH="32px"
           px="2"
           rounded="md"
@@ -54,14 +76,26 @@ function SourceSlot({ label, value, options, manualValue, onSourceChange, onManu
           fontSize="sm"
           disabled={isLocked}
         >
-          {(options || []).map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
+          <option value={opts.manual?.value}>{opts.manual?.label}</option>
+          {opts.itemCols?.length > 0 && (
+            <optgroup label={t.cpqItemColumnGroup || 'アイテムのカラム'}>
+              {opts.itemCols.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </optgroup>
+          )}
+          {opts.subitemCols?.length > 0 && (
+            <optgroup label={t.cpqSubitemColumnGroup || 'サブアイテムのカラム'}>
+              {opts.subitemCols.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </optgroup>
+          )}
         </Box>
         {isManual && (
           <NumberInput.Root
-            value={String(manualValue ?? 0)}
-            onValueChange={({ valueAsNumber }) => onManualChange(valueAsNumber)}
+            value={String(safeNum(manualValue))}
+            onValueChange={({ valueAsNumber }) => onManualChange(Number.isFinite(valueAsNumber) ? valueAsNumber : 0)}
             min={0}
             step={0.01}
             size="sm"
@@ -77,13 +111,14 @@ function SourceSlot({ label, value, options, manualValue, onSourceChange, onManu
 }
 
 function buildNumericOptions(numericColumns, subitemNumericColumns, t) {
-  const opts = [{ value: '__manual__', label: t.cpqInputSourceManual }];
-  (numericColumns || []).forEach(c => opts.push({ value: `item__${c.id}`, label: c.title }));
-  (subitemNumericColumns || []).forEach(c => opts.push({ value: `subitem__${c.id}`, label: `${t.cpqSubitemColumnPrefix}: ${c.title}` }));
-  return opts;
+  return {
+    manual: { value: '__manual__', label: t.cpqInputSourceManual },
+    itemCols: (numericColumns || []).map(c => ({ value: `item__${c.id}`, label: c.title })),
+    subitemCols: (subitemNumericColumns || []).map(c => ({ value: `subitem__${c.id}`, label: c.title }))
+  };
 }
 
-export default function CpqModelConfigEditor({ model, index, board, isLocked, t, onUpdate, getModelLabel }) {
+export default function CpqModelConfigEditor({ model, index, allModels = [], board, isLocked, t, onUpdate, getModelLabel }) {
   const [columns, setColumns] = useState([]);
   const [subitemColumns, setSubitemColumns] = useState([]);
   const [columnsLoading, setColumnsLoading] = useState(true);
@@ -150,6 +185,7 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
   const subitemNumericColumns = filterNumericColumns(subitemColumns);
   const statusColumns = filterStatusColumns(columns);
   const numericOptions = buildNumericOptions(numericColumns, subitemNumericColumns, t);
+  const tierValidationError = model?.type === PRICE_MODEL_TYPES.TIERED ? validateTiers(model.config?.tiers) : null;
 
   const updateConfig = (patch) => {
     onUpdate({ ...model, config: { ...model.config, ...patch } });
@@ -227,6 +263,9 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                 t={t}
               />
               <Text fontSize="xs" fontWeight="medium" color="fg.muted">{t.cpqTierRange}（手入力・最大{TIERED_MAX_TIERS}段階）</Text>
+              {tierValidationError && (
+                <Text fontSize="sm" color="red.500">{tierValidationError}</Text>
+              )}
               {(config.tiers || []).map((tier, ti) => (
                 <HStack key={ti} gap="2" align="center">
                   <NumberInput.Root
@@ -234,10 +273,10 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                     maxW="80px"
                     min={0}
                     disabled={isLocked}
-                    value={String(tier.min)}
+                    value={String(safeNum(tier.min))}
                     onValueChange={({ valueAsNumber }) => {
                       const tiers = [...(config.tiers || [])];
-                      tiers[ti] = { ...tier, min: valueAsNumber };
+                      tiers[ti] = { ...tier, min: Number.isFinite(valueAsNumber) ? valueAsNumber : 0 };
                       updateConfig({ tiers });
                     }}
                   >
@@ -249,10 +288,10 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                     maxW="80px"
                     min={0}
                     disabled={isLocked}
-                    value={String(tier.max)}
+                    value={String(safeNum(tier.max))}
                     onValueChange={({ valueAsNumber }) => {
                       const tiers = [...(config.tiers || [])];
-                      tiers[ti] = { ...tier, max: valueAsNumber };
+                      tiers[ti] = { ...tier, max: Number.isFinite(valueAsNumber) ? valueAsNumber : 0 };
                       updateConfig({ tiers });
                     }}
                   >
@@ -264,10 +303,10 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                     min={0}
                     step={0.01}
                     disabled={isLocked}
-                    value={String(tier.unitPrice)}
+                    value={String(safeNum(tier.unitPrice))}
                     onValueChange={({ valueAsNumber }) => {
                       const tiers = [...(config.tiers || [])];
-                      tiers[ti] = { ...tier, unitPrice: valueAsNumber };
+                      tiers[ti] = { ...tier, unitPrice: Number.isFinite(valueAsNumber) ? valueAsNumber : 0 };
                       updateConfig({ tiers });
                     }}
                   >
@@ -301,6 +340,48 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                   + レンジを追加
                 </Button>
               )}
+            </>
+          )}
+
+          {model.type === PRICE_MODEL_TYPES.PERCENTAGE && (
+            <>
+              <Text fontSize="xs" fontWeight="medium" color="fg.muted">{t.cpqPercentageTargetModels}</Text>
+              <Stack gap="1">
+                {(allModels || []).filter((om) => om.id !== model.id).map((om) => {
+                  const checked = (model.config.targetModelIds || []).includes(om.id);
+                  return (
+                    <HStack key={om.id} gap="2">
+                      <Box
+                        as="input"
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          const ids = e.target.checked
+                            ? [...(model.config.targetModelIds || []), om.id]
+                            : (model.config.targetModelIds || []).filter((id) => id !== om.id);
+                          updateConfig({ targetModelIds: ids });
+                        }}
+                        disabled={isLocked}
+                      />
+                      <Text fontSize="sm">{getModelLabel(om)}</Text>
+                    </HStack>
+                  );
+                })}
+              </Stack>
+              <SourceSlot
+                label="％の値"
+                value={model.config.percentageSource}
+                options={numericOptions}
+                manualValue={model.config.percentageSource?.type === 'manual' ? model.config.percentageSource.value : 0}
+                onSourceChange={(s) => updateConfig({ percentageSource: s })}
+                onManualChange={(v) => updateConfig({ percentageSource: { type: 'manual', value: v } })}
+                isLocked={isLocked}
+                t={t}
+              />
+              <HStack gap="2">
+                <Box as="input" type="checkbox" id={`pct-notation-${model.id}`} checked={model.config.isPercentageNotation !== false} onChange={(e) => updateConfig({ isPercentageNotation: e.target.checked })} disabled={isLocked} />
+                <Text as="label" htmlFor={`pct-notation-${model.id}`} fontSize="sm">{t.cpqPercentageNotation}</Text>
+              </HStack>
             </>
           )}
 
@@ -353,7 +434,7 @@ export default function CpqModelConfigEditor({ model, index, board, isLocked, t,
                       min={0}
                       step={0.01}
                       disabled={isLocked}
-                      value={String((config.planPrices || {})[label] ?? 0)}
+                      value={String(safeNum((config.planPrices || {})[label]))}
                       onValueChange={({ valueAsNumber }) => {
                         const planPrices = { ...(config.planPrices || {}), [label]: valueAsNumber };
                         updateConfig({ planPrices });

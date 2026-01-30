@@ -79,9 +79,7 @@ export function computeModelValue(model, item, subitems = []) {
 
 /**
  * 全モデルを適用して CPQ 計算結果を返す
- * @param {object[]} models - 価格モデル定義の配列
- * @param {object} item - 選択アイテム（変換済み、subitems 含む）
- * @param {number} [taxRate=10] - 税率 (%)
+ * PERCENTAGE は「選択したモデルにかける」なので2パスで計算
  */
 export function runCPQCalculation(models, item, taxRate = 10) {
   let baseAmount = 0;
@@ -100,14 +98,32 @@ export function runCPQCalculation(models, item, taxRate = 10) {
     };
   }
 
-  for (const model of models) {
+  const modelValuesById = {};
+  const nonPctModels = models.filter((m) => m.type !== PRICE_MODEL_TYPES.PERCENTAGE);
+  const pctModels = models.filter((m) => m.type === PRICE_MODEL_TYPES.PERCENTAGE);
+
+  for (const model of nonPctModels) {
     const value = computeModelValue(model, item, subitems);
+    modelValuesById[model.id] = value;
     if (model.role === MODEL_ROLES.ADD) {
       if (baseAmount === 0 && optionsTotal === 0) {
         baseAmount = value;
       } else {
         optionsTotal += value;
       }
+    } else {
+      discountTotal += value;
+    }
+  }
+
+  for (const model of pctModels) {
+    const cfg = model.config;
+    const targetSum = (cfg.targetModelIds || []).reduce((s, id) => s + (modelValuesById[id] ?? 0), 0);
+    const pctRaw = resolveInput(cfg.percentageSource, item, subitems);
+    const pct = cfg.isPercentageNotation ? pctRaw / 100 : pctRaw;
+    const value = targetSum * pct;
+    if (model.role === MODEL_ROLES.ADD) {
+      optionsTotal += value;
     } else {
       discountTotal += value;
     }
