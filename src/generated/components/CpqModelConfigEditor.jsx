@@ -197,7 +197,6 @@ export default function CpqModelConfigEditor({ model, index, allModels = [], boa
 
   return (
     <Box p="3" borderWidth="1px" rounded="md" borderColor="green.200" bg="green.50" _dark={{ bg: 'green.950', borderColor: 'green.800' }}>
-      <Text fontWeight="semibold" fontSize="sm" mb="2">{getModelLabel(model)}</Text>
       {columnsLoading ? (
         <Text fontSize="sm" color="fg.muted">カラム読み込み中...</Text>
       ) : (

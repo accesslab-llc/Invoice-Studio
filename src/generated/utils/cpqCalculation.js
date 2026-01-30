@@ -106,10 +106,10 @@ export function runCPQCalculation(models, item, taxRate = 10) {
     const value = computeModelValue(model, item, subitems);
     modelValuesById[model.id] = value;
     if (model.role === MODEL_ROLES.ADD) {
-      if (baseAmount === 0 && optionsTotal === 0) {
-        baseAmount = value;
-      } else {
+      if (model.optionFee) {
         optionsTotal += value;
+      } else {
+        baseAmount += value;
       }
     } else {
       discountTotal += value;

@@ -47,7 +47,7 @@ export function createEmptyPriceModel(id = `pm-${Date.now()}-${Math.random().toS
  * @param {string} [id] - 一意ID
  */
 export function createPriceModel(type, role, id = `pm-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`) {
-  const base = { id, type, role };
+  const base = { id, type, role, optionFee: false };
   switch (type) {
     case PRICE_MODEL_TYPES.PER_UNIT:
       return { ...base, config: { quantity: { type: 'manual', value: 0 }, unitPrice: { type: 'manual', value: 0 } } };

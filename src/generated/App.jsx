@@ -1627,38 +1627,15 @@ const App = () => {
                       <>
                         {cpqPriceModels.map((m, i) => (
                           <Box key={m.id}>
-                            <HStack p="2" borderWidth="1px" rounded="md" justify="space-between" mb="2">
-                              <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
-                              {!cpqEditLocked && (
-                                <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
-                              )}
-                            </HStack>
-                          <CpqModelConfigEditor
-                            model={m}
-                            index={i}
-                            allModels={cpqPriceModels}
-                            board={board}
-                            isLocked={cpqEditLocked}
-                            t={t}
-                            getModelLabel={getCpqModelLabel}
-                            onUpdate={(updated) => setCpqPriceModels(prev => prev.map((model, j) => (j === i ? updated : model)))}
-                          />
-                          </Box>
-                        ))}
-                      </>
-                    )}
-                    {cpqPriceModels.length > 0 && (
-                      <>
-                        <Text fontWeight="semibold" fontSize="md" color="green.700" pt="2">{t.cpqAddedModelsSectionTitle || '追加されたモデル'}</Text>
-                        {cpqPriceModels.map((m, i) => (
-                          <Box key={m.id}>
                             <HStack p="2" borderWidth="1px" rounded="md" justify="space-between" mb="2" align="center">
                               <Text fontSize="sm" fontWeight="medium">{getCpqModelLabel(m)}</Text>
                               <HStack gap="3" align="center">
-                                <HStack gap="1" align="center">
-                                  <Box as="input" type="checkbox" id={`cpq-option-${m.id}`} checked={m.role === MODEL_ROLES.ADD} onChange={(e) => setCpqPriceModels(prev => prev.map((model, j) => j === i ? { ...model, role: e.target.checked ? MODEL_ROLES.ADD : MODEL_ROLES.SUBTRACT } : model))} disabled={cpqEditLocked} />
-                                  <Text as="label" htmlFor={`cpq-option-${m.id}`} fontSize="xs" whiteSpace="nowrap">{t.cpqOptionFeeCheckbox || 'オプション料金として扱う'}</Text>
-                                </HStack>
+                                {m.role === MODEL_ROLES.ADD && (
+                                  <HStack gap="1" align="center">
+                                    <Box as="input" type="checkbox" id={`cpq-option-${m.id}`} checked={m.optionFee === true} onChange={(e) => setCpqPriceModels(prev => prev.map((model, j) => j === i ? { ...model, optionFee: e.target.checked } : model))} disabled={cpqEditLocked} />
+                                    <Text as="label" htmlFor={`cpq-option-${m.id}`} fontSize="xs" whiteSpace="nowrap">{t.cpqOptionFeeCheckbox || 'オプション料金として扱う'}</Text>
+                                  </HStack>
+                                )}
                                 {!cpqEditLocked && (
                                   <Button size="xs" variant="ghost" colorPalette="red" onClick={() => setCpqPriceModels(prev => prev.filter((_, j) => j !== i))}>{t.deleteTemplate || '削除'}</Button>
                                 )}
