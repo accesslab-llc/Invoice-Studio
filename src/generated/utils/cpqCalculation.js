@@ -23,7 +23,10 @@ function parseNumeric(raw) {
  */
 export function resolveInput(source, item, subitems = []) {
   if (!source) return 0;
-  if (source.type === 'manual' && typeof source.value === 'number') return source.value;
+  if (source.type === 'manual') {
+    const n = source.value == null ? NaN : Number(source.value);
+    return Number.isFinite(n) ? n : 0;
+  }
   if (source.type !== 'column' || !source.columnId) return 0;
   const colId = source.columnId;
   if (source.columnSource === 'subitem') {
